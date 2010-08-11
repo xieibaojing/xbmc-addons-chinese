@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="script.shooterSub"
+       name="shooterSub"
+       version="1.0.0"
+       provider-name="Rabbitgg">
+  <extension point="xbmc.python.subtitles" library="default.py"/>
+  <extension point="xbmc.addon.metadata">
+    <summary>shooterSub Script</summary>
+    <summary lang="zh">射手字幕脚本</summary>
+    <description>Fetch movie subtitles form shooter.cn</description>
+    <description lang="zh">从射手网获取电影字幕</description>
+    <platform>all</platform>
+  </extension>
+</addon>

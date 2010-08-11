@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addons>
+<addon id="plugin.audio.kuwobox"
+    name="KuwoBox"
+    version="1.0.0"
+    provider-name="Robinttt">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>audio</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>KuwoBox audio plugin</summary>
+        <summary lang="zh">酷我音乐盒音乐插件</summary>
+        <description>KuwoBox audio plugin</description>
+        <description lang="zh">酷我音乐盒在线音乐</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.netitv"
+    name="NETITV"
+    version="1.0.0"
+    provider-name="robinttt">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>NETITV video plugin</summary>
+        <summary lang="zh">天翼高清视频插件</summary>
+        <description>NETITV video plugin</description>
+        <description lang="zh">观看中国电信天翼高清在线影视节目，点播内容采用XBMC内置播放器，直播内容调用外部播放程序。</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="repository.googlecode.xbmc-addons-chinese" name="Chinese Add-on Repository" version="1.0.0" provider-name="Taxigps">
+	<extension point="xbmc.addon.repository" name="Chinese Add-on Repository">
+		<info compressed="false">http://xbmc-addons-chinese.googlecode.com/svn/addons/addons.xml</info>
+		<checksum></checksum>
+		<datadir zip="false">http://xbmc-addons-chinese.googlecode.com/svn/addons</datadir>
+	</extension>
+	<extension point="xbmc.addon.metadata">
+		<summary>Install Add-ons from googlecode.xbmc-addons-chinese</summary>
+		<summary lang="zh">从googlecode.xbmc-addons-chinese安装扩展功能</summary>
+		<description>Download and install add-ons from googlecode.xbmc-addons-chinese addon repository.[CR][CR]By using this Repository you will be able to take advantage of our cutting edge features developed for chinese people.</description>
+		<description lang="zh">从googlecode.xbmc-addons-chinese库下载安装扩展功能模块。[CR][CR]通过使用这个程序库，你将能够分享我们为中文用户开发的扩展功能。</description>
+		<disclaimer>Taxigps did not make all the add-ons on this repository and is not responsible for their content</disclaimer>
+		<disclaimer lang="zh">本库中扩展功能模块不完全由Taxigps开发，对他人提交的内容不承担责任</disclaimer>
+		<platform>all</platform>
+	</extension>
+</addon>
+
+<addon id="script.shooterSub"
+       name="shooterSub"
+       version="1.0.0"
+       provider-name="Rabbitgg">
+  <extension point="xbmc.python.subtitles" library="default.py"/>
+  <extension point="xbmc.addon.metadata">
+    <summary>shooterSub Script</summary>
+    <summary lang="zh">射手字幕脚本</summary>
+    <description>Fetch movie subtitles form shooter.cn</description>
+    <description lang="zh">从射手网获取电影字幕</description>
+    <platform>all</platform>
+  </extension>
+</addon>
+</addons>
