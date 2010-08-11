@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addons>
+<addon id="plugin.audio.baiduradio"
+    name="BaiduRadio"
+    version="1.0.0"
+    provider-name="Robinttt">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>audio</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>BaiduRadio audio plugin</summary>
+        <summary lang="zh">百度电台联盟音频插件</summary>
+        <description>BaiduRadio audio plugin</description>
+        <description lang="zh">百度电台联盟音频插件，在线收听功能受电台播出时间和网络条件限制，个别台可能无法收听。</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
 <addon id="plugin.audio.kuwobox"
     name="KuwoBox"
     version="1.0.0"
@@ -14,6 +32,24 @@
         <summary lang="zh">酷我音乐盒音乐插件</summary>
         <description>KuwoBox audio plugin</description>
         <description lang="zh">酷我音乐盒在线音乐</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.vedio.youku"
+    name="YouKu"
+    version="1.0.0"
+    provider-name="Robinttt">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>YouKu video plugin</summary>
+        <summary lang="zh">优酷网视频插件</summary>
+        <description>YouKu video plugin</description>
+        <description lang="zh">观看优酷网在线视频</description>
         <platform>all</platform>
     </extension>
 </addon>
@@ -36,10 +72,28 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.tv365"
+    name="TV365"
+    version="1.0.0"
+    provider-name="Robinttt">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>TV365 video plugin</summary>
+        <summary lang="zh">TV365网络电视直播插件</summary>
+        <description>TV365 video plugin</description>
+        <description lang="zh">TV365网络电视直播插件，内置播放器对于mms类型的流媒体支持度比较好，其他类型如rtsp等可能无法播放。</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
 <addon id="repository.googlecode.xbmc-addons-chinese" name="Chinese Add-on Repository" version="1.0.0" provider-name="Taxigps">
 	<extension point="xbmc.addon.repository" name="Chinese Add-on Repository">
 		<info compressed="false">http://xbmc-addons-chinese.googlecode.com/svn/addons/addons.xml</info>
-		<checksum></checksum>
+		<checksum>http://xbmc-addons-chinese.googlecode.com/svn/addons/addons.xml.md5</checksum>
 		<datadir zip="false">http://xbmc-addons-chinese.googlecode.com/svn/addons</datadir>
 	</extension>
 	<extension point="xbmc.addon.metadata">
