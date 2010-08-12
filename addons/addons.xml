@@ -36,24 +36,6 @@
     </extension>
 </addon>
 
-<addon id="plugin.vedio.youku"
-    name="YouKu"
-    version="1.0.0"
-    provider-name="Robinttt">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary>YouKu video plugin</summary>
-        <summary lang="zh">优酷网视频插件</summary>
-        <description>YouKu video plugin</description>
-        <description lang="zh">观看优酷网在线视频</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
 <addon id="plugin.video.netitv"
     name="NETITV"
     version="1.0.0"
@@ -90,6 +72,24 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.youku"
+    name="YouKu"
+    version="1.0.0"
+    provider-name="Robinttt">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>YouKu video plugin</summary>
+        <summary lang="zh">优酷网视频插件</summary>
+        <description>online video from youku.com</description>
+        <description lang="zh">观看优酷网在线视频</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
 <addon id="repository.googlecode.xbmc-addons-chinese" name="Chinese Add-on Repository" version="1.0.0" provider-name="Taxigps">
 	<extension point="xbmc.addon.repository" name="Chinese Add-on Repository">
 		<info compressed="false">http://xbmc-addons-chinese.googlecode.com/svn/addons/addons.xml</info>
@@ -107,7 +107,7 @@
 	</extension>
 </addon>
 
-<addon id="script.shooterSub"
+<addon id="script.shootersub"
        name="shooterSub"
        version="1.0.0"
        provider-name="Rabbitgg">
