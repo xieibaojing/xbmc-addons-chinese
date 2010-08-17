@@ -54,6 +54,24 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.cntv-live"
+    name="CNTV Live"
+    version="1.0.0"
+    provider-name="Robinttt">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>CNTV Live</summary>
+        <summary lang="zh">中国网络电视台直播插件</summary>
+        <description>CNTV Live video plugin, Please run CCTVPlayerOcxReg.exe first.</description>
+        <description lang="zh">中国网络电视台直播插件，请先运行CCTVPlayerOcxReg.exe进行控件注册</description>
+        <platform>windx wingl</platform>
+    </extension>
+</addon>
+
 <addon id="plugin.video.netitv"
     name="NETITV"
     version="1.0.0"
