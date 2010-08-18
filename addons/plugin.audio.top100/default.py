@@ -2,7 +2,7 @@
 
 #author: sAGiTTaR
 #e-mail: plestoon@gmail.com
-#release: 1.1.2 2010-6-22
+#release: 1.1.3 2010-8-18
 
 import xbmc, xbmcgui, xbmcplugin
 import urllib, httplib
@@ -63,14 +63,14 @@ def getTopSongs(params):
     items = []    
     f = urllib.urlopen(params['url'])
     data = f.read()
-    pattern = '<ul class="sli.*\r\n(.*\r\n)+? +</ul>'
+    pattern = '<ul class="sli.*>\r\n(.*\r\n)+? +</ul>'
     matches = re.finditer(pattern, data)
     i = int(params['group']) * 100
     for match in matches:
         item = xbmcgui.ListItem()
-        pattern = '<li class="l5"><a href="javascript:.*openPlayer\(\'(.+)\'\);".*>\r\n +(.+)</a>'
+        pattern = '<li class="l5"><a href="javascript:.*openPlayer\(\'(.+)\'\);".*\r\n( +title=".+">\r\n)? +(.+)</a>'
         m1 = re.search(pattern, match.group(0))
-        title = m1.group(2).strip()
+        title = m1.group(3).strip()
         pattern = '<a target=\'_blank\'.*?>(.+?)</a>'
         m2 = re.findall(pattern, match.group(0))
         artist = '/'.join(m2)
@@ -281,7 +281,6 @@ def parseParams(str):
         result[key] = value
     return result
 
-print '==================================', sys.argv[0]
 params = parseParams(sys.argv[2])
 
 cmd = params['cmd']
