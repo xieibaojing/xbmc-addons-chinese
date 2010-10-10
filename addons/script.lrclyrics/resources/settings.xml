@@ -1,20 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>   
-    <category label="Settings">
-        <setting id="scraper" type="labelenum" label="201" default="Blue" values="ttplayer|lyrdb" />
-        <setting id="save_lyrics" type="bool" label="202" default="true"/>
-        <setting id="lyrics_path" type="folder" source="files" label="203" default="" />
-        <setting id="compatible" type="bool" label="210" default="false"/>
-        <setting id="use_extension" type="bool" label="211" default="true"/>
-        <setting id="smooth_scrolling" type="bool" label="204" default="true"/>
-        <setting id="use_filename" type="bool" label="206" default="false"/>
-        <setting id="filename_format" type="enum" label="207" default="0" lvalues="2070|2071|2072" />
-        <setting id="music_path" type="folder" source="files" label="208" default="" />
-        <setting id="shuffle" type="bool" label="209" default="true"/>
-    </category>
-    <category label="Info">
-        <setting id="version"   type="text" label="900" default="2.2" enable="false" />
-        <setting id="author"    type="text" label="910" default="Taxigps" enable="false" />
-        <setting id="origauthor"    type="text" label="911" default="EnderW,Nuka1195" enable="false" />
-    </category>    
+    <setting id="scraper" type="labelenum" label="201" default="ttplayer" values="ttplayer|lyrdb" />
+    <setting id="save_lyrics" type="bool" label="202" default="true"/>
+    <setting id="lyrics_path" type="folder" source="files" label="203" default="" />
+    <setting id="compatible" type="bool" label="210" default="false"/>
+    <setting id="artist_folder" type="bool" label="211" default="true"/>
+    <setting id="smooth_scrolling" type="bool" label="204" default="true"/>
+    <setting id="use_filename" type="bool" label="206" default="false"/>
+    <setting id="filename_format" type="enum" label="207" default="0" lvalues="2070|2071|2072" />
+    <setting id="music_path" type="folder" source="files" label="208" default="" />
+    <setting id="shuffle" type="bool" label="209" default="true"/>
 </settings>

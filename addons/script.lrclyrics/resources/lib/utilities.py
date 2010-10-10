@@ -9,12 +9,12 @@ DEBUG_MODE = 4
 _ = sys.modules[ "__main__" ].__language__
 __scriptname__ = sys.modules[ "__main__" ].__scriptname__
 __version__ = sys.modules[ "__main__" ].__version__
+__settings__ = sys.modules[ "__main__" ].__settings__
 
 # comapatble versions
 SETTINGS_VERSIONS = ( "1.7", )
 # base paths
-BASE_DATA_PATH = os.path.join( xbmc.translatePath( "special://profile/" ), "script_data", os.path.basename( os.getcwd() ) )
-BASE_SETTINGS_PATH = os.path.join( xbmc.translatePath( "special://profile/" ), "script_data", os.path.basename( os.getcwd() ), "settings.txt" )
+BASE_DATA_PATH = os.path.join( xbmc.translatePath( "special://profile/" ), "addon_data", os.path.basename( os.getcwd() ) )
 BASE_RESOURCE_PATH = sys.modules[ "__main__" ].BASE_RESOURCE_PATH
 # special button codes
 SELECT_ITEM = ( 11, 256, 61453, )
@@ -119,3 +119,20 @@ def make_legal_filepath( path, compatible=False, extension=True ):
         return filepath.encode( "utf-8" )
     else:
         return filepath
+
+def get_settings():
+    settings = {}
+    settings[ "scraper" ] = __settings__.getSetting( "scraper" )
+    settings[ "save_lyrics" ] = __settings__.getSetting( "save_lyrics" ) == "true"
+    settings[ "lyrics_path" ] = __settings__.getSetting( "lyrics_path" )
+    if ( settings[ "lyrics_path" ] == "" ):
+        settings[ "lyrics_path" ] = os.path.join( BASE_DATA_PATH, "lyrics" )
+        __settings__.setSetting(id="lyrics_path", value=settings[ "lyrics_path" ])
+    settings[ "smooth_scrolling" ] = __settings__.getSetting( "smooth_scrolling" ) == "true"
+    settings[ "use_filename" ] = __settings__.getSetting( "use_filename" ) == "true"
+    settings[ "filename_format" ] = __settings__.getSetting( "filename_format" )
+    settings[ "music_path" ] = __settings__.getSetting( "music_path" )
+    settings[ "shuffle" ] = __settings__.getSetting( "shuffle" ) == "true"
+    settings[ "compatible" ] = __settings__.getSetting( "compatible" ) == "true"
+    settings[ "artist_folder" ] = __settings__.getSetting( "artist_folder" ) == "true"
+    return settings
