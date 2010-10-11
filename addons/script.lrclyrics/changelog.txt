@@ -1,4 +1,7 @@
-﻿[B]1.3.0 (2010.10.10)[/B]
+﻿[B]1.3.1 (2010.10.11)[/B]
+added: scraper for embedded lrc lyrics in TXXX id3 frame
+
+[B]1.3.0 (2010.10.10)[/B]
 changed: regular setting code
 
 [B]1.2.2 (2010.8.13)[/B]

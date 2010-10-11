@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>   
-    <setting id="scraper" type="labelenum" label="201" default="ttplayer" values="ttplayer|lyrdb" />
+    <setting id="scraper" type="labelenum" label="201" default="ttplayer" values="ttplayer|lyrdb|embedded" />
     <setting id="save_lyrics" type="bool" label="202" default="true"/>
     <setting id="lyrics_path" type="folder" source="files" label="203" default="" />
     <setting id="compatible" type="bool" label="210" default="false"/>
