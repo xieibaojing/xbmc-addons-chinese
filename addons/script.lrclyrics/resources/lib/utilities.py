@@ -6,10 +6,10 @@ import xbmcgui
 
 DEBUG_MODE = 4
 
-_ = sys.modules[ "__main__" ].__language__
 __scriptname__ = sys.modules[ "__main__" ].__scriptname__
 __version__ = sys.modules[ "__main__" ].__version__
 __settings__ = sys.modules[ "__main__" ].__settings__
+__language__ = sys.modules[ "__main__" ].__language__
 
 # comapatble versions
 SETTINGS_VERSIONS = ( "1.7", )
@@ -84,13 +84,6 @@ def LOG( status, format, *args ):
     if ( DEBUG_MODE >= status ):
         xbmc.output( "%s: %s\n" % ( ( "INFO", "ERROR", "NOTICE", "DEBUG", )[ status - 1 ], format % args, ) )
 
-def show_credits():
-    """ shows a credit window """
-    import resources.lib.credits as credits
-    c = credits.GUI( "script-%s-credits.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(), "Default" )
-    c.doModal()
-    del c
-
 def make_legal_filepath( path, compatible=False, extension=True ):
     environment = os.environ.get( "OS", "xbox" )
     path = path.replace( "\\", "/" )
@@ -131,8 +124,6 @@ def get_settings():
     settings[ "smooth_scrolling" ] = __settings__.getSetting( "smooth_scrolling" ) == "true"
     settings[ "use_filename" ] = __settings__.getSetting( "use_filename" ) == "true"
     settings[ "filename_format" ] = __settings__.getSetting( "filename_format" )
-    settings[ "music_path" ] = __settings__.getSetting( "music_path" )
-    settings[ "shuffle" ] = __settings__.getSetting( "shuffle" ) == "true"
     settings[ "compatible" ] = __settings__.getSetting( "compatible" ) == "true"
     settings[ "artist_folder" ] = __settings__.getSetting( "artist_folder" ) == "true"
     return settings

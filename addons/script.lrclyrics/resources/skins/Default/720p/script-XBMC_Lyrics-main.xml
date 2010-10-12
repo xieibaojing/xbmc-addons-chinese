@@ -16,39 +16,39 @@
 	<controls>
 		<control type="image">
 			<description>background image</description>
-			<posx>40</posx>
-			<posy>40</posy>
-			<width>640</width>
-			<height>496</height>
+			<posx>200</posx>
+			<posy>70</posy>
+			<width>880</width>
+			<height>540</height>
 			<texture border="20,20,20,20">default-panel.png</texture>
 		</control>
 		<!-- media infos -->
 		<control type="group">
-			<posx>40</posx>
-			<posy>40</posy>
+			<posx>200</posx>
+			<posy>70</posy>
 			<control type="image">
 				<description>Cover Image</description>
 				<posx>34</posx>
 				<posy>34</posy>
-				<width>112</width>
-				<height>112</height>
+				<width>128</width>
+				<height>128</height>
 				<texture diffuse="default-diffuse.png">$INFO[MusicPlayer.Cover]</texture>
 				<aspectratio>stretch</aspectratio>
 			</control>
 			<control type="image">
 				<description>Cover Image Mirror</description>
 				<posx>34</posx>
-				<posy>146</posy>
-				<width>112</width>
-				<height>112</height>
+				<posy>162</posy>
+				<width>128</width>
+				<height>128</height>
 				<texture flipy="true" diffuse="default-diffuse-mirror.png">$INFO[MusicPlayer.Cover]</texture>
 				<aspectratio>stretch</aspectratio>
 			</control>
 			<control type="label">
 				<description>CU Lyrics label</description>
-				<posx>220</posx>
+				<posx>350</posx>
 				<posy>34</posy>
-				<width>200</width>
+				<width>180</width>
 				<label>[B]$LOCALIZE[SCRIPT0][/B]</label>
 				<font>font13</font>
 				<align>center</align>
@@ -57,18 +57,18 @@
 			</control>
 			<control type="image">
 				<description>separator</description>
-				<posx>270</posx>
-				<posy>55</posy>
-				<width>100</width>
+				<posx>366</posx>
+				<posy>58</posy>
+				<width>150</width>
 				<height>1</height>
 				<texture>default-separatorOSD.png</texture>
 				<colordiffuse>DDFFFFFF</colordiffuse>
 			</control>
 			<control type="label" id="200">
 				<description>Scraper Label</description>
-				<posx>600</posx>
+				<posx>846</posx>
 				<posy>34</posy>
-				<width>220</width>
+				<width>300</width>
 				<posx>600</posx>
 				<label>-</label>
 				<font>font13</font>
@@ -78,9 +78,9 @@
 			</control>
 			<control type="label">
 				<description>Artist label</description>
-				<posx>168</posx>
-				<posy>65</posy>
-				<width>438</width>
+				<posx>184</posx>
+				<posy>75</posy>
+				<width>662</width>
 				<label>[B]$INFO[MusicPlayer.Artist][/B]</label>
 				<font>font13</font>
 				<align>left</align>
@@ -88,9 +88,9 @@
 			</control>
 			<control type="label">
 				<description>Title label</description>
-				<posx>168</posx>
-				<posy>85</posy>
-				<width>340</width>
+				<posx>184</posx>
+				<posy>95</posy>
+				<width>540</width>
 				<label>[B]$INFO[MusicPlayer.Title][/B]</label>
 				<font>font13</font>
 				<align>left</align>
@@ -98,9 +98,9 @@
 			</control>
 			<control type="label">
 				<description>Album label</description>
-				<posx>168</posx>
-				<posy>105</posy>
-				<width>340</width>
+				<posx>184</posx>
+				<posy>115</posy>
+				<width>540</width>
 				<label>[B]$INFO[MusicPlayer.Album][/B]</label>
 				<font>font13</font>
 				<align>left</align>
@@ -108,17 +108,17 @@
 			</control>
 			<control type="image">
 				<description>Song Rating Image</description>
-				<posx>515</posx>
-				<posy>85</posy>
-				<height>15</height>
-				<width>90</width>
+				<posx>736</posx>
+				<posy>95</posy>
+				<height>20</height>
+				<width>120</width>
 				<texture>$INFO[Player.StarRating]</texture>
 				<aspectratio>keep</aspectratio>
 			</control>
 			<control type="label">
 				<description>Time Label</description>
-				<posx>168</posx>
-				<posy>125</posy>
+				<posx>184</posx>
+				<posy>135</posy>
 				<width>200</width>
 				<label>$INFO[MusicPlayer.Time]</label>
 				<font>font13</font>
@@ -127,8 +127,8 @@
 			</control>
 			<control type="label">
 				<description>Duration Label</description>
-				<posx>600</posx>
-				<posy>124</posy>
+				<posx>846</posx>
+				<posy>134</posy>
 				<width>200</width>
 				<label>$INFO[MusicPlayer.Duration]</label>
 				<font>font13</font>
@@ -137,8 +137,8 @@
 			</control>
 			<control type="label">
 				<description>Playlist Pos No</description>
-				<posx>600</posx>
-				<posy>104</posy>
+				<posx>846</posx>
+				<posy>114</posy>
 				<width>200</width>
 				<label>$INFO[MusicPlayer.Playlistposition,$LOCALIZE[435] ]$INFO[MusicPlayer.Playlistlength,/]</label>
 				<font>font13</font>
@@ -148,8 +148,8 @@
 			</control>
 			<control type="label">
 				<description>PartyMode Enabled</description>
-				<posx>600</posx>
-				<posy>104</posy>
+				<posx>846</posx>
+				<posy>114</posy>
 				<width>200</width>
 				<label>589</label>
 				<font>font13</font>
@@ -159,9 +159,9 @@
 			</control>
 			<control type="progress">
 				<description>Progressbar</description>
-				<posx>210</posx>
-				<posy>128</posy>
-				<width>346</width>
+				<posx>254</posx>
+				<posy>141</posy>
+				<width>516</width>
 				<height>12</height>
 				<info>Player.Progress</info>
 				<texturebg border="6,0,6,0">default-progress_back.png</texturebg>
@@ -174,8 +174,8 @@
 			<control type="image">
 				<description>separator</description>
 				<posx>14</posx>
-				<posy>165</posy>
-				<width>612</width>
+				<posy>180</posy>
+				<width>852</width>
 				<height>2</height>
 				<texture>default-separatorOSD.png</texture>
 			</control>
@@ -183,10 +183,10 @@
 		<!-- ** Required ** Do not change <id> or <type> -->
 		<control type="textbox" id="100">
 			<description>textarea</description>
-			<posx>74</posx>
-			<posy>225</posy>
-			<width>572</width>
-			<height>261</height>
+			<posx>234</posx>
+			<posy>270</posy>
+			<width>812</width>
+			<height>290</height>
 			<onup>101</onup>
 			<ondown>101</ondown>
 			<onleft>101</onleft>
@@ -197,10 +197,10 @@
 		</control>
   		<control type="spincontrol" id="101">
 			<description>Next page button</description>
-			<posx>610</posx>
-			<posy>500</posy>
-			<width>20</width>
-			<height>15</height>
+			<posx>996</posx>
+			<posy>565</posy>
+			<width>25</width>
+			<height>22</height>
 			<font>font13</font>
 			<align>right</align>
 			<subtype>page</subtype>
@@ -218,10 +218,10 @@
 		</control>        
 		<!-- ** Required ** Do not change <id> or <type> -->
 		<control type="list" id="110">
-			<posx>74</posx>
-			<posy>225</posy>
-			<width>572</width>
-			<height>261</height>
+			<posx>234</posx>
+			<posy>270</posy>
+			<width>812</width>
+			<height>290</height>
 			<onleft>111</onleft>
 			<onright>111</onright>
 			<onup>110</onup>
@@ -233,7 +233,7 @@
 				<control type="label">
 					<posx>10</posx>
 					<posy>3</posy>
-					<width>552</width>
+					<width>796</width>
 					<height>22</height>
 					<info>ListItem.Label</info>
 					<font>font13</font>
@@ -246,7 +246,7 @@
 				<control type="image">
 					<posx>0</posx>
 					<posy>0</posy>
-					<width>572</width>
+					<width>812</width>
 					<height>29</height>
 					<texture>default-list-focus.png</texture>
 					<visible>Control.HasFocus(110)</visible>
@@ -254,7 +254,7 @@
 				<control type="label">
 					<posx>10</posx>
 					<posy>3</posy>
-					<width>552</width>
+					<width>796</width>
 					<height>22</height>
 					<info>ListItem.Label</info>
 					<font>font13</font>
@@ -266,10 +266,10 @@
 		</control>
   		<control type="spincontrol" id="111">
 			<description>Next page button</description>
-			<posx>610</posx>
-			<posy>500</posy>
-			<width>20</width>
-			<height>15</height>
+			<posx>996</posx>
+			<posy>565</posy>
+			<width>25</width>
+			<height>22</height>
 			<font>font13</font>
 			<align>right</align>
 			<subtype>page</subtype>
@@ -287,10 +287,10 @@
 		</control>
 		<!-- ** Required ** Do not change <id> or <type> -->
 		<control type="list" id="120">
-			<posx>74</posx>
-			<posy>225</posy>
-			<width>572</width>
-			<height>261</height>
+			<posx>234</posx>
+			<posy>270</posy>
+			<width>812</width>
+			<height>290</height>
 			<onleft>121</onleft>
 			<onright>121</onright>
 			<onup>120</onup>
@@ -302,7 +302,7 @@
 				<control type="label">
 					<posx>10</posx>
 					<posy>3</posy>
-					<width>552</width>
+					<width>796</width>
 					<height>22</height>
 					<info>ListItem.Label</info>
 					<font>font13</font>
@@ -315,7 +315,7 @@
 				<control type="image">
 					<posx>0</posx>
 					<posy>0</posy>
-					<width>572</width>
+					<width>812</width>
 					<height>29</height>
 					<texture>default-list-focus.png</texture>
 					<visible>Control.HasFocus(120)</visible>
@@ -323,7 +323,7 @@
 				<control type="label">
 					<posx>10</posx>
 					<posy>3</posy>
-					<width>552</width>
+					<width>796</width>
 					<height>22</height>
 					<info>ListItem.Label</info>
 					<font>font13</font>
@@ -335,10 +335,10 @@
 		</control>
   		<control type="spincontrol" id="121">
 			<description>Next page button</description>
-			<posx>610</posx>
-			<posy>500</posy>
-			<width>20</width>
-			<height>15</height>
+			<posx>996</posx>
+			<posy>565</posy>
+			<width>25</width>
+			<height>22</height>
 			<font>font13</font>
 			<align>right</align>
 			<subtype>page</subtype>
