@@ -245,7 +245,7 @@ def Movies(url,name,thumb):
                  plot=match[0]
 
         match=re.compile('<playurls>(.+?)</playurls>').findall(match1[0])
-        match1=re.compile('type="2"(.+?)<!\[CDATA\[(.+?)]]></url>').findall(match[0]) 
+        match1=re.compile('type="3"(.+?)<!\[CDATA\[(.+?)]]></url>').findall(match[0]) 
         if len(match1)==1:
 	        li=xbmcgui.ListItem(u'播放：'.encode('utf8')+name,iconImage='', thumbnailImage=thumb)
 	        li.setInfo(type="Video",infoLabels={"Title":name,"Director":director,"Studio":studio,"Plot":plot})

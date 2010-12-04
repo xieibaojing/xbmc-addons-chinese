@@ -95,7 +95,7 @@
 
 <addon id="plugin.video.netitv"
     name="NETITV"
-    version="1.0.0"
+    version="1.0.1"
     provider-name="robinttt">
     <extension
         point="xbmc.python.pluginsource"
