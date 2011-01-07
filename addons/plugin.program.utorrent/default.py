@@ -52,6 +52,9 @@ def getList():
     data = data.split('\n')
     torrentList = []
     for line in data:
+        if '\"rssfeeds\"' in line:
+            LOG( LOG_DEBUG, "%s %s::%s", __addonname__, 'getList', 'break with \"rssfeeds\"')
+            break
         if len(line) > 80:
             torrentList.append(line)
             LOG( LOG_DEBUG, "%s %s::%s", __addonname__, 'getList', line)
