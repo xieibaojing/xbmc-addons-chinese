@@ -186,7 +186,7 @@
 
 <addon id="plugin.video.youku"
     name="YouKu"
-    version="1.0.0"
+    version="1.0.1"
     provider-name="Robinttt">
     <extension
         point="xbmc.python.pluginsource"
