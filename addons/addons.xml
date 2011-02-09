@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <addons>
 <addon id="plugin.audio.baiduradio"
     name="BaiduRadio"
@@ -166,6 +166,42 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.sohuvideo"
+    name="搜狐视频"
+    version="1.0.1"
+    provider-name="Robinttt">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>SoHu Video</summary>
+        <summary lang="zh">搜狐视频插件</summary>
+        <description>SoHu video plugin</description>
+        <description lang="zh">观看搜狐视频影视节目。由visualcjy于20110130修补以适应新版本</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.somovie"
+    name="SoMovie-搜索电影"
+    version="1.0.1"
+    provider-name="visualcjy@21cn.com">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>search and play movie/video in supported video plugin</summary>
+        <summary lang="zh">在现有的几个视频插件网站搜索和播放电影</summary>
+        <description>search and play movie/video in 5 Chinese video plugin. Support PinYin input and translate into Chinese by Google search engine.</description>
+        <description lang="zh">由于目前XBMC暂不支持中文输入，所以通过google查询的提示功能，将常用拼音或简拼翻译成中文名。支持PPStream、QVOD、中国电信天翼NetITV、搜狐高清视频、广西宽频网（联通）的影片搜索，若网站支持也可以查到演员、简介等相关视频。要搜索哪个网站前需保证对应的视频插件已经安装，并且插件目录名未做修改。 - by visualcjy@21cn.com 20100725. 首发于http://bbs.htpc1.com  - 20110129 修改适应google搜索的变化</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
 <addon id="plugin.video.tv365"
     name="TV365"
     version="1.0.0"
@@ -251,41 +287,3 @@
   </extension>
 </addon>
 </addons>
-
-<addon id="plugin.video.somovie"
-    name="SoMovie-搜索电影"
-    version="1.0.1"
-    provider-name="visualcjy@21cn.com">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary>search and play movie/video in supported video plugin</summary>
-        <summary lang="zh">在现有的几个视频插件网站搜索和播放电影</summary>
-        <description>search and play movie/video in 5 Chinese video plugin. Support PinYin input and translate into Chinese by Google search engine.</description>
-        <description lang="zh">由于目前XBMC暂不支持中文输入，所以通过google查询的提示功能，将常用拼音或简拼翻译成中文名。支持PPStream、QVOD、中国电信天翼NetITV、搜狐高清视频、广西宽频网（联通）的影片搜索，若网站支持也可以查到演员、简介等相关视频。要搜索哪个网站前需保证对应的视频插件已经安装，并且插件目录名未做修改。 - by visualcjy@21cn.com 20100725. 首发于http://bbs.htpc1.com  - 20110129 修改适应google搜索的变化</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.sohuvideo"
-    name="搜狐视频"
-    version="1.0.1"
-    provider-name="Robinttt,visualcjy">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary>SoHu Video</summary>
-        <summary lang="zh">搜狐视频插件</summary>
-        <description>SoHu video plugin</description>
-        <description lang="zh">观看搜狐视频影视节目。由visualcjy于20110130修补以适应新版本</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
-
