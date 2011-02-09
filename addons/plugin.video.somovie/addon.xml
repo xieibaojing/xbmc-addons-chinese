@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="cn.video.SoMovie"
+<addon id="plugin.video.somovie"
     name="SoMovie-搜索电影"
     version="1.0.1"
     provider-name="visualcjy@21cn.com">
