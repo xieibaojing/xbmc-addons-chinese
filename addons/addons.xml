@@ -168,7 +168,7 @@
 
 <addon id="plugin.video.sohuvideo"
     name="搜狐视频"
-    version="1.0.1"
+    version="1.0.2"
     provider-name="Robinttt">
     <extension
         point="xbmc.python.pluginsource"
