@@ -220,6 +220,24 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.yinyuetai"
+    name="音悦台MV"
+    version="0.8.0"
+    provider-name="Skyemperor">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>YinYueTai video plugin</summary>
+        <summary lang="zh">音悦台视频插件</summary>
+        <description>online mv from yinyuetai.com</description>
+        <description lang="zh">观看音悦台在线MV</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
 <addon id="plugin.video.youku"
     name="YouKu"
     version="1.0.1"
