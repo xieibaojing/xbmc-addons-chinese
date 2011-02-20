@@ -143,10 +143,11 @@ def ListsA(url,name):
 
                 match1=re.compile('<sub_programs(.+?)/>').findall(info)
                 if len(match1)>0:
-                         match1=re.compile('<playurls>(.+?)</url>').findall(info)
+                         match1=re.compile('<playurls>(.+?)</playurls>').findall(info)
                          if len(match1)>0:
-	                         li=xbmcgui.ListItem(u'播放：'.encode('utf8')+name,iconImage='', thumbnailImage=os.getcwd()+'/resources/media/NetitvPLay.png')
-                                 u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus('|play|'+uuid+'|0|')
+                                 match2=re.compile('type="3".+?<!\[CDATA\[(.+?)]]></url>').findall(match1[0]) 
+                                 li=xbmcgui.ListItem(u'播放：'.encode('utf8')+name,iconImage='', thumbnailImage=os.getcwd()+'/resources/media/NetitvPLay.png')
+                                 u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(match2[0])+"&thumb="+urllib.quote_plus(thumbp)
                                  xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
                          else:
                                  li=xbmcgui.ListItem(str(num)+'.'+name,iconImage='', thumbnailImage=thumbp)
@@ -272,13 +273,16 @@ def PlayVideo(url,name,thumb):
         listitem=xbmcgui.ListItem(name,thumbnailImage=thumb)
         xbmc.Player().play(match[0],listitem)
 
-def PlayTV(url,name):
-        dialog = xbmcgui.Dialog()
-        if dialog.yesno(name, u'直播节目目前只能通过调用外置播放器实现，是否继续？'.encode('utf8')):
-		if (os.name == 'nt'):
-                	xbmc.executebuiltin('System.ExecWait(\\"'+ os.getcwd()+'\\resources\\player\\eLiveMovie_Full.exe\\" '+url+')')
-		else:
-                	xbmc.executebuiltin('System.ExecWait(\\"wine '+ os.getcwd()+'/resources/player/eLiveMovie_Full.exe\\" '+url+')')
+def PlayTV(url,name,thumb):
+        v_url = "http://biz.vsdn.tv380.com/playlive.php?"+url+"|smil"
+        req = urllib2.Request(v_url)
+        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
+        response = urllib2.urlopen(req)
+        link=response.read()
+        response.close()
+        match=re.compile('<video src="(.+?)" />').findall(link)
+        listitem=xbmcgui.ListItem(name,thumbnailImage=thumb)
+        xbmc.Player().play(match[0],listitem)
 
 def get_params():
         param=[]
@@ -339,7 +343,7 @@ elif mode==4:
 	Movies(url,name,thumb)
 
 elif mode==5:
-	PlayTV(url,name)
+	PlayTV(url,name,thumb)
 
 elif mode==6:
 	PlayVideo(url,name,thumb)

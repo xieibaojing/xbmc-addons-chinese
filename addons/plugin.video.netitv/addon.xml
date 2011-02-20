@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.netitv"
     name="NETITV"
-    version="1.0.2"
+    version="1.0.3"
     provider-name="robinttt">
     <extension
         point="xbmc.python.pluginsource"
