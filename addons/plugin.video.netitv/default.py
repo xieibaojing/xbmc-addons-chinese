@@ -224,10 +224,9 @@ def Movies(url,name,thumb):
         link=response.read()
         response.close()
 
-        match=re.sub('\r','',link)
-        match=re.sub('\n','',match)
-
-        match1=re.compile('<!\[CDATA\['+name+']]>(.+?)</movie>').findall(match)
+        match=link.replace('\r','').replace('\n','')
+        sname=name.replace('(','\(').replace(')','\)')
+        match1=re.compile('<!\[CDATA\['+sname+']]>(.+?)</movie>').findall(match)
         match=re.compile('<director><!\[CDATA\[(.+?)]]></director>').findall(match1[0])
         if len(match)==0:
                  director=''
@@ -245,21 +244,33 @@ def Movies(url,name,thumb):
                  plot=match[0]
 
         match=re.compile('<playurls>(.+?)</playurls>').findall(match1[0])
-        match1=re.compile('type="3"(.+?)<!\[CDATA\[(.+?)]]></url>').findall(match[0]) 
+        match1=re.compile('type="3".+?<!\[CDATA\[(.+?)]]></url>').findall(match[0]) 
         if len(match1)==1:
-	        li=xbmcgui.ListItem(u'播放：'.encode('utf8')+name,iconImage='', thumbnailImage=thumb)
-	        li.setInfo(type="Video",infoLabels={"Title":name,"Director":director,"Studio":studio,"Plot":plot})
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),match1[0][1],li)
+                li=xbmcgui.ListItem(u'播放：'.encode('utf8')+name,iconImage='', thumbnailImage=thumb)
+                li.setInfo(type="Video",infoLabels={"Title":name,"Director":director,"Studio":studio,"Plot":plot})
+                u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(match1[0])+"&thumb="+urllib.quote_plus(thumb)
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
 
         elif len(match1)>1:
                 num=0
-                for tmp1,info in match1:
+                for info in match1:
                        num=num+1
                        fullname=name+u' 【第'.encode('utf8')+str(num)+u'集】'.encode('utf8')
                        li=xbmcgui.ListItem(u'播放：'.encode('utf8')+fullname,iconImage='', thumbnailImage=thumb)
                        li.setInfo(type="Video",infoLabels={"Title":fullname,"Director":director,"Studio":studio,"Plot":plot})
-                       xbmcplugin.addDirectoryItem(int(sys.argv[1]),info,li)
+                       u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus(fullname)+"&url="+urllib.quote_plus(info)+"&thumb="+urllib.quote_plus(thumb)
+                       xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
 
+def PlayVideo(url,name,thumb):
+        v_url = "http://biz.vsdn.tv380.com/playvod.php?"+url+"|smil"
+        req = urllib2.Request(v_url)
+        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
+        response = urllib2.urlopen(req)
+        link=response.read()
+        response.close()
+        match=re.compile('<video src="(.+?)" />').findall(link)
+        listitem=xbmcgui.ListItem(name,thumbnailImage=thumb)
+        xbmc.Player().play(match[0],listitem)
 
 def PlayTV(url,name):
         dialog = xbmcgui.Dialog()
@@ -330,6 +341,8 @@ elif mode==4:
 elif mode==5:
 	PlayTV(url,name)
 
+elif mode==6:
+	PlayVideo(url,name,thumb)
 
 xbmcplugin.setPluginCategory(int(sys.argv[1]), name )
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
