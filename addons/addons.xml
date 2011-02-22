@@ -114,7 +114,7 @@
 
 <addon id="plugin.video.netitv"
     name="NETITV"
-    version="1.0.3"
+    version="1.0.4"
     provider-name="robinttt">
     <extension
         point="xbmc.python.pluginsource"
@@ -125,7 +125,7 @@
         <summary>NETITV video plugin</summary>
         <summary lang="zh">天翼高清视频插件</summary>
         <description>NETITV video plugin</description>
-        <description lang="zh">观看中国电信天翼高清在线影视节目，点播内容采用XBMC内置播放器，直播内容调用外部播放程序。</description>
+        <description lang="zh">观看中国电信天翼高清在线影视节目，点播和直播内容均采用XBMC内置播放器，可在所有操作系统平台使用。</description>
         <platform>all</platform>
     </extension>
 </addon>
