@@ -113,8 +113,8 @@
 </addon>
 
 <addon id="plugin.video.netitv"
-    name="NETITV"
-    version="1.0.4"
+    name="天翼高清"
+    version="1.0.5"
     provider-name="robinttt">
     <extension
         point="xbmc.python.pluginsource"
@@ -145,6 +145,24 @@
         <description>PPStream video plugin</description>
         <description lang="zh">观看PPStream在线影视节目。[CR][CR]说明：[CR]1.必须安装PPS网络电视；[CR]2.第一次使用请运行插件文件夹下\resources\player\KeymapSet.exe设置遥控器快捷键。</description>
         <platform>windx wingl</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.qiyi"
+    name="奇艺视频"
+    version="1.0.0"
+    provider-name="taxigps">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>QIYI Video plugin</summary>
+        <summary lang="zh">奇艺视频插件</summary>
+        <description>Online video form QIYI.COM</description>
+        <description lang="zh">奇艺（QIYI.COM）是由百度创立的大型专业网站，专注于提供免费、高清网络视频服务。奇艺的优质版权视频丰富多元，涵盖了电影、电视剧、综艺、纪录片、动漫、旅游等众多内容形态。</description>
+        <platform>all</platform>
     </extension>
 </addon>
 
