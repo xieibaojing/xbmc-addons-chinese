@@ -151,10 +151,18 @@ def seriesList(url, name, thumb):
     else:
         p_director = match1[0]
     p_cast = re.compile('class="f14">(.*?)</a>饰演<spanclass="f14">(.*?)</span>').findall(link)
-    match = re.compile('<li><ahref="(.+?)"class="imgBg1"><.+?src="(.+?)"title="(.+?)".*?">第([0-9]+)集</a></li>').findall(link)
+    match1 = re.compile('<divid="j-album-[^>]*>(.*?)</div>').findall(link)
+    album = ''
+    for url1 in match1:
+        album = album + GetHttpData('http://www.qiyi.com' + url1)
+    match2 = re.compile('<divid="j-desc-[^>]*>(.*?)</div>').findall(link)
+    desc = ''
+    for url1 in match2:
+        desc = desc + GetHttpData('http://www.qiyi.com' + url1)
+    match = re.compile('<li><ahref="(.+?)"class="imgBg1"><.+?src="(.+?)"title="(.+?)".*?">第([0-9]+)集</a></li>').findall(album)
     totalItems = len(match)
     for p_url, p_thumb, p_name, p_episode in match:
-        match1 = re.compile('<ahref="' + p_url + '">' + p_name + '</a></span><pstyle=.*?>(.*?)</p>').findall(link)
+        match1 = re.compile('<ahref="' + p_url + '">' + p_name + '</a></span><pstyle=.*?>(.*?)</p>').findall(desc)
         if len(match1) > 0:
             p_plot = match1[0]
         else:

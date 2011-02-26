@@ -150,7 +150,7 @@
 
 <addon id="plugin.video.qiyi"
     name="奇艺视频"
-    version="0.6.0"
+    version="0.6.1"
     provider-name="taxigps">
     <extension
         point="xbmc.python.pluginsource"
