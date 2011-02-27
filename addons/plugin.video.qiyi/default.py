@@ -201,7 +201,10 @@ def performChannel():
         __addon__.setSetting(id="movie_area", value='全部')
         __addon__.setSetting(id="order", value='最新')
         __addon__.setSetting(id="page", value="1")
-        xbmc.executebuiltin('Container.Refresh')
+        if __addon__.getSetting('remember_dir') == "true"
+            rootList()
+        else:
+            xbmc.executebuiltin('Container.Refresh')
 
 def performChanges():
     change = False
@@ -230,7 +233,10 @@ def performChanges():
         change = True
 
     if change:
-        xbmc.executebuiltin('Container.Refresh')
+        if __addon__.getSetting('remember_dir') == "true"
+            rootList()
+        else:
+            xbmc.executebuiltin('Container.Refresh')
 
 def get_params():
     param = []
@@ -281,7 +287,10 @@ if mode == None:
     rootList()
 elif mode == 1:
     __addon__.setSetting(id="page", value=page)
-    xbmc.executebuiltin('Container.Refresh')
+    if __addon__.getSetting('remember_dir') == "true"
+        rootList()
+    else:
+        xbmc.executebuiltin('Container.Refresh')
 elif mode == 2:
     PlayVideo(url, name, thumb)
 elif mode == 3:
