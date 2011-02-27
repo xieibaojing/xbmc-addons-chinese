@@ -201,7 +201,7 @@ def performChannel():
         __addon__.setSetting(id="movie_area", value='全部')
         __addon__.setSetting(id="order", value='最新')
         __addon__.setSetting(id="page", value="1")
-        if __addon__.getSetting('remember_dir') == "true"
+        if __addon__.getSetting('remember_dir') == "true":
             rootList()
         else:
             xbmc.executebuiltin('Container.Refresh')
@@ -233,7 +233,7 @@ def performChanges():
         change = True
 
     if change:
-        if __addon__.getSetting('remember_dir') == "true"
+        if __addon__.getSetting('remember_dir') == "true":
             rootList()
         else:
             xbmc.executebuiltin('Container.Refresh')
@@ -287,7 +287,7 @@ if mode == None:
     rootList()
 elif mode == 1:
     __addon__.setSetting(id="page", value=page)
-    if __addon__.getSetting('remember_dir') == "true"
+    if __addon__.getSetting('remember_dir') == "true":
         rootList()
     else:
         xbmc.executebuiltin('Container.Refresh')
