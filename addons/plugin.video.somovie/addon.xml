@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.somovie"
-    name="SoMovie-搜索电影"
-    version="1.0.1"
+    name="搜索电影(SoMovie)"
+    version="1.0.2"
     provider-name="visualcjy@21cn.com">
     <extension
         point="xbmc.python.pluginsource"
@@ -9,9 +9,9 @@
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary>search and play movie/video in supported video plugin</summary>
+        <summary lang="en">Search and play movie/video in supported video plugin</summary>
         <summary lang="zh">在现有的几个视频插件网站搜索和播放电影</summary>
-        <description>search and play movie/video in 5 Chinese video plugin. Support PinYin input and translate into Chinese by Google search engine.</description>
+        <description lang="en">Search and play movie/video in 5 Chinese video plugin. Support PinYin input and translate into Chinese by Google search engine.</description>
         <description lang="zh">由于目前XBMC暂不支持中文输入，所以通过google查询的提示功能，将常用拼音或简拼翻译成中文名。支持PPStream、QVOD、中国电信天翼NetITV、搜狐高清视频、广西宽频网（联通）的影片搜索，若网站支持也可以查到演员、简介等相关视频。要搜索哪个网站前需保证对应的视频插件已经安装，并且插件目录名未做修改。 - by visualcjy@21cn.com 20100725. 首发于http://bbs.htpc1.com  - 20110129 修改适应google搜索的变化</description>
         <platform>all</platform>
     </extension>

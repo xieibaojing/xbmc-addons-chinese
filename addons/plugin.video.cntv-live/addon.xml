@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.cntv-live"
-    name="CNTV Live"
-    version="1.0.0"
+    name="中国网络电视台(CNTV Live)"
+    version="1.0.1"
     provider-name="Robinttt">
     <extension
         point="xbmc.python.pluginsource"
@@ -9,9 +9,9 @@
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary>CNTV Live</summary>
+        <summary lang="en">CNTV Live video plugin</summary>
         <summary lang="zh">中国网络电视台直播插件</summary>
-        <description>CNTV Live video plugin, Please run CCTVPlayerOcxReg.exe first.</description>
+        <description lang="en">CNTV Live video plugin, Please run CCTVPlayerOcxReg.exe first.</description>
         <description lang="zh">中国网络电视台直播插件，请先运行CCTVPlayerOcxReg.exe进行控件注册</description>
         <platform>windx wingl</platform>
     </extension>

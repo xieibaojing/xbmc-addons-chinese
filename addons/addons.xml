@@ -95,43 +95,7 @@
 </addon>
 
 <addon id="plugin.video.cntv-live"
-    name="CNTV Live"
-    version="1.0.0"
-    provider-name="Robinttt">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary>CNTV Live</summary>
-        <summary lang="zh">中国网络电视台直播插件</summary>
-        <description>CNTV Live video plugin, Please run CCTVPlayerOcxReg.exe first.</description>
-        <description lang="zh">中国网络电视台直播插件，请先运行CCTVPlayerOcxReg.exe进行控件注册</description>
-        <platform>windx wingl</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.netitv"
-    name="天翼高清"
-    version="1.0.6"
-    provider-name="robinttt">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">NETITV video plugin</summary>
-        <summary lang="zh">天翼高清（NETITV）视频插件</summary>
-        <description lang="en">NETITV (www.netitv.com) was founded by China Telecom, providing network video services.[CR][CR]NETITV video plugin use internal player of xbmc to play video and live tv online, support all os platform.</description>
-        <description lang="zh">中国电信天翼视讯由鸿波信息有限公司运营，旨在依托最新的网络视频技术，整合电影电视剧和国内外优秀电视节目，为广大视频爱好者提供清晰、流畅、丰富、新鲜、正版的视听体验。以内容突显宽带魅力，以独特优势引领网络视频行业健康发展。[CR][CR]天翼高清（NETITV）视频插件完全采用XBMC内置播放器播放天翼视讯点播和直播内容，可在所有操作系统平台使用。</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.ppstream"
-    name="PPStream"
+    name="中国网络电视台(CNTV Live)"
     version="1.0.1"
     provider-name="Robinttt">
     <extension
@@ -140,17 +104,53 @@
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary>PPStream video plugin</summary>
+        <summary lang="en">CNTV Live video plugin</summary>
+        <summary lang="zh">中国网络电视台直播插件</summary>
+        <description lang="en">CNTV Live video plugin, Please run CCTVPlayerOcxReg.exe first.</description>
+        <description lang="zh">中国网络电视台直播插件，请先运行CCTVPlayerOcxReg.exe进行控件注册</description>
+        <platform>windx wingl</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.netitv"
+    name="天翼高清(NETITV)"
+    version="1.0.7"
+    provider-name="robinttt">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">NETITV video plugin</summary>
+        <summary lang="zh">天翼高清(NETITV)视频插件</summary>
+        <description lang="en">NETITV (www.netitv.com) was founded by China Telecom, providing network video services.[CR][CR]NETITV video plugin use internal player of xbmc to play video and live tv online, support all os platform.</description>
+        <description lang="zh">中国电信天翼视讯由鸿波信息有限公司运营，旨在依托最新的网络视频技术，整合电影电视剧和国内外优秀电视节目，为广大视频爱好者提供清晰、流畅、丰富、新鲜、正版的视听体验。以内容突显宽带魅力，以独特优势引领网络视频行业健康发展。[CR][CR]天翼高清（NETITV）视频插件完全采用XBMC内置播放器播放天翼视讯点播和直播内容，可在所有操作系统平台使用。</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.ppstream"
+    name="PPS网络电视(PPStream)"
+    version="1.0.2"
+    provider-name="Robinttt">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">PPStream video plugin</summary>
         <summary lang="zh">PPS网络电视</summary>
-        <description>PPStream video plugin</description>
-        <description lang="zh">观看PPStream在线影视节目。[CR][CR]说明：[CR]1.必须安装PPS网络电视；[CR]2.第一次使用请运行插件文件夹下\resources\player\KeymapSet.exe设置遥控器快捷键。</description>
+        <description lang="en">PPStream video plugin[CR][CR]Note: [CR]1.Need install PPS first, download from http://dl.pps.tv/. [CR]2.Need run key setting program for external player, file path: plugin.video.ppstream\resources\player\KeymapSet.exe</description>
+        <description lang="zh">观看PPStream在线影视节目。[CR][CR]说明：[CR]1.必须安装PPS网络电视，下载地址http://dl.pps.tv/；[CR]2.第一次使用请运行插件文件夹下\resources\player\KeymapSet.exe设置遥控器快捷键。</description>
         <platform>windx wingl</platform>
     </extension>
 </addon>
 
 <addon id="plugin.video.qiyi"
-    name="奇艺视频"
-    version="0.6.3"
+    name="奇艺视频(QIYI)"
+    version="0.6.4"
     provider-name="taxigps">
     <extension
         point="xbmc.python.pluginsource"
@@ -167,8 +167,8 @@
 </addon>
 
 <addon id="plugin.video.qvod"
-    name="Qvod"
-    version="10.8.14"
+    name="快播视频(Qvod)"
+    version="10.8.15"
     provider-name="Spy007">
     <extension
         point="xbmc.python.pluginsource"
@@ -176,17 +176,17 @@
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary>Qvod video plugin</summary>
+        <summary lang="en">Qvod video plugin</summary>
         <summary lang="zh">快播视频插件</summary>
-        <description>online video from tom365.com</description>
+        <description lang="en">online video from tom365.com</description>
         <description lang="zh">快播 For TOM365[CR][CR]备注：[CR] （1）首页获取栏目列表速度有点慢，有待于改进；[CR] （2）视频调用外置插件，第一次使用前请务必进入插件目录下\resources\player\内运行KeymapSet.exe进行外挂播放器的遥控器快捷键设定。“上一章节”、“下一章节”选项暂不能使用;（KeymapSet.exe是R大编写的，偶直接借来用了。：） ）[CR] （3）本插件在使用前需要安装快播最新版（Qvod 3.5.0.4);[CR] （4）进入播放界面后，如果上方显示“准备就绪”，然后长时间不能播放，则表明地址有误，不能播放，请自行访问www.tom364.com，使用该网站的网页播放尝试一下，如果能播放，请在论坛反馈给我，我会尽快修正；[CR] （5）进入播放界面后，如果上方显示“连接中”，表明后台正在缓冲，请耐心等候，一般三十秒后即可播放；[CR] （6）一般每部影片都会有主地址和备用地址，请尽量用主地址，主地址不能播放才换备用地址。</description>
         <platform>all</platform>
     </extension>
 </addon>
 
 <addon id="plugin.video.sohuvideo"
-    name="搜狐视频"
-    version="1.0.2"
+    name="搜狐视频(SoHu)"
+    version="1.0.3"
     provider-name="Robinttt">
     <extension
         point="xbmc.python.pluginsource"
@@ -194,17 +194,17 @@
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary>SoHu Video</summary>
+        <summary lang="en">SoHu Video plugin</summary>
         <summary lang="zh">搜狐视频插件</summary>
-        <description>SoHu video plugin</description>
+        <description lang="en">SoHu video plugin</description>
         <description lang="zh">观看搜狐视频影视节目。由visualcjy于20110130修补以适应新版本</description>
         <platform>all</platform>
     </extension>
 </addon>
 
 <addon id="plugin.video.somovie"
-    name="SoMovie-搜索电影"
-    version="1.0.1"
+    name="搜索电影(SoMovie)"
+    version="1.0.2"
     provider-name="visualcjy@21cn.com">
     <extension
         point="xbmc.python.pluginsource"
@@ -212,9 +212,9 @@
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary>search and play movie/video in supported video plugin</summary>
+        <summary lang="en">Search and play movie/video in supported video plugin</summary>
         <summary lang="zh">在现有的几个视频插件网站搜索和播放电影</summary>
-        <description>search and play movie/video in 5 Chinese video plugin. Support PinYin input and translate into Chinese by Google search engine.</description>
+        <description lang="en">Search and play movie/video in 5 Chinese video plugin. Support PinYin input and translate into Chinese by Google search engine.</description>
         <description lang="zh">由于目前XBMC暂不支持中文输入，所以通过google查询的提示功能，将常用拼音或简拼翻译成中文名。支持PPStream、QVOD、中国电信天翼NetITV、搜狐高清视频、广西宽频网（联通）的影片搜索，若网站支持也可以查到演员、简介等相关视频。要搜索哪个网站前需保证对应的视频插件已经安装，并且插件目录名未做修改。 - by visualcjy@21cn.com 20100725. 首发于http://bbs.htpc1.com  - 20110129 修改适应google搜索的变化</description>
         <platform>all</platform>
     </extension>
@@ -239,8 +239,8 @@
 </addon>
 
 <addon id="plugin.video.yinyuetai"
-    name="音悦台MV"
-    version="1.2.0"
+    name="音悦台MV(YinYueTai)"
+    version="1.2.1"
     provider-name="Skyemperor">
     <extension
         point="xbmc.python.pluginsource"
@@ -248,17 +248,17 @@
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary>YinYueTai video plugin</summary>
+        <summary lang="en">YinYueTai video plugin</summary>
         <summary lang="zh">音悦台视频插件</summary>
-        <description>online mv from yinyuetai.com</description>
+        <description lang="en">online mv from yinyuetai.com</description>
         <description lang="zh">观看音悦台在线MV</description>
         <platform>all</platform>
     </extension>
 </addon>
 
 <addon id="plugin.video.youku"
-    name="YouKu"
-    version="1.0.1"
+    name="优酷视频(YouKu)"
+    version="1.0.2"
     provider-name="Robinttt">
     <extension
         point="xbmc.python.pluginsource"
@@ -266,9 +266,9 @@
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary>YouKu video plugin</summary>
+        <summary lang="en">YouKu video plugin</summary>
         <summary lang="zh">优酷网视频插件</summary>
-        <description>online video from youku.com</description>
+        <description lang="en">online video from youku.com</description>
         <description lang="zh">观看优酷网在线视频</description>
         <platform>all</platform>
     </extension>

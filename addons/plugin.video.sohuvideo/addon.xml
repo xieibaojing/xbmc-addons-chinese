@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.sohuvideo"
-    name="搜狐视频"
-    version="1.0.2"
+    name="搜狐视频(SoHu)"
+    version="1.0.3"
     provider-name="Robinttt">
     <extension
         point="xbmc.python.pluginsource"
@@ -9,9 +9,9 @@
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary>SoHu Video</summary>
+        <summary lang="en">SoHu Video plugin</summary>
         <summary lang="zh">搜狐视频插件</summary>
-        <description>SoHu video plugin</description>
+        <description lang="en">SoHu video plugin</description>
         <description lang="zh">观看搜狐视频影视节目。由visualcjy于20110130修补以适应新版本</description>
         <platform>all</platform>
     </extension>
