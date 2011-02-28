@@ -1,8 +1,10 @@
 ﻿# -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, urllib2, urllib, re, string, sys, os
 
-#NETITV(天翼高清) write by robinttt,2010  update by taxigps,2011
-THUMB_PATH = os.getcwd() + '/resources/thumbnails/'
+# NETITV(天翼高清)
+# write by robinttt, 2010
+# update by taxigps, 2011
+
 MEDIA_PATH = os.getcwd() + '/resources/media/'
 
 def GetHttpData(url):
@@ -17,10 +19,7 @@ def GetThumb(reg,data):
     match1 = re.compile(reg).findall(data)
     if len(match1) > 0:
         if match1[0].find('CDATA') == -1:
-             tmppic = match1[0].split('/')
-             if os.path.isfile(THUMB_PATH + tmppic[len(tmppic) - 1]) == False:
-                 urllib.urlretrieve('http://www.netitv.com' + match1[0], THUMB_PATH + tmppic[len(tmppic) - 1])
-             thumb = THUMB_PATH + tmppic[len(tmppic) - 1]
+             thumb = 'http://www.netitv.com' + match1[0]
         else:
              thumb = MEDIA_PATH + 'NetitvDefault.jpg'
     else:
@@ -56,7 +55,7 @@ def Channels(url,name):
     match = re.compile('<node>(.+?)</node>').findall(match0)
     totalItems = len(match) + 1
 
-    li = xbmcgui.ListItem(u'当前位置：'.encode('utf8') + name)
+    li = xbmcgui.ListItem('当前位置：' + name)
     u = sys.argv[0] + "?mode=1&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
@@ -97,15 +96,15 @@ def ListsA(url,name):
     if currpage > 1: totalItems = totalItems + 1
     if currpage < pagenum: totalItems = totalItems + 1
 
-    li = xbmcgui.ListItem(u'当前位置：'.encode('utf8') + channelname + '->' + nodename + u' 【第'.encode('utf8') + str(currpage) + '/' + str(pagenum) + u'页】'.encode('utf8'))
+    li = xbmcgui.ListItem('当前位置：' + channelname + '->' + nodename + ' 【第' + str(currpage) + '/' + str(pagenum) + '页】')
     u = sys.argv[0] + "?mode=2&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     if currpage > 1:
-        li = xbmcgui.ListItem(u'上一页'.encode('utf8'), iconImage='', thumbnailImage = MEDIA_PATH + 'NetitvPageup.png')
+        li = xbmcgui.ListItem('上一页', iconImage='', thumbnailImage = MEDIA_PATH + 'NetitvPageup.png')
         u = sys.argv[0] + "?mode=2&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus('http://www.netitv.com/' + uuid + '/newsXml/' + nodeid + '_' + str(currpage - 1) + '.xml')
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     if currpage < pagenum:
-        li = xbmcgui.ListItem(u'下一页'.encode('utf8'), iconImage='', thumbnailImage = MEDIA_PATH + 'NetitvPagedown.png')
+        li = xbmcgui.ListItem('下一页', iconImage='', thumbnailImage = MEDIA_PATH + 'NetitvPagedown.png')
         u = sys.argv[0] + "?mode=2&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus('http://www.netitv.com/' + uuid + '/newsXml/' + nodeid + '_' + str(currpage + 1) + '.xml')
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
@@ -133,7 +132,7 @@ def ListsA(url,name):
             match1 = re.compile('<playurls>(.+?)</playurls>').findall(info)
             if len(match1)>0:
                 match2 = re.compile('type="3".+?<!\[CDATA\[(.+?)]]></url>').findall(match1[0]) 
-                li = xbmcgui.ListItem(u'播放：'.encode('utf8') + name, iconImage = '', thumbnailImage = MEDIA_PATH + 'NetitvPLay.png')
+                li = xbmcgui.ListItem('播放：' + name, iconImage = '', thumbnailImage = MEDIA_PATH + 'NetitvPLay.png')
                 u = sys.argv[0] + "?mode=5&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(match2[0]) + "&thumb=" + urllib.quote_plus(thumb)
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
             else:
@@ -167,15 +166,15 @@ def ListsB(url,name):
     if currpage > 1: totalItems = totalItems + 1
     if currpage < pagenum: totalItems = totalItems + 1
 
-    li = xbmcgui.ListItem(u'当前位置：'.encode('utf8') + channelname + '->' + nodename + u' 【第'.encode('utf8') + str(currpage) + '/' + str(pagenum) + u'页】'.encode('utf8'))
+    li = xbmcgui.ListItem('当前位置：' + channelname + '->' + nodename + ' 【第' + str(currpage) + '/' + str(pagenum) + '页】')
     u = sys.argv[0] + "?mode=2&name=" + urllib.quote_plus(name) + "&url="+urllib.quote_plus(url)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     if currpage > 1:
-        li = xbmcgui.ListItem(u'上一页'.encode('utf8'), iconImage = '', thumbnailImage = MEDIA_PATH + 'NetitvPageup.png')
+        li = xbmcgui.ListItem('上一页', iconImage = '', thumbnailImage = MEDIA_PATH + 'NetitvPageup.png')
         u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus('http://www.netitv.com/' + uuid + '/proXml/' + movieid + '_' + str(currpage - 1) + '.xml')
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     if currpage < pagenum:
-        li = xbmcgui.ListItem(u'下一页'.encode('utf8'), iconImage = '', thumbnailImage = MEDIA_PATH + 'NetitvPagedown.png')
+        li = xbmcgui.ListItem('下一页', iconImage = '', thumbnailImage = MEDIA_PATH + 'NetitvPagedown.png')
         u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus('http://www.netitv.com/' + uuid + '/proXml/' + movieid + '_' + str(currpage + 1) + '.xml')
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
@@ -209,7 +208,7 @@ def Movies(url,name,thumb):
     match = re.compile('<playurls>(.+?)</playurls>').findall(match1[0])
     match1 = re.compile('type="3".+?<!\[CDATA\[(.+?)]]></url>').findall(match[0]) 
     if len(match1) == 1:
-        li = xbmcgui.ListItem(u'播放：'.encode('utf8') + name, iconImage = '', thumbnailImage = thumb)
+        li = xbmcgui.ListItem('播放：' + name, iconImage = '', thumbnailImage = thumb)
         li.setInfo(type = "Video", infoLabels = {"Title":name, "Director":director, "Cast":cast, "Plot":plot, "Year":year})
         u = sys.argv[0] + "?mode=6&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(match1[0]) + "&thumb=" + urllib.quote_plus(thumb) + "&director=" + urllib.quote_plus(director) + "&plot=" + urllib.quote_plus(plot) + "&year=" + urllib.quote_plus(str(year))
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li)
@@ -218,8 +217,8 @@ def Movies(url,name,thumb):
         totalItems = len(match1)
         for info in match1:
             num = num + 1
-            fullname = name + u' 【第'.encode('utf8') + str(num) + u'集】'.encode('utf8')
-            li = xbmcgui.ListItem(u'播放：'.encode('utf8') + fullname, iconImage = '', thumbnailImage = thumb)
+            fullname = name + ' 【第' + str(num) + '集】'
+            li = xbmcgui.ListItem('播放：' + fullname, iconImage = '', thumbnailImage = thumb)
             li.setInfo(type = "Video", infoLabels = {"Title":fullname, "Director":director, "Cast":cast, "Plot":plot, "Year":year})
             u=sys.argv[0] + "?mode=6&name=" + urllib.quote_plus(fullname) + "&url=" + urllib.quote_plus(info) + "&thumb=" + urllib.quote_plus(thumb) + "&director=" + urllib.quote_plus(director) + "&plot=" + urllib.quote_plus(plot) + "&year=" + urllib.quote_plus(str(year))
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
