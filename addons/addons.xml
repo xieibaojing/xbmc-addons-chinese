@@ -96,7 +96,7 @@
 
 <addon id="plugin.video.cntv-live"
     name="中国网络电视台(CNTV Live)"
-    version="1.0.2"
+    version="1.0.3"
     provider-name="Robinttt">
     <extension
         point="xbmc.python.pluginsource"

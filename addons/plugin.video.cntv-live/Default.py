@@ -1,211 +1,92 @@
-# -*- coding: cp936 -*-
+ï»¿# -*- coding: utf-8 -*-
 import httplib,urllib,re,xbmcplugin,xbmcgui,xbmc,os
 
-#CCTV Video - by Robinttt 2009.
-#CNTV Video - Edit by Spy007 2010
+# CCTV Video - by Robinttt 2009.
+# CNTV Video - Edit by Spy007 2010
+# CNTV-live - Changed by taxigps 2011
 
 def CATEGORIES():
-         addDir('ÑëÊÓÖ±²¥','/index.shtml',6,os.getcwd()+'\\resources\\media\\Default2.jpg')
-         addDir('ÎÀÊÓÖ±²¥','/live_h/index.shtml',6,os.getcwd()+'\\resources\\media\\Defaultx.png')
-         #addDir('À¶¹âÖ±²¥','/cctv1/l/index.shtml',6,os.getcwd()+'\\resources\\media\\Default3.jpg')
-         #addDir('ÊÓÆµµã²¥','/podcast/index',1,os.getcwd()+'\\resources\\media\\Default4.jpg')
+         addDir('å¤®è§†ç›´æ’­','/index.shtml',6,os.getcwd()+'\\resources\\media\\live-cctv.jpg',True)
+         addDir('å«è§†ç›´æ’­','/live_h/index.shtml',6,os.getcwd()+'\\resources\\media\\live-startv.png',True)
 
 def LiveChannel(url,name):
-         if name=='ÑëÊÓÖ±²¥':
-                 addDir(name+'>CCTV1×ÛºÏÆµµÀ',"pa://cctv_p2p_hdcctv1",7,os.getcwd()+'\\resources\\media\\cctv1.png')
-                 addDir(name+'>CCTV2²Æ¾­ÆµµÀ',"pa://cctv_p2p_hdcctv2",7,os.getcwd()+'\\resources\\media\\cctv2.png')
-                 addDir(name+'>CCTV3ÎÄÒÕÆµµÀ',"pl://cctv_p2p_hdcctv3",7,os.getcwd()+'\\resources\\media\\cctv3.png')
-                 addDir(name+'>CCTV4ÑÇÖÞ¹ú¼Ê',"pl://cctv_p2p_hdcctv4",7,os.getcwd()+'\\resources\\media\\cctv4.png')
-                 addDir(name+'>CCTV5ÌåÓýÆµµÀ',"pa://cctv_p2p_hdcctv5",7,os.getcwd()+'\\resources\\media\\cctv5.png')
-                 addDir(name+'>CCTV6µçÓ°ÆµµÀ',"pl://cctv_p2p_hdcctv6",7,os.getcwd()+'\\resources\\media\\cctv6.png')
-                 addDir(name+'>CCTV7¾üÊÂÆµµÀ',"pa://cctv_p2p_hdcctv7",7,os.getcwd()+'\\resources\\media\\cctv7.png')
-                 addDir(name+'>CCTV8µçÊÓ¾çÆµµÀ',"pl://cctv_p2p_hdcctv8",7,os.getcwd()+'\\resources\\media\\cctv8.png')
-                 addDir(name+'>CCTV9Ó¢Óï¹ú¼Ê',"pl://cctv_p2p_hdcctv9",7,os.getcwd()+'\\resources\\media\\cctv9.png')
-                 addDir(name+'>CCTV10¿Æ½ÌÆµµÀ',"pl://cctv_p2p_hdcctv10",7,os.getcwd()+'\\resources\\media\\cctv10.png')
-                 addDir(name+'>CCTV11Ï·ÇúÆµµÀ',"pl://cctv_p2p_hdcctv11",7,os.getcwd()+'\\resources\\media\\cctv11.png')
-                 addDir(name+'>CCTV12·¨ÖÆÆµµÀ',"pl://cctv_p2p_hdcctv12",7,os.getcwd()+'\\resources\\media\\cctv12.png')
-                 addDir(name+'>CCTVÉÙ¶ùÆµµÀ',"pl://cctv_p2p_hdcctvkids",7,os.getcwd()+'\\resources\\media\\cctvshaoer.png')
-                 addDir(name+'>CCTVÐÂÎÅÆµµÀ',"pa://cctv_p2p_hdcctvnews",7,os.getcwd()+'\\resources\\media\\xinwen.jpg')
-                 addDir(name+'>CNTV24Ð¡Ê±ÌåÓý',"pa://cctv_p2p264_sports",7,os.getcwd()+'\\resources\\media\\24tiyu.jpg')
-                 addDir(name+'>CCTVÒôÀÖÆµµÀ',"pl://cctv_p2p_hdcctvmusic",7,os.getcwd()+'\\resources\\media\\cctvmusic.png')
-                 addDir(name+'>CCTV¸ßÇåÆµµÀ',"pa://cctv_p2p_hdcctvgaoqing",7,os.getcwd()+'\\resources\\media\\cctvhd.png')
-                 addDir(name+'>CCTV·¨ÓïÆµµÀ',"pl://cctv_p2p_cctvfayu",7,os.getcwd()+'\\resources\\media\\cctvf.png')
-                 addDir(name+'>CCTVÎ÷°àÑÀÓïÆµµÀ',"pl://cctv_p2p_hdxiyu",7,os.getcwd()+'\\resources\\media\\cctve.png')
-                 addDir(name+'>CCTV¶íÓïÆµµÀ',"pl://cctv_p2p_hd700_cctvrussian",7,os.getcwd()+'\\resources\\media\\cctveyu.png')
-                 addDir(name+'>CCTV°¢À­²®ÓïÆµµÀ',"pl://cctv_p2p_hd700_cctvarabic",7,os.getcwd()+'\\resources\\media\\cctvayu.png')
-                 addDir(name+'>CCTVÖÐÊÓ¹ºÎïÆµµÀ',"pl://cctv_p2p_gouwu",7,os.getcwd()+'\\resources\\media\\cctvgouwu.png')
-                 addDir(name+'>CCTV·çÔÆ×ãÇòÆµµÀ',"pa://cctv_p2p_hdcctvfyzq",7,os.getcwd()+'\\resources\\media\\noname.jpg')
-                 addDir(name+'>CCTV¸ß¶û·òÆµµÀ',"pa://cctv_p2p_hdcctvgaowang",7,os.getcwd()+'\\resources\\media\\noname.jpg')
-         elif name=="ÎÀÊÓÖ±²¥":
-                 addDir(name+'>°²»ÕÎÀÊÓ',"pl://cctv_p2p_hdanhui",7,os.getcwd()+'\\resources\\media\\anhui.png')
-                 addDir(name+'>±±¾©ÎÀÊÓ',"pl://cctv_p2p_hdbeijing",7,os.getcwd()+'\\resources\\media\\beijing.png')
-                 addDir(name+'>¶«·½ÎÀÊÓ',"pl://cctv_p2p_hdshanghaikatong",7,os.getcwd()+'\\resources\\media\\dongfang.png')
-                 addDir(name+'>Ìì½òÎÀÊÓ',"pl://cctv_p2p_hdtianjin",7,os.getcwd()+'\\resources\\media\\tianjin.png')
-                 addDir(name+'>ÖØÇìÎÀÊÓ',"pl://cctv_p2p_hdchongqing",7,os.getcwd()+'\\resources\\media\\chongqing.png')
-                 addDir(name+'>¶«ÄÏÎÀÊÓ',"pl://cctv_p2p_hddongnan",7,os.getcwd()+'\\resources\\media\\dongnan.png')
-                 addDir(name+'>¸ÊËàÎÀÊÓ',"pl://cctv_p2p_hdgansu",7,os.getcwd()+'\\resources\\media\\gansu.png')
-                 addDir(name+'>¹ã¶«ÎÀÊÓ',"pl://cctv_p2p_hdguangdong",7,os.getcwd()+'\\resources\\media\\guangdong.png')
-                 addDir(name+'>¹ãÎ÷ÎÀÊÓ',"pl://cctv_p2p_hdguangxi",7,os.getcwd()+'\\resources\\media\\guangxi.png')
-                 addDir(name+'>¹óÖÝÎÀÊÓ',"pl://cctv_p2p_hdguizhou",7,os.getcwd()+'\\resources\\media\\guizhou.png')
-                 addDir(name+'>ºÓ±±ÎÀÊÓ',"pl://cctv_p2p_hdhebei",7,os.getcwd()+'\\resources\\media\\hebei.png')
-                 addDir(name+'>ºÚÁú½­ÎÀÊÓ',"pl://cctv_p2p_hdheilongjiang",7,os.getcwd()+'\\resources\\media\\heilongjiang.png')
-                 addDir(name+'>ºÓÄÏÎÀÊÓ',"pl://cctv_p2p_hdhenan",7,os.getcwd()+'\\resources\\media\\henan.png')
-                 addDir(name+'>ºþ±±ÎÀÊÓ',"pl://cctv_p2p_hdhubei",7,os.getcwd()+'\\resources\\media\\hubei.png')
-                 addDir(name+'>ºþÄÏÎÀÊÓ',"pl://cctv_p2p_hdhunan",7,os.getcwd()+'\\resources\\media\\hunan.png')
-                 addDir(name+'>½­ËÕÎÀÊÓ',"pl://cctv_p2p_hdjiangsu",7,os.getcwd()+'\\resources\\media\\jiangsu.png')
-                 addDir(name+'>½­Î÷ÎÀÊÓ',"pl://cctv_p2p_hdjiangxi",7,os.getcwd()+'\\resources\\media\\jiangxi.png')
-                 addDir(name+'>¼ªÁÖÎÀÊÓ',"pl://cctv_p2p_hdjilin",7,os.getcwd()+'\\resources\\media\\jilin.png')
-                 addDir(name+'>ÁÉÄþÎÀÊÓ',"pl://cctv_p2p_hdliaoning",7,os.getcwd()+'\\resources\\media\\liaoning.png')
-                 addDir(name+'>ÂÃÓÎÎÀÊÓ',"pl://cctv_p2p_hdlvyou",7,os.getcwd()+'\\resources\\media\\lvyou.png')
-                 addDir(name+'>ÄÚÃÉ¹ÅÎÀÊÓ',"pl://cctv_p2p_hdneimeng",7,os.getcwd()+'\\resources\\media\\neimenggu.png')
-                 addDir(name+'>ÄþÏÄÎÀÊÓ',"pl://cctv_p2p_hdningxia",7,os.getcwd()+'\\resources\\media\\ningxia.png')
-                 addDir(name+'>Çàº£ÎÀÊÓ',"pl://cctv_p2p_hdqinghai",7,os.getcwd()+'\\resources\\media\\qinghai.png')
-                 addDir(name+'>É½¶«ÎÀÊÓ',"pl://cctv_p2p_hdshandong",7,os.getcwd()+'\\resources\\media\\shandong.png')
-                 addDir(name+'>É½¶«½ÌÓý',"pl://cctv_p2p_shandongjiaoyu",7,os.getcwd()+'\\resources\\media\\shandong.png')
-                 addDir(name+'>ÉÂÎ÷ÎÀÊÓ',"pl://cctv_p2p_hdshanxi",7,os.getcwd()+'\\resources\\media\\shan_xi.png')
-                 addDir(name+'>É½Î÷ÎÀÊÓ',"pl://cctv_p2p_hdshan-xi",7,os.getcwd()+'\\resources\\media\\shanxi.png')
-                 addDir(name+'>ËÄ´¨ÎÀÊÓ',"pl://cctv_p2p_hdsichuan",7,os.getcwd()+'\\resources\\media\\sichuan.png')
-                 addDir(name+'>ÐÂ½®ÎÀÊÓ',"pl://cctv_p2p_hdxinjiang",7,os.getcwd()+'\\resources\\media\\xinjiang.png')
-                 addDir(name+'>Î÷²ØÎÀÊÓ',"pl://cctv_p2p_hdxizang2",7,os.getcwd()+'\\resources\\media\\xizang.png')
-                 addDir(name+'>ÔÆÄÏÎÀÊÓ',"pl://cctv_p2p_hdyunnan",7,os.getcwd()+'\\resources\\media\\yunnan.png')
-                 addDir(name+'>Õã½­ÎÀÊÓ',"pl://cctv_p2p_hdzhejiang",7,os.getcwd()+'\\resources\\media\\zhejiang.png')
-                 addDir(name+'>ÏÃÃÅÎÀÊÓ',"pl://cctv_p2p_xiamenweishi",7,os.getcwd()+'\\resources\\media\\xiamen.png')
-                 addDir(name+'>³É¶¼ÐÂÎÅ',"pa://cctv_p2p_cdtv1",7,os.getcwd()+'\\resources\\media\\sichuan.png')
-                 addDir(name+'>³É¶¼¹«¹²',"pa://cctv_p2p_cdtv5",7,os.getcwd()+'\\resources\\media\\sichuan.png')
-                 addDir(name+'>ÏÃÃÅÒ»Ì×',"pl://cctv_p2p_xiamen1",7,os.getcwd()+'\\resources\\media\\xiamen.png')
-                 addDir(name+'>ÏÃÃÅ¶þÌ×',"pl://cctv_p2p_xiamen2",7,os.getcwd()+'\\resources\\media\\xiamen.png')
+         if name=='å¤®è§†ç›´æ’­':
+                 addDir(name+'>CCTV1ç»¼åˆé¢‘é“',"pa://cctv_p2p_hdcctv1",7,os.getcwd()+'\\resources\\media\\cctv1.png')
+                 addDir(name+'>CCTV2è´¢ç»é¢‘é“',"pa://cctv_p2p_hdcctv2",7,os.getcwd()+'\\resources\\media\\cctv2.png')
+                 addDir(name+'>CCTV3æ–‡è‰ºé¢‘é“',"pl://cctv_p2p_hdcctv3",7,os.getcwd()+'\\resources\\media\\cctv3.png')
+                 addDir(name+'>CCTV4äºšæ´²å›½é™…',"pl://cctv_p2p_hdcctv4",7,os.getcwd()+'\\resources\\media\\cctv4.png')
+                 addDir(name+'>CCTV4æ¬§æ´²å›½é™…',"pl://cctv_p2p_hdcctv4euro",7,os.getcwd()+'\\resources\\media\\cctv4o.png')
+                 addDir(name+'>CCTV4ç¾Žæ´²å›½é™…',"pl://cctv_p2p_hdcctv4america",7,os.getcwd()+'\\resources\\media\\cctv4a.png')
+                 addDir(name+'>CCTV5ä½“è‚²é¢‘é“',"pa://cctv_p2p_hdcctv5",7,os.getcwd()+'\\resources\\media\\cctv5.png')
+                 addDir(name+'>CCTV6ç”µå½±é¢‘é“',"pl://cctv_p2p_hdcctv6",7,os.getcwd()+'\\resources\\media\\cctv6.png')
+                 addDir(name+'>CCTV7å†›äº‹é¢‘é“',"pa://cctv_p2p_hdcctv7",7,os.getcwd()+'\\resources\\media\\cctv7.png')
+                 addDir(name+'>CCTV8ç”µè§†å‰§é¢‘é“',"pl://cctv_p2p_hdcctv8",7,os.getcwd()+'\\resources\\media\\cctv8.png')
+                 addDir(name+'>CCTV9è‹±è¯­å›½é™…',"pl://cctv_p2p_hdcctv9",7,os.getcwd()+'\\resources\\media\\cctv9.png')
+                 addDir(name+'>CCTV10ç§‘æ•™é¢‘é“',"pl://cctv_p2p_hdcctv10",7,os.getcwd()+'\\resources\\media\\cctv10.png')
+                 addDir(name+'>CCTV11æˆæ›²é¢‘é“',"pl://cctv_p2p_hdcctv11",7,os.getcwd()+'\\resources\\media\\cctv11.png')
+                 addDir(name+'>CCTV12æ³•åˆ¶é¢‘é“',"pl://cctv_p2p_hdcctv12",7,os.getcwd()+'\\resources\\media\\cctv12.png')
+                 addDir(name+'>CCTVå°‘å„¿é¢‘é“',"pl://cctv_p2p_hdcctvkids",7,os.getcwd()+'\\resources\\media\\cctvshaoer.png')
+                 addDir(name+'>CCTVæ–°é—»é¢‘é“',"pa://cctv_p2p_hdcctvnews",7,os.getcwd()+'\\resources\\media\\cctvnews.png')
+                 addDir(name+'>CNTV24å°æ—¶ä½“è‚²',"pa://cctv_p2p264_sports",7,os.getcwd()+'\\resources\\media\\cctvsport.png')
+                 addDir(name+'>CCTVéŸ³ä¹é¢‘é“',"pl://cctv_p2p_hdcctvmusic",7,os.getcwd()+'\\resources\\media\\cctvmusic.png')
+                 addDir(name+'>CCTVé«˜æ¸…é¢‘é“',"pa://cctv_p2p_hdcctvgaoqing",7,os.getcwd()+'\\resources\\media\\cctvhd.png')
+                 addDir(name+'>CCTVæ³•è¯­é¢‘é“',"pl://cctv_p2p_cctvfayu",7,os.getcwd()+'\\resources\\media\\cctvf.png')
+                 addDir(name+'>CCTVè¥¿ç­ç‰™è¯­é¢‘é“',"pl://cctv_p2p_hdxiyu",7,os.getcwd()+'\\resources\\media\\cctve.png')
+                 addDir(name+'>CCTVä¿„è¯­é¢‘é“',"pl://cctv_p2p_hd700_cctvrussian",7,os.getcwd()+'\\resources\\media\\cctveyu.png')
+                 addDir(name+'>CCTVé˜¿æ‹‰ä¼¯è¯­é¢‘é“',"pl://cctv_p2p_hd700_cctvarabic",7,os.getcwd()+'\\resources\\media\\cctvayu.png')
+                 addDir(name+'>CCTVä¸­è§†è´­ç‰©é¢‘é“',"pl://cctv_p2p_gouwu",7,os.getcwd()+'\\resources\\media\\cctvgouwu.png')
+                 addDir(name+'>CCTVé£Žäº‘è¶³çƒé¢‘é“',"pa://cctv_p2p_hdcctvfyzq",7,os.getcwd()+'\\resources\\media\\cctvfootball.png')
+                 addDir(name+'>CCTVé«˜å°”å¤«é¢‘é“',"pa://cctv_p2p_hdcctvgaowang",7,os.getcwd()+'\\resources\\media\\cctvgolf.png')
+         elif name=="å«è§†ç›´æ’­":
+                 addDir(name+'>å®‰å¾½å«è§†',"pl://cctv_p2p_hdanhui",7,os.getcwd()+'\\resources\\media\\anhui.png')
+                 addDir(name+'>åŒ—äº¬å«è§†',"pl://cctv_p2p_hdbeijing",7,os.getcwd()+'\\resources\\media\\beijing.png')
+                 addDir(name+'>ä¸œæ–¹å«è§†',"pl://cctv_p2p_hdshanghaikatong",7,os.getcwd()+'\\resources\\media\\dongfang.png')
+                 addDir(name+'>å¤©æ´¥å«è§†',"pl://cctv_p2p_hdtianjin",7,os.getcwd()+'\\resources\\media\\tianjin.png')
+                 addDir(name+'>é‡åº†å«è§†',"pl://cctv_p2p_hdchongqing",7,os.getcwd()+'\\resources\\media\\chongqing.png')
+                 addDir(name+'>ä¸œå—å«è§†',"pl://cctv_p2p_hddongnan",7,os.getcwd()+'\\resources\\media\\dongnan.png')
+                 addDir(name+'>ç”˜è‚ƒå«è§†',"pl://cctv_p2p_hdgansu",7,os.getcwd()+'\\resources\\media\\gansu.png')
+                 addDir(name+'>å¹¿ä¸œå«è§†',"pl://cctv_p2p_hdguangdong",7,os.getcwd()+'\\resources\\media\\guangdong.png')
+                 addDir(name+'>å¹¿è¥¿å«è§†',"pl://cctv_p2p_hdguangxi",7,os.getcwd()+'\\resources\\media\\guangxi.png')
+                 addDir(name+'>è´µå·žå«è§†',"pl://cctv_p2p_hdguizhou",7,os.getcwd()+'\\resources\\media\\guizhou.png')
+                 addDir(name+'>æ²³åŒ—å«è§†',"pl://cctv_p2p_hdhebei",7,os.getcwd()+'\\resources\\media\\hebei.png')
+                 addDir(name+'>é»‘é¾™æ±Ÿå«è§†',"pl://cctv_p2p_hdheilongjiang",7,os.getcwd()+'\\resources\\media\\heilongjiang.png')
+                 addDir(name+'>æ²³å—å«è§†',"pl://cctv_p2p_hdhenan",7,os.getcwd()+'\\resources\\media\\henan.png')
+                 addDir(name+'>æ¹–åŒ—å«è§†',"pl://cctv_p2p_hdhubei",7,os.getcwd()+'\\resources\\media\\hubei.png')
+                 addDir(name+'>æ¹–å—å«è§†',"pl://cctv_p2p_hdhunan",7,os.getcwd()+'\\resources\\media\\hunan.png')
+                 addDir(name+'>æ±Ÿè‹å«è§†',"pl://cctv_p2p_hdjiangsu",7,os.getcwd()+'\\resources\\media\\jiangsu.png')
+                 addDir(name+'>æ±Ÿè¥¿å«è§†',"pl://cctv_p2p_hdjiangxi",7,os.getcwd()+'\\resources\\media\\jiangxi.png')
+                 addDir(name+'>å‰æž—å«è§†',"pl://cctv_p2p_hdjilin",7,os.getcwd()+'\\resources\\media\\jilin.png')
+                 addDir(name+'>è¾½å®å«è§†',"pl://cctv_p2p_hdliaoning",7,os.getcwd()+'\\resources\\media\\liaoning.png')
+                 addDir(name+'>æ—…æ¸¸å«è§†',"pl://cctv_p2p_hdlvyou",7,os.getcwd()+'\\resources\\media\\lvyou.png')
+                 addDir(name+'>å†…è’™å¤å«è§†',"pl://cctv_p2p_hdneimeng",7,os.getcwd()+'\\resources\\media\\neimenggu.png')
+                 addDir(name+'>å®å¤å«è§†',"pl://cctv_p2p_hdningxia",7,os.getcwd()+'\\resources\\media\\ningxia.png')
+                 addDir(name+'>é’æµ·å«è§†',"pl://cctv_p2p_hdqinghai",7,os.getcwd()+'\\resources\\media\\qinghai.png')
+                 addDir(name+'>å±±ä¸œå«è§†',"pl://cctv_p2p_hdshandong",7,os.getcwd()+'\\resources\\media\\shandong.png')
+                 addDir(name+'>å±±ä¸œæ•™è‚²',"pl://cctv_p2p_shandongjiaoyu",7,os.getcwd()+'\\resources\\media\\shandong.png')
+                 addDir(name+'>é™•è¥¿å«è§†',"pl://cctv_p2p_hdshanxi",7,os.getcwd()+'\\resources\\media\\shan_xi.png')
+                 addDir(name+'>å±±è¥¿å«è§†',"pl://cctv_p2p_hdshan-xi",7,os.getcwd()+'\\resources\\media\\shanxi.png')
+                 addDir(name+'>å››å·å«è§†',"pl://cctv_p2p_hdsichuan",7,os.getcwd()+'\\resources\\media\\sichuan.png')
+                 addDir(name+'>æ–°ç–†å«è§†',"pl://cctv_p2p_hdxinjiang",7,os.getcwd()+'\\resources\\media\\xinjiang.png')
+                 addDir(name+'>è¥¿è—å«è§†',"pl://cctv_p2p_hdxizang2",7,os.getcwd()+'\\resources\\media\\xizang.png')
+                 addDir(name+'>äº‘å—å«è§†',"pl://cctv_p2p_hdyunnan",7,os.getcwd()+'\\resources\\media\\yunnan.png')
+                 addDir(name+'>æµ™æ±Ÿå«è§†',"pl://cctv_p2p_hdzhejiang",7,os.getcwd()+'\\resources\\media\\zhejiang.png')
+                 addDir(name+'>åŽ¦é—¨å«è§†',"pl://cctv_p2p_xiamenweishi",7,os.getcwd()+'\\resources\\media\\xiamen.png')
+                 addDir(name+'>æˆéƒ½æ–°é—»',"pa://cctv_p2p_cdtv1",7,os.getcwd()+'\\resources\\media\\sichuan.png')
+                 addDir(name+'>æˆéƒ½å…¬å…±',"pa://cctv_p2p_cdtv5",7,os.getcwd()+'\\resources\\media\\sichuan.png')
+                 addDir(name+'>åŽ¦é—¨ä¸€å¥—',"pl://cctv_p2p_xiamen1",7,os.getcwd()+'\\resources\\media\\xiamen.png')
+                 addDir(name+'>åŽ¦é—¨äºŒå¥—',"pl://cctv_p2p_xiamen2",7,os.getcwd()+'\\resources\\media\\xiamen.png')
+
 def LiveLink(url,name):
          xbmc.executebuiltin('System.ExecWait(\\"'+ os.getcwd()+'\\resources\\player\\cctvlive.exe\\" '+url+')')
-		 #pl://cctv_p2p_hdanhui
 
-def DibbleChannel(url,name):
-         req=httplib.HTTPConnection("vod.cctv.com")
-         req.request("get", url)
-         response=req.getresponse()
-         link=response.read()
-         response.close()                  
-         match=re.compile('<dd><a href="/podcast/(.+?)">(.+?)</a></dd>').findall(link)
-         for url1,name1 in match:
-                  addDir(name+'>'+name1,'http://vod.cctv.com/podcast/'+url1,2,os.getcwd()+'\\resources\\media\\Default4.jpg')
-         match=re.compile('<dd><a href="/page/(.+?)">(.+?)</a></dd>').findall(link)
-         for url1,name1 in match:
-                  if name1.find('»Ø¿´')==-1:
-                          addDir(name+'>'+name1,'/page/'+url1,2,os.getcwd()+'\\resources\\media\\Default4.jpg')
+def addDir(name,url,mode,iconimage,folder=False):
+        u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
+        ok=True
+        liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
+        liz.setInfo( type="Video", infoLabels={ "Title": name } )
+        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=folder)
+        return ok
 
-def DibbleABC(url,name):
-         req=httplib.HTTPConnection("vod.cctv.com")
-         req.request("get", url)
-         response=req.getresponse()
-         link=response.read()
-         response.close()
-         match=re.compile('<h3>(.+?)</h3>').findall(link)
-         for name1 in match:
-                  addDir(name+'>'+name1,url,3,os.getcwd()+'\\resources\\media\\Default4.jpg')  
-
-def DibbleColumn(url,name):
-         req=httplib.HTTPConnection("vod.cctv.com")
-         req.request("get", url)
-         response=req.getresponse()
-         link=response.read()
-         response.close()
-         match0=re.sub('\r','',link)
-         match0=re.sub('\n','',match0)
-         name1=name.split('>')
-         name2=name.replace('>'+name1[len(name1)-1],'')
-         match1=re.compile('<h3>'+name1[len(name1)-1]+'</h3>(.+?)</ul>').findall(match0)
-         match=re.compile('<a href="(.+?)" target="_blank">(.+?)</a>').findall(match1[0])
-         for url1,name1 in match:
-                  addDir(name2+'>'+name1,url1,4,os.getcwd()+'\\resources\\media\\Default4.jpg')
-
-def DibbleList(url,name):
-         #´Ë´¦±ØÐëÓÃhttplib£¬ÓÃurllib2µÃµ½µÄÓÀÔ¶ÊÇµÚ1Ò³µÄÊý¾Ý£¬»¨ÁËÎÒ°ë¸öÔÂÊ±¼äÑÐ¾¿²Å¸ã¶¨AJAX
-         #Ê×ÏÈÅÐ¶Ïurl£¬ÊÇ·ñÐèÒª³õÊ¼»¯
-         if url.find('|')!=-1:
-                tmp=url.split('|')
-                elementId=tmp[0]
-                pagec=tmp[1]
-                paget=tmp[2]
-         else:
-                req=httplib.HTTPConnection("vod.cctv.com")
-                req.request("get", url)
-                response=req.getresponse()
-                link=response.read()
-                response.close()
-
-                elementId=''
-                paget=''
-                match=re.compile('var elementId = "(.+?)"').findall(link)
-                if len(match)>0: elementId=match[0]
-                pagec='1'
-                match=re.compile('"total_page">(.+?)</b>').findall(link)
-                if len(match)>0: paget=match[0] 
-
-         if elementId!='':  #»ñÈ¡Ó°Æ¬ÁÐ±í
-                headers = {'elementId':elementId,'currpage':pagec}
-                req = httplib.HTTPConnection("vod.cctv.com") 
-                req.request("get", "/act/platform/view/page/showElement.jsp", '', headers)
-                response=req.getresponse()
-                link= response.read()
-                response.close()
-                match=re.compile('href="/video/VIDE(.+?)" title="(.+?)" target="_blank"><img(.+?)src="(.+?)"').findall(link)	
-
-                if len(match)>0:
-                       match1=re.compile('"mh_title">(.+?)</span>').findall(link)
-                       name=match1[0]
-                       addDir('..µ±Ç°Î»ÖÃ:'+name+' µÚ'+pagec+'/'+paget+'Ò³',elementId+'|1|'+paget,4,os.getcwd()+'\\resources\\media\\Default4.jpg')
-                       if int(pagec)>1:
-                              addDir('..ÉÏÒ»Ò³',elementId+'|'+str(int(pagec)-1)+'|'+paget,4,os.getcwd()+'\\resources\\media\\Pageup.png')
-                       if int(pagec)<int(paget): 
-                              addDir('..ÏÂÒ»Ò³',elementId+'|'+str(int(pagec)+1)+'|'+paget,4,os.getcwd()+'\\resources\\media\\Pagedown.png')
-                              addDir('..×îºóÒ»Ò³',elementId+'|'+paget+'|'+paget,4,os.getcwd()+'\\resources\\media\\Default4.jpg')
-                       for url1,name1,temp,thumbnail in match:
-                              thumbnail=re.sub(' ','%20',thumbnail)
-                              addDir(name1,url1,5,thumbnail)
-
-
-def DibbleLink(url,name):
-         #»ñÈ¡Ó°Æ¬Êµ¼Ê²¥·ÅµØÖ·
-         req=httplib.HTTPConnection("vod.cctv.com")
-         req.request("get", "/video/VIDE"+url)
-         response=req.getresponse()
-         link=response.read()
-         response.close()
-         Duration=''
-         Plot=''
-         Studio=''
-         match=re.compile('±¾¼¯Ê±³¤£º</strong><span class="color_jh">(.+?)</span>').findall(link)
-         if len(match)>0:Duration=match[0]
-         match=re.compile('ÄÚÈÝÃèÊö£º</strong>(.+?)</p>').findall(link)
-         if len(match)>0:Plot=match[0]
-         match=re.compile('Ê×²¥ÆµµÀ£º</strong><span class="color_jh">(.+?)</span>').findall(link)
-         if len(match)>0:Studio=match[0]
-         match=re.compile('À¸Ä¿Ãû³Æ£º</strong>(.+?)</p>').findall(link)
-         if len(match)>0:Studio=Studio+'  À¸Ä¿:'+match[0]
-         match=re.compile('Ê×²¥Ê±¼ä£º</strong><span class="color_jh">(.+?)</span>').findall(link)
-         if len(match)>0:Studio=Studio+'  Ê×²¥:'+match[0]
-
-         headers = {'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.6) Gecko/2009011913 Firefox/3.0.6'}
-         req=httplib.HTTPConnection("vod.cctv.com")
-         req.request("get", "/playcfg/flv_info_new.jsp?&videoId=VIDE"+url,'',headers)
-         response=req.getresponse()
-         link=response.read()
-         response.close()
-         match=re.compile('"title":"(.+?)"embed":').findall(link)
-         if len(match)>0:
-                  match1=re.compile('"url":"(.+?)"').findall(match[0])
-                  if len(match1)==1:
-                           li=xbmcgui.ListItem('²¥·Å£º'+name,iconImage='', thumbnailImage=os.getcwd()+'\\resources\\media\\PLay.png')
-                           li.setInfo(type="Video",infoLabels={"Title":name,"Plot":Plot,"Duration":Duration,"Studio":Studio})
-                           xbmcplugin.addDirectoryItem(int(sys.argv[1]),'http://58.221.41.93/v.cctv.com/flash/'+match1[0],li)
-                  else:
-                           num=0
-                           for url1 in match1:   
-                                    num=num+1
-                                    li=xbmcgui.ListItem('²¥·Å£º'+name+' ¡¾µÚ'+str(num)+'½Ú¡¿',iconImage='', thumbnailImage=os.getcwd()+'\\resources\\media\\PLay.png')
-                                    li.setInfo(type="Video",infoLabels={"Title":name+" ¡¾µÚ"+str(num)+"½Ú¡¿","Plot":Plot,"Duration":Duration,"Studio":Studio})
-                                    xbmcplugin.addDirectoryItem(int(sys.argv[1]),'http://58.221.41.93/v.cctv.com/flash/'+url1,li)
-
-                
 def get_params():
         param=[]
         paramstring=sys.argv[2]
@@ -224,16 +105,6 @@ def get_params():
                                 
         return param
 
-
-def addDir(name,url,mode,iconimage):
-        u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
-        ok=True
-        liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
-        liz.setInfo( type="Video", infoLabels={ "Title": name } )
-        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
-        return ok
-        
-              
 params=get_params()
 url=None
 name=None
@@ -252,41 +123,14 @@ try:
 except:
         pass
 
-print "Mode: "+str(mode)
-print "URL: "+str(url)
-print "Name: "+str(name)
-
 if mode==None:
         print ""
         CATEGORIES()
-
-elif mode==1:
-        print ""+url
-        DibbleChannel(url,name) 
- 
-elif mode==2:
-        print ""+url
-        DibbleABC(url,name)
-      
-elif mode==3:
-        print ""+url
-        DibbleColumn(url,name)
-      
-elif mode==4:
-        print ""+url
-        DibbleList(url,name)   
-     
-elif mode==5:
-        print ""+url
-        DibbleLink(url,name)
-
 elif mode==6:
         print ""+url
         LiveChannel(url,name)
-
 elif mode==7:
         print ""+url
         LiveLink(url,name)
-
 
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
