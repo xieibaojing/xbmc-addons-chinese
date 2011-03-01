@@ -1,9 +1,19 @@
 ﻿# -*- coding: utf-8 -*-
-import httplib,urllib,re,xbmcplugin,xbmcgui,xbmc,os
+import httplib,urllib,re,xbmcaddon,xbmcplugin,xbmcgui,xbmc,os
 
 # CCTV Video - by Robinttt 2009.
 # CNTV Video - Edit by Spy007 2010
 # CNTV-live - Changed by taxigps 2011
+
+# Plugin constants 
+__addonname__ = "中国网络电视台直播"
+__addonid__ = "plugin.video.cntv-live"
+__addon__ = xbmcaddon.Addon(id=__addonid__)
+
+# 初次运行本插件时自动注册CNTV播放控件
+if __addon__.getSetting('CCTVPlayerOcxReg') == "false":
+         xbmc.executebuiltin('System.Exec(\\"'+ os.getcwd()+'\\resources\\player\\CCTVPlayerOcxReg.exe\\")')
+         __addon__.setSetting(id="CCTVPlayerOcxReg", value="true")
 
 def CATEGORIES():
          addDir('央视直播','/index.shtml',6,os.getcwd()+'\\resources\\media\\live-cctv.jpg',True)
