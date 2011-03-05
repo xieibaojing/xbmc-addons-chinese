@@ -38,6 +38,16 @@ def GetHttpData(url):
     httpdata = re.sub("\s", "", httpdata)
     return httpdata
 
+def urlExists(url):
+    try:
+        resp = urllib2.urlopen(url)
+        result = True
+        resp.close()
+    except urllib2.URLError, e:
+        #print e
+        result = False
+    return result
+
 def getPlayURL(html):
     match1 = re.compile('pid:"(.+?)",//').findall(html)
     if len(match1) > 0:
@@ -184,11 +194,15 @@ def PlayVideo(url,name,thumb):
     playlist.clear()
     listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
     listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(1)+"/"+str(len(match))+" 节"})
-    playlist.add('http://qiyi.soooner.com/videos2/'+match[0][0]+'/'+match[0][1], listitem = listitem)
+    if urlExists('http://qiyi.soooner.com/videos2/'+match[0][0]+'/'+match[0][1]):
+        baseurl = 'http://qiyi.soooner.com/videos2/'
+    else:
+        baseurl = 'http://qiyi.soooner.com/videos/'
+    playlist.add(baseurl+match[0][0]+'/'+match[0][1], listitem = listitem)
     for i in range(1,len(match)):
         listitem=xbmcgui.ListItem(name, thumbnailImage = thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
-        playlist.add('http://qiyi.soooner.com/videos2/'+match[i][0]+'/'+match[i][1], listitem = listitem)
+        playlist.add(baseurl+match[i][0]+'/'+match[i][1], listitem = listitem)
     xbmc.Player().play(playlist)
 
 def performChannel():
