@@ -186,7 +186,7 @@
 
 <addon id="plugin.video.qvod"
     name="快播视频(Qvod)"
-    version="10.8.15"
+    version="10.8.16"
     provider-name="Spy007">
     <extension
         point="xbmc.python.pluginsource"
@@ -198,6 +198,8 @@
         <summary lang="zh">快播视频插件</summary>
         <description lang="en">online video from tom365.com</description>
         <description lang="zh">快播 For TOM365[CR][CR]备注：[CR] （1）首页获取栏目列表速度有点慢，有待于改进；[CR] （2）视频调用外置插件，第一次使用前请务必进入插件目录下\resources\player\内运行KeymapSet.exe进行外挂播放器的遥控器快捷键设定。“上一章节”、“下一章节”选项暂不能使用;（KeymapSet.exe是R大编写的，偶直接借来用了。：） ）[CR] （3）本插件在使用前需要安装快播最新版（Qvod 3.5.0.4);[CR] （4）进入播放界面后，如果上方显示“准备就绪”，然后长时间不能播放，则表明地址有误，不能播放，请自行访问www.tom364.com，使用该网站的网页播放尝试一下，如果能播放，请在论坛反馈给我，我会尽快修正；[CR] （5）进入播放界面后，如果上方显示“连接中”，表明后台正在缓冲，请耐心等候，一般三十秒后即可播放；[CR] （6）一般每部影片都会有主地址和备用地址，请尽量用主地址，主地址不能播放才换备用地址。</description>
+        <broken lang="en">the plugin broken because video site changed, need update</broken>
+        <broken lang="zh">由于视频网站变动，此插件已无法正常使用，需待开发者升级插件</broken>
         <platform>all</platform>
     </extension>
 </addon>
