@@ -1,281 +1,236 @@
-# -*- coding: cp936 -*-
-import xbmc,xbmcgui,xbmcplugin,urllib2,urllib,re,sys
+Ôªø# -*- coding: utf-8 -*-
+import xbmc,xbmcgui,xbmcplugin,urllib2,urllib,re,sys,os
 
-# ÷–π˙Õ¯¬ÁµÁ ”Ã®µ„≤•(CNTV)
+# ‰∏≠ÂõΩÁΩëÁªúÁîµËßÜÂè∞ÁÇπÊí≠(CNTV)
 # Write by robinttt 2010.
 # Update by taxigps 2011
 
+MEDIA_PATH = os.getcwd() + '/resources/media/'
+
+def GetHttpData(url):
+    req = urllib2.Request(url)
+    req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
+    response = urllib2.urlopen(req)
+    httpdata = response.read()
+    response.close()
+    match = re.compile('<meta http-equiv="Content-Type" content="text/html; charset=(.+?)" />').findall(httpdata)
+    if len(match)>0:
+        charset = match[0].lower()
+        if (charset != 'utf-8') and (charset != 'utf8'):
+            httpdata = unicode(httpdata, charset).encode('utf8')
+    return httpdata
+
 def Roots():
-	#li=xbmcgui.ListItem(u'∞ÆŒ˜Ë÷'.encode('utf8'))
-	#u=sys.argv[0]+"?mode=1&name="+urllib.quote_plus(u'∞ÆŒ˜Ë÷'.encode('utf8'))
-	#xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem('∞Æ≤ºπ»')
-	u=sys.argv[0]+"?mode=8&name="+urllib.quote_plus('∞Æ≤ºπ»')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    thumb=MEDIA_PATH+'xiyou.png'
+    li=xbmcgui.ListItem('Áà±Ë•øÊüö',thumb,thumb)
+    u=sys.argv[0]+"?mode=1&name="+urllib.quote_plus('Áà±Ë•øÊüö')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    thumb=MEDIA_PATH+'bugu.png'
+    li=xbmcgui.ListItem('Áà±Â∏ÉË∞∑',thumb,thumb)
+    u=sys.argv[0]+"?mode=8&name="+urllib.quote_plus('Áà±Â∏ÉË∞∑')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
 
 def BuguA(name):
-	li=xbmcgui.ListItem(name+'>∑÷¿‡')
-	u=sys.argv[0]+"?mode=9&name="+urllib.quote_plus(name+'>∑÷¿‡')+"&url="+urllib.quote_plus('http://bugu.cntv.cn/category/index.shtml')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+'>∆µµ¿')
-	u=sys.argv[0]+"?mode=9&name="+urllib.quote_plus(name+'>∆µµ¿')+"&url="+urllib.quote_plus('http://bugu.cntv.cn/channel/index.shtml')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+'>¿∏ƒø')
-	u=sys.argv[0]+"?mode=9&name="+urllib.quote_plus(name+'>¿∏ƒø')+"&url="+urllib.quote_plus('http://bugu.cntv.cn/column/index.shtml')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+'>”∞ ”')
-	u=sys.argv[0]+"?mode=9&name="+urllib.quote_plus(name+'>”∞ ”')+"&url="+urllib.quote_plus('http://bugu.cntv.cn/television/index.shtml')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    li=xbmcgui.ListItem(name+'>ÂàÜÁ±ªÊü•ËØ¢')
+    u=sys.argv[0]+"?mode=9&name="+urllib.quote_plus(name+'>ÂàÜÁ±ªÊü•ËØ¢')+"&url="+urllib.quote_plus('http://bugu.cntv.cn/category/index.shtml')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    li=xbmcgui.ListItem(name+'>È¢ëÈÅìÊü•ËØ¢')
+    u=sys.argv[0]+"?mode=9&name="+urllib.quote_plus(name+'>È¢ëÈÅìÊü•ËØ¢')+"&url="+urllib.quote_plus('http://bugu.cntv.cn/channel/index.shtml')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    li=xbmcgui.ListItem(name+'>Ê¥ªÂä®Â§ßÂÖ®')
+    u=sys.argv[0]+"?mode=9&name="+urllib.quote_plus(name+'>Ê¥ªÂä®Â§ßÂÖ®')+"&url="+urllib.quote_plus('http://bugu.cntv.cn/specials_A-Z/index.shtml')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    li=xbmcgui.ListItem(name+'>ËäÇÁõÆÂ§ßÂÖ®')
+    u=sys.argv[0]+"?mode=9&name="+urllib.quote_plus(name+'>ËäÇÁõÆÂ§ßÂÖ®')+"&url="+urllib.quote_plus('http://bugu.cntv.cn/television/index.shtml')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
 
 def BuguB(name,url):
-        req = urllib2.Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub('\r','',link)
-        link=re.sub('\n','',link)
-        link=re.sub('\t','',link)
-        match=re.compile('<p class="edh"(.+?)id="(.+?)">(.+?)</p>').findall(link)
-        for i in range(0,len(match)):
-                name1=re.sub('<a(.+?)>','',match[i][2])
-                name1=re.sub('</a>','',name1)
-	        li=xbmcgui.ListItem(name+'>'+name1)
-	        u=sys.argv[0]+"?mode=10&name="+urllib.quote_plus(name+'>'+name1)+"&url="+urllib.quote_plus(url)+"&id="+urllib.quote_plus('<p class="edh"'+match[i][0]+'id="'+match[i][1]+'">'+match[i][2]+'</p>')
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def BuguC(name,url,id):
-        req = urllib2.Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub('\r','',link)
-        link=re.sub('\n','',link)
-        link=re.sub('\t','',link)
-        match=re.compile(id+'(.+?)</table>').findall(link)
-        match0=re.compile('href="(.+?)" target="_blank" class="cyan">(.+?)</a>').findall(match[0])
-        for url1,name1 in match0:
-	        li=xbmcgui.ListItem(name+'>'+name1)
-	        u=sys.argv[0]+"?mode=11&name="+urllib.quote_plus(name+'>'+name1)+"&url="+urllib.quote_plus(url1)
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def BuguD(name,url):
-	li=xbmcgui.ListItem('µ±«∞Œª÷√£∫'+name)
-	u=sys.argv[0]+"?mode=20&name="+urllib.quote_plus(name)
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        req = urllib2.Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        match=re.compile('var brief="(.+?)";').findall(link)
-        plot=match[0]
-        match=re.compile("new title_array\('(.+?)','(.+?)','(.+?)','(.+?)'").findall(link)
-        for i in range(0,len(match)):
-	        li=xbmcgui.ListItem(str(i+1)+'. '+match[i][0]+'  ( ±≥§:'+match[i][2]+')',match[i][1],match[i][1])
-	        u=sys.argv[0]+"?mode=12&name="+urllib.quote_plus(match[i][0])+"&url="+urllib.quote_plus(match[i][3])+"&plot="+urllib.quote_plus(plot)+"&thumb="+urllib.quote_plus(match[i][1])
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
-
-def BuguE(name,url,thumb,plot):
-        playlist=xbmc.PlayList(1)
-        playlist.clear()
-        req = urllib2.Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        match=re.compile('\("videoCenterId","(.+?)"\)').findall(link)
-        url='http://vdd.player.cntv.cn/index.php?pid='+match[0]
-        req = urllib2.Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        match=re.compile('"chapters":\[(.+?)\]').findall(link)
-        match0=re.compile('"url":"(.+?)"').findall(match[0])
-        for i in range(0,len(match0)):
-                listitem=xbmcgui.ListItem(name,thumb,thumb)
-                listitem.setInfo(type="Video",infoLabels={"Title":name,"plot":plot})
-                playlist.add(match0[i].replace('\\',''), listitem)
-                #print match0[i].replace('\\','')
-        xbmc.Player().play(playlist)
-
-def XiyouA(name):
-	li=xbmcgui.ListItem(name+u'> ”∆µ'.encode('utf8'))
-	u=sys.argv[0]+"?mode=2&name="+urllib.quote_plus(name+u'> ”∆µ'.encode('utf8'))+"&category="+urllib.quote_plus('Video')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+u'>◊®º≠'.encode('utf8'))
-	u=sys.argv[0]+"?mode=2&name="+urllib.quote_plus(name+u'>◊®º≠'.encode('utf8'))+"&category="+urllib.quote_plus('Playlist')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def XiyouB(name,category):
-        req = urllib2.Request('http://xiyou.cntv.cn/'+category.lower()+'/index.html')
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub('\r','',link)
-        link=re.sub('\n','',link)
-        link=re.sub('\t','',link)
-	li=xbmcgui.ListItem(name+u'>»´≤ø'.encode('utf8'))
-	u=sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name+u'>»´≤ø'.encode('utf8'))+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus('0')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        match=re.compile('<table id="table_1"(.+?)</table>').findall(link)
-        match0=re.compile('<a id="(.+?)" href="(.+?)">(.+?)</a>').findall(match[0])
-        for id,url1,name1 in match0:
-	        li=xbmcgui.ListItem(name+'>'+name1)
-	        u=sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name+'>'+name1)+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def XiyouC(name,category,id):
-	li=xbmcgui.ListItem(name+u'>ΩÒÃÏ'.encode('utf8'))
-	u=sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name+u'>ΩÒÃÏ'.encode('utf8'))+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus('today')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+u'>±æ÷‹'.encode('utf8'))
-	u=sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name+u'>±æ÷‹'.encode('utf8'))+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus('week')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+u'>±æ‘¬'.encode('utf8'))
-	u=sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name+u'>±æ‘¬'.encode('utf8'))+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus('month')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+u'>¿˙ ∑'.encode('utf8'))
-	u=sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name+u'>¿˙ ∑'.encode('utf8'))+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus('year')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def XiyouD(name,category,id,type):
-	li=xbmcgui.ListItem(name+u'>◊Ó»»'.encode('utf8'))
-	u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name+u'>◊Ó»»'.encode('utf8'))+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus('HotMax')+"&page="+urllib.quote_plus('1')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+u'> ’≤ÿ◊Ó∂‡'.encode('utf8'))
-	u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name+u'> ’≤ÿ◊Ó∂‡'.encode('utf8'))+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus('PlayMax')+"&page="+urllib.quote_plus('1')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+u'>∆¿¬€◊Ó∂‡'.encode('utf8'))
-	u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name+u'>∆¿¬€◊Ó∂‡'.encode('utf8'))+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus('CommentMax')+"&page="+urllib.quote_plus('1')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+u'>∂•µƒ◊Ó∂‡'.encode('utf8'))
-	u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name+u'>∂•µƒ◊Ó∂‡'.encode('utf8'))+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus('UpMax')+"&page="+urllib.quote_plus('1')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+u'>◊Ó–¬'.encode('utf8'))
-	u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name+u'>◊Ó–¬'.encode('utf8'))+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus('Newest')+"&page="+urllib.quote_plus('1')
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def XiyouE(name,category,handler,id,type,page):
-        tmp='Ajax'+category+handler
-        url='http://rpc.xiyou.cntv.cn/rpc.php?id='+id+'&handler='+tmp+'&type='+type+'&table%5Fpage%5F1='+page+'&display%5Fid='+tmp.lower()
-        req = urllib2.Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub('\r','',link)
-        link=re.sub('\n','',link)
-        link=re.sub('\t','',link)
-        link=re.sub(' ','',link)
-
-        if link.find('id="noRecordRow">')==-1:
-        #ªÒ»°µ±«∞“≥¬Î
-                match=re.compile('<aclass="current_page"(.+?)table_page_1=(.+?)\',').findall(link)
-	        li=xbmcgui.ListItem(u'µ±«∞Œª÷√£∫'.encode('utf8')+name+u' °æµ⁄'.encode('utf8')+match[0][1]+u'“≥°ø'.encode('utf8'))
-	        u=sys.argv[0]+"?mode=20"
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-                #ªÒ»°µ±«∞¡–±Ì
-                match=re.compile('<tableid="table_1"(.+?)</table>').findall(link)
-                if category=='Video':
-                        match0=re.compile('<imgsrc="(.+?)"title="(.+?)"/>(.+?)"videotime"><span>(.+?)</span>(.+?)<divclass="addtolist"id="(.+?)">(.+?)<spanclass="itemtitle">(.+?)title="(.+?)"(.+?)title="(.+?)">').findall(match[0])
-                       	for i in range(0,len(match0)):
-                        	li=xbmcgui.ListItem(str(i+1)+'.'+match0[i][8],match0[i][0],match0[i][0])
-                        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(match0[i][8])+"&id="+urllib.quote_plus(match0[i][5])+"&thumb="+urllib.quote_plus(match0[i][0])+"&director="+urllib.quote_plus(match0[i][10])+"&duration="+urllib.quote_plus(match0[i][3])+"&plot="+urllib.quote_plus(match0[i][1])
-                        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-                else:
-                        match0=re.compile('<imgsrc="(.+?)"/>(.+?)<ahref="/playlistinfo/(.+?)"title="(.+?)>(.+?)</a>').findall(match[0])
-                        for i in range(0,len(match0)):
-                        	li=xbmcgui.ListItem(str(i+1)+'.'+match0[i][4],match0[i][0],match0[i][0])
-                        	u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name+'>'+match0[i][4])+"&id="+urllib.quote_plus(match0[i][2])
-                        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-                #ªÒ»°∆‰À˚“≥¬Î
-                match=re.compile('<divclass="paging">(.+?)</div>').findall(link)
-                match0=re.compile('<aclass="(.+?)"(.+?)table_page_1=(.+?)\',(.+?)">(.+?)</a>').findall(match[0])
-                for i in range(0,len(match0)):
-                        if match0[i][0]=='first_page' or match0[i][0]=='last_page' or match0[i][0]=='prev_page' or match0[i][0]=='next_page':
-                        	li=xbmcgui.ListItem('..'+match0[i][4])
-                        	u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name)+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus(handler)+"&page="+urllib.quote_plus(match0[i][2])
-                        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-                        elif match0[i][0]!='current_page':
-                        	li=xbmcgui.ListItem(u'..µ⁄'.encode('utf8')+match0[i][4]+u'“≥'.encode('utf8'))
-                        	u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name)+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus(handler)+"&page="+urllib.quote_plus(match0[i][2])
-                        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def XiyouF(name,id):
-        li=xbmcgui.ListItem(u'µ±«∞Œª÷√£∫'.encode('utf8')+name)
-        u=sys.argv[0]+"?mode=20"
+    link=GetHttpData(url)
+    link=re.sub('\r','',link)
+    link=re.sub('\n','',link)
+    link=re.sub('\t','',link)
+    match=re.compile('<p class="edh"(.+?)id="(.+?)">(.+?)</p>').findall(link)
+    for i in range(0,len(match)):
+        name1=re.sub('<a(.+?)>','',match[i][2])
+        name1=re.sub('</a>','',name1)
+        li=xbmcgui.ListItem(name+'>'+name1)
+        u=sys.argv[0]+"?mode=10&name="+urllib.quote_plus(name+'>'+name1)+"&url="+urllib.quote_plus(url)+"&id="+urllib.quote_plus('<p class="edh"'+match[i][0]+'id="'+match[i][1]+'">'+match[i][2]+'</p>')
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
 
-        url='http://rpc.xiyou.cntv.cn/rpc.php?orderBy=0&handler=AjaxPlaylistVideoList&display%5Fid=playlistVideoList&id='+id
-        req = urllib2.Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub('\r','',link)
-        link=re.sub('\n','',link)
-        link=re.sub('\t','',link)
-        link=re.sub(' ','',link)
-        match=re.compile('<imgsrc="(.+?)"title="(.+?)"/>(.+?)"videotime"><span>(.+?)</span>(.+?)<divclass="addtolist"id="(.+?)">(.+?)<spanclass="itemtitle">(.+?)title="(.+?)"').findall(link)
-        for i in range(0,len(match)):
-                li=xbmcgui.ListItem(str(i+1)+'.'+match[i][8],match[i][0],match[i][0])
-                u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(match[i][8])+"&id="+urllib.quote_plus(match[i][5])+"&thumb="+urllib.quote_plus(match[i][0])+"&director="+urllib.quote_plus('')+"&duration="+urllib.quote_plus('')+"&plot="+urllib.quote_plus(match[i][1])
+def BuguC(name,url,id):
+    link=GetHttpData(url)
+    link=re.sub('\r','',link)
+    link=re.sub('\n','',link)
+    link=re.sub('\t','',link)
+    match=re.compile(id+'(.+?)</table>').findall(link)
+    match0=re.compile('href="(.+?)" target="_blank" class="cyan">(.+?)</a>').findall(match[0])
+    for url1,name1 in match0:
+        li=xbmcgui.ListItem(name+'>'+name1)
+        u=sys.argv[0]+"?mode=11&name="+urllib.quote_plus(name+'>'+name1)+"&url="+urllib.quote_plus(url1)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+
+def BuguD(name,url):
+    li=xbmcgui.ListItem('ÂΩìÂâç‰ΩçÁΩÆÔºö'+name)
+    u=sys.argv[0]+"?mode=20&name="+urllib.quote_plus(name)
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    link=GetHttpData(url)
+    match=re.compile('var brief="(.+?)";').findall(link)
+    plot=match[0]
+    match=re.compile("new title_array\('(.+?)','(.+?)','(.+?)','(.+?)'").findall(link)
+    for i in range(0,len(match)):
+        li=xbmcgui.ListItem(str(i+1)+'. '+match[i][0]+'  (Êó∂Èïø:'+match[i][2]+')',match[i][1],match[i][1])
+        u=sys.argv[0]+"?mode=12&name="+urllib.quote_plus(match[i][0])+"&url="+urllib.quote_plus(match[i][3])+"&plot="+urllib.quote_plus(plot)+"&thumb="+urllib.quote_plus(match[i][1])
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
+
+def BuguE(name,url,thumb,plot):
+    playlist=xbmc.PlayList(1)
+    playlist.clear()
+    link=GetHttpData(url)
+    match=re.compile('\("videoCenterId","(.+?)"\)').findall(link)
+    url='http://vdd.player.cntv.cn/index.php?pid='+match[0]
+    link=GetHttpData(url)
+    match=re.compile('"chapters":\[(.+?)\]').findall(link)
+    match0=re.compile('"url":"(.+?)"').findall(match[0])
+    for i in range(0,len(match0)):
+        listitem=xbmcgui.ListItem(name,thumb,thumb)
+        listitem.setInfo(type="Video",infoLabels={"Title":name,"plot":plot})
+        playlist.add(match0[i].replace('\\',''), listitem)
+    xbmc.Player().play(playlist)
+
+def XiyouA(name):
+    li=xbmcgui.ListItem(name+'>ËßÜÈ¢ë')
+    u=sys.argv[0]+"?mode=2&name="+urllib.quote_plus(name+'>ËßÜÈ¢ë')+"&category="+urllib.quote_plus('video')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    li=xbmcgui.ListItem(name+'>‰∏ìËæë')
+    u=sys.argv[0]+"?mode=2&name="+urllib.quote_plus(name+'>‰∏ìËæë')+"&category="+urllib.quote_plus('plist')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+
+def XiyouB(name,category):
+    link=GetHttpData('http://xiyou.cntv.cn/'+category+'/index-hot-week.html')
+    link=re.sub('\r','',link)
+    link=re.sub('\n','',link)
+    link=re.sub('\t','',link)
+    li=xbmcgui.ListItem(name+'>ÂÖ®ÈÉ®')
+    u=sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name+'>ÂÖ®ÈÉ®')+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus('0')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    match=re.compile('<li><a href="/'+category+'/index-hot-week-([0-9]+).html"><span class="hotspan">(.+?)</span>').findall(link)
+    for id,name1 in match:
+        li=xbmcgui.ListItem(name+'>'+name1)
+        u=sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name+'>'+name1)+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+
+def XiyouC(name,category,id):
+    li=xbmcgui.ListItem(name+'>‰ªäÊó•')
+    u=sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name+'>‰ªäÊó•')+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus('-day')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    li=xbmcgui.ListItem(name+'>Êú¨Âë®')
+    u=sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name+'>Êú¨Âë®')+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus('-week')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    li=xbmcgui.ListItem(name+'>Êú¨Êúà')
+    u=sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name+'>Êú¨Êúà')+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus('-month')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    li=xbmcgui.ListItem(name+'>ÂÖ®ÈÉ®')
+    u=sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name+'>ÂÖ®ÈÉ®')+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus('')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+
+def XiyouD(name,category,id,type):
+    li=xbmcgui.ListItem(name+'>Êí≠ÊîæÊúÄÂ§ö')
+    u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name+'>Êí≠ÊîæÊúÄÂ§ö')+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus('-hot')+"&page="+urllib.quote_plus('1')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    li=xbmcgui.ListItem(name+'>Êî∂ËóèÊúÄÂ§ö')
+    u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name+'>Êî∂ËóèÊúÄÂ§ö')+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus('-fav')+"&page="+urllib.quote_plus('1')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    if category=='video':
+        li=xbmcgui.ListItem(name+'>ËØÑËÆ∫ÊúÄÂ§ö')
+        u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name+'>ËØÑËÆ∫ÊúÄÂ§ö')+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus('-comment')+"&page="+urllib.quote_plus('1')
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+        li=xbmcgui.ListItem(name+'>È°∂ÁöÑÊúÄÂ§ö')
+        u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name+'>È°∂ÁöÑÊúÄÂ§ö')+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus('-dig')+"&page="+urllib.quote_plus('1')
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    li=xbmcgui.ListItem(name+'>ÊúÄËøëÊõ¥Êñ∞')
+    u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name+'>ÊúÄËøëÊõ¥Êñ∞')+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus('-new')+"&page="+urllib.quote_plus('1')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+
+def XiyouE(name,category,handler,id,type,page):
+    tmp='Ajax'+category+handler
+    url='http://xiyou.cntv.cn/'+category+'/index'+handler+type+'-'+id+'-'+page+'.html'
+    link=GetHttpData(url)
+    link=re.sub('\r','',link)
+    link=re.sub('\n','',link)
+    link=re.sub('\t','',link)
+    link=re.sub(' ','',link)
+
+    li=xbmcgui.ListItem('ÂΩìÂâç‰ΩçÁΩÆÔºö'+name+' „ÄêÁ¨¨'+page+'È°µ„Äë')
+    u=sys.argv[0]+"?mode=20"
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    #Ëé∑ÂèñÂΩìÂâçÂàóË°®
+    if category=='video':
+        match0=re.compile('<ulclass="video"><liclass="vimg"><atitle="(.+?)"href="(.+?)"target="_blank"><img.*?lazy-src="(.+?)"alt=".+?"></a><spanclass="vtime">(.+?)</span><spanid="(.+?)"').findall(link)
+        for i in range(0,len(match0)):
+            li=xbmcgui.ListItem(str(i+1)+'.'+match0[i][0],match0[i][2],match0[i][2])
+            u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(match0[i][0])+"&id="+urllib.quote_plus(match0[i][4])+"&thumb="+urllib.quote_plus(match0[i][2])+"&duration="+urllib.quote_plus(match0[i][3])
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
+    else:
+        match0=re.compile('<ulclass="video"><liclass="vimg"><atitle="(.+?)"href="(.+?)"target="_blank"><img.*?lazy-src="(.+?)"alt=".+?"></a>').findall(link)
+        for i in range(0,len(match0)):
+            li=xbmcgui.ListItem(str(i+1)+'.'+match0[i][0],match0[i][2],match0[i][2])
+            u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name+'>'+match0[i][0])+"&url="+urllib.quote_plus('http://xiyou.cntv.cn'+match0[i][1])
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    #Ëé∑ÂèñÂÖ∂‰ªñÈ°µÁ†Å
+    match=re.compile('<divclass="page">(.+?)</div>').findall(link)
+    if len(match)>0:
+        match0=re.compile('<ahref="/'+category+'/index'+handler+type+'-'+id+'-([0-9]+).html"class="(.+?)">(.+?)</a>').findall(match[0])
+        for i in range(0,len(match0)):
+            if match0[i][1]=='fsize12' or match0[i][1]=='prev_page' or match0[i][1]=='next_page':
+                li=xbmcgui.ListItem('..'+match0[i][2])
+                u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name)+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus(handler)+"&page="+urllib.quote_plus(match0[i][0])
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+            elif match0[i][1]!='current_page':
+                li=xbmcgui.ListItem('..Á¨¨'+match0[i][2]+'È°µ')
+                u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name)+"&category="+urllib.quote_plus(category)+"&id="+urllib.quote_plus(id)+"&type="+urllib.quote_plus(type)+"&handler="+urllib.quote_plus(handler)+"&page="+urllib.quote_plus(match0[i][0])
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
 
-def XiyouG(name,id,director,thumb,plot,duration):
-        #≤•∑≈µ±«∞ ”∆µ
-        url='http://rpc.xiyou.cntv.cn/rpc.php?id='+id+'&module=VideoDescShow'
-        req = urllib2.Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        match=re.compile('\\\u4e0a\\\u4f20\\\u65f6\\\u95f4\\\uff1a(.+?)<').findall(link)
-        path='http://59.151.104.234/video/'+match[0].replace('-','/')+'/'+id+'_001.mp4'
-        li=xbmcgui.ListItem(u'≤•∑≈µ±«∞ ”∆µ£∫'.encode('utf8')+name,'',thumb)
-        li.setInfo(type="Video",infoLabels={"Title":name,"Director":director,"Duration":duration,"Plot":plot})
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]),path,li)
+def XiyouF(name,url):
+    li=xbmcgui.ListItem('ÂΩìÂâç‰ΩçÁΩÆÔºö'+name)
+    u=sys.argv[0]+"?mode=20"
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    link=GetHttpData(url)
+    link=re.sub('\r','',link)
+    link=re.sub('\n','',link)
+    link=re.sub('\t','',link)
+    link=re.sub(' ','',link)
+    match=re.compile('<ulclass="video"><liclass="vimg"><ahref="(.+?)"title="(.+?)"><img.*?lazy-src="(.+?)"/></a><spanclass="vtime">(.+?)</span><spanclass="vadd"id="(.+?)"').findall(link)
+    for i in range(0,len(match)):
+        li=xbmcgui.ListItem(str(i+1)+'.'+match[i][1],match[i][2],match[i][2])
+        u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(match[i][1])+"&id="+urllib.quote_plus(match[i][4])+"&thumb="+urllib.quote_plus(match[i][2])+"&duration="+urllib.quote_plus(match[i][3])
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
 
-        #≤•∑≈œ‡πÿ ”∆µ
-        url='http://xiyou.cntv.cn/video-relative.php?item_id='+id
-        req = urllib2.Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        match=re.compile('"title":"(.+?)","userName":"(.+?)","(.+?)"timeSpan":"(.+?)","(.+?)"imagePath":"(.+?)"(.+?)"videoFilePath":"(.+?)"}').findall(link)
-        for i in range(0,len(match)):
-                if match[i][7].find('qgds')==-1:
-                        path0=match[i][7].replace('\\','')
-                        path1=path0.split('#')
-                        path=path1[0]+'_001.mp4'
-                li=xbmcgui.ListItem(u'≤•∑≈œ‡πÿ ”∆µ£∫'+eval('u"'+match[i][0]+'"'),match[i][5].replace('\\',''),match[i][5].replace('\\',''))
-                li.setInfo(type="Video",infoLabels={"Title":eval('u"'+match[i][0]+'"'),"Director":eval('u"'+match[i][1]+'"'),"Duration":match[i][3],"Plot":plot})
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]),path,li)
-
-
+def XiyouG(name,id,thumb,duration):
+    url='http://xiyou.cntv.cn/interface/index?videoId='+id
+    link=GetHttpData(url)
+    match=re.compile('"videoFilePath":"(.+?)#').findall(link)
+    path=match[0].replace('\\','')+'_001.mp4'
+    li=xbmcgui.ListItem(name,thumb,thumb)
+    li.setInfo(type="Video",infoLabels={"Title":name,"Duration":duration})
+    xbmc.Player().play(path, li)
 
 def get_params():
-        param=[]
-        paramstring=sys.argv[2]
-        if len(paramstring)>=2:
-                params=sys.argv[2]
-                cleanedparams=params.replace('?','')
-                if (params[len(params)-1]=='/'):
-                        params=params[0:len(params)-2]
-                pairsofparams=cleanedparams.split('&')
-                param={}
-                for i in range(len(pairsofparams)):
-                        splitparams={}
-                        splitparams=pairsofparams[i].split('=')
-                        if (len(splitparams))==2:
-                                param[splitparams[0]]=splitparams[1]
-                                
-        return param
+    param=[]
+    paramstring=sys.argv[2]
+    if len(paramstring)>=2:
+        params=sys.argv[2]
+        cleanedparams=params.replace('?','')
+        if (params[len(params)-1]=='/'):
+            params=params[0:len(params)-2]
+        pairsofparams=cleanedparams.split('&')
+        param={}
+        for i in range(len(pairsofparams)):
+            splitparams={}
+            splitparams=pairsofparams[i].split('=')
+            if (len(splitparams))==2:
+                param[splitparams[0]]=splitparams[1]
+                
+    return param
 
 params=get_params()
 
@@ -295,102 +250,86 @@ duration=None
 
 
 try:
-        url=urllib.unquote_plus(params["url"])
+    url=urllib.unquote_plus(params["url"])
 except:
-        pass
+    pass
 try:
-        name=urllib.unquote_plus(params["name"])
+    name=urllib.unquote_plus(params["name"])
 except:
-        pass
+    pass
 try:
-        mode=int(params["mode"])
+    mode=int(params["mode"])
 except:
-        pass
+    pass
 try:
-        category=urllib.unquote_plus(params["category"])
+    category=urllib.unquote_plus(params["category"])
 except:
-        pass
+    pass
 try:
-        id=urllib.unquote_plus(params["id"])
+    id=urllib.unquote_plus(params["id"])
 except:
-        pass
+    pass
 try:
-        type=urllib.unquote_plus(params["type"])
+    type=urllib.unquote_plus(params["type"])
 except:
-        pass
+    pass
 try:
-        handler=urllib.unquote_plus(params["handler"])
+    handler=urllib.unquote_plus(params["handler"])
 except:
-        pass
+    pass
 try:
-        page=urllib.unquote_plus(params["page"])
+    page=urllib.unquote_plus(params["page"])
 except:
-        pass
+    pass
 try:
-        director=urllib.unquote_plus(params["director"])
+    director=urllib.unquote_plus(params["director"])
 except:
-        pass
+    pass
 try:
-        studio=urllib.unquote_plus(params["studio"])
+    studio=urllib.unquote_plus(params["studio"])
 except:
-        pass
+    pass
 try:
-        plot=urllib.unquote_plus(params["plot"])
+    plot=urllib.unquote_plus(params["plot"])
 except:
-        pass
+    pass
 try:
-        thumb=urllib.unquote_plus(params["thumb"])
+    thumb=urllib.unquote_plus(params["thumb"])
 except:
-        pass
+    pass
 try:
-        duration=urllib.unquote_plus(params["duration"])
+    duration=urllib.unquote_plus(params["duration"])
 except:
-        pass
-
+    pass
 
 
 if mode==None:
-	name=''
-	Roots()
-
+    name=''
+    Roots()
 elif mode==1:
-	XiyouA(name)
-
+    XiyouA(name)
 elif mode==2:
-	XiyouB(name,category)
-
+    XiyouB(name,category)
 elif mode==3:
-	XiyouC(name,category,id)
-
+    XiyouC(name,category,id)
 elif mode==4:
-	XiyouD(name,category,id,type)
-
+    XiyouD(name,category,id,type)
 elif mode==5:
-        XiyouE(name,category,handler,id,type,page)
-
+    XiyouE(name,category,handler,id,type,page)
 elif mode==6:
-        XiyouF(name,id)
-
+    XiyouF(name,url)
 elif mode==7:
-        XiyouG(name,id,director,thumb,plot,duration)
-
+    XiyouG(name,id,thumb,duration)
 elif mode==8:
-        BuguA(name)
-
+    BuguA(name)
 elif mode==9:
-        BuguB(name,url)
-
+    BuguB(name,url)
 elif mode==10:
-        BuguC(name,url,id)
-
+    BuguC(name,url,id)
 elif mode==11:
-        BuguD(name,url)
-
+    BuguD(name,url)
 elif mode==12:
-        BuguE(name,url,plot,thumb)
+    BuguE(name,url,plot,thumb)
 
-
-xbmcplugin.setPluginCategory(int(sys.argv[1]), name )
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-    
