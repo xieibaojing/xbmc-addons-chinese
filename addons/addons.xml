@@ -96,7 +96,7 @@
 
 <addon id="plugin.video.cntv"
     name="中国网络电视台点播(CNTV)"
-    version="1.0.0"
+    version="1.0.1"
     provider-name="Robinttt">
     <extension
         point="xbmc.python.pluginsource"
@@ -108,7 +108,7 @@
         <summary lang="zh">中国网络电视台点播插件</summary>
         <description lang="en">CNTV video plugin use internal player of xbmc to play video and live tv online, support all os platform.</description>
         <description lang="zh">中国网络电视台点播插件完全采用XBMC内置播放器播放天翼视讯点播和直播内容，可在所有操作系统平台使用。</description>
-        <platform>windx wingl</platform>
+        <platform>all</platform>
     </extension>
 </addon>
 
