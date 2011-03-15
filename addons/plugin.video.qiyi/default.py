@@ -97,7 +97,7 @@ def rootList():
         p_thumb = match[i][2]
         p_rating = float(match[i][4] + match[i][5])
         p_votes = match[i][6]
-        li = xbmcgui.ListItem(str(i + 1) + '.' + p_name, p_thumb, p_thumb)
+        li = xbmcgui.ListItem(str(i + 1) + '.' + p_name, iconImage = '', thumbnailImage = p_thumb)
         link = GetHttpData(p_url)
         v_url = getPlayURL(link)
         if v_url != '':
@@ -177,7 +177,7 @@ def seriesList(url, name, thumb):
             p_plot = match1[0]
         else:
             p_plot = ''
-        li = xbmcgui.ListItem(p_name, p_thumb, p_thumb)
+        li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
         li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year})
         u = sys.argv[0] + "?mode=2&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
