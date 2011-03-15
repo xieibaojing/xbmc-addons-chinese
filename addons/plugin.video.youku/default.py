@@ -1,7 +1,9 @@
 ﻿# -*- coding: utf-8 -*-
 import xbmc,xbmcgui,xbmcplugin,urllib2,urllib,re,sys
 
-#优酷视频- by robinttt 2010.
+# 优酷视频(YouKu)
+# write by robinttt, 2010
+# update by taxigps, 2011
 
 def Roots():
         li=xbmcgui.ListItem("视频")
@@ -125,7 +127,7 @@ def Video5(name,list,type,kind,sort,page):
                 match=re.compile('<liclass="v_link"><ahref="(http://v.youku.com/v_show/id_.+?.html)"charset=(.+?)<imgsrc="(.+?)"alt="(.+?)"').findall(link)
                 if len(match)>0:
                         for i in range(0,len(match)):
-                                li=xbmcgui.ListItem(str(i+1)+"."+match[i][3],match[i][2],match[i][2])
+                                li=xbmcgui.ListItem(str(i+1)+"."+match[i][3],iconImage=match[i][2],thumbnailImage=match[i][2])
                                 u=sys.argv[0]+"?mode=18&name="+urllib.quote_plus(match[i][3])+"&url="+urllib.quote_plus(match[i][0])+"&director="+urllib.quote_plus("")+"&studio="+urllib.quote_plus("")+"&plot="+urllib.quote_plus("")
                                 xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
 
@@ -164,7 +166,7 @@ def Video5(name,list,type,kind,sort,page):
                 match=re.compile('<liclass="p_link"><ahref="/playlist_show/id_(.+?).html"charset=.+?<imgsrc="(.+?)"alt="(.+?)"').findall(link)
                 if len(match)>0:
                         for i in range(0,len(match)):
-                                li=xbmcgui.ListItem(str(i+1)+"."+match[i][2],match[i][1],match[i][1])
+                                li=xbmcgui.ListItem(str(i+1)+"."+match[i][2],iconImage=match[i][1],thumbnailImage=match[i][1])
                                 u=sys.argv[0]+"?mode=8&name="+urllib.quote_plus(name+">"+match[i][2])+"&url="+urllib.quote_plus(match[i][0])+"&upage="+urllib.quote_plus("1")
                                 xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
 
@@ -200,7 +202,7 @@ def Video6(name,url0,upage):
         match=re.compile('<liclass="v_link"><acharset=".+?"title="(.+?)"href="(http://v.youku.com/v_playlist/.+?.html)".+?<imgsrc="(.+?)"').findall(link)
         if len(match)>0:
                 for i in range(0,len(match)):
-                        li=xbmcgui.ListItem(str(i+1)+"."+match[i][0],match[i][2],match[i][2])
+                        li=xbmcgui.ListItem(str(i+1)+"."+match[i][0],iconImage=match[i][2],thumbnailImage=match[i][2])
                         u=sys.argv[0]+"?mode=18&name="+urllib.quote_plus(match[i][0])+"&url="+urllib.quote_plus(match[i][1])+"&director="+urllib.quote_plus("")+"&studio="+urllib.quote_plus("")+"&plot="+urllib.quote_plus("")
                         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
         match=re.compile('<divclass="pageBar">(.+?)</div>').findall(link)
@@ -326,7 +328,7 @@ def Movie4(name,list,type,kind,area,time,sort,page):
         match=re.compile('<liclass="p_link"><ahref="http://www.youku.com/show_page/id_(.+?).html"title="(.+?)"target=.+?<imgsrc="(.+?)".+?<emclass="num">(.+?)</em>').findall(link)
         if len(match)>0:
                 for i in range(0,len(match)):
-                        li=xbmcgui.ListItem(str(i+1)+"."+match[i][1]+" 【"+match[i][3]+"】",match[i][2],match[i][2])
+                        li=xbmcgui.ListItem(str(i+1)+"."+match[i][1]+" 【"+match[i][3]+"】",iconImage=match[i][2],thumbnailImage=match[i][2])
                         if list=="c96":
                                 u=sys.argv[0]+"?mode=16&name="+urllib.quote_plus(match[i][1])+"&url="+urllib.quote_plus(match[i][0])
                                 xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
@@ -387,7 +389,7 @@ def Movie6(name,url,upage):
         match=re.compile('<liclass="v_link"><acharset=".+?"href="(http://v.youku.com/v_show/id_.+?.html)"target=.+?<imgsrc="(.+?)"alt="(.+?)"').findall(link)
         if len(match)>0:
                 for i in range(0,len(match)):
-                        li=xbmcgui.ListItem(str(i+1)+"."+match[i][2],match[i][1],match[i][1])
+                        li=xbmcgui.ListItem(str(i+1)+"."+match[i][2],iconImage=match[i][1],thumbnailImage=match[i][1])
                         u=sys.argv[0]+"?mode=18&name="+urllib.quote_plus(match[i][2])+"&url="+urllib.quote_plus(match[i][0])+"&director="+urllib.quote_plus("")+"&studio="+urllib.quote_plus("")+"&plot="+urllib.quote_plus("")
                         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
         match=re.compile('<ulclass="pages">(.+?)</ul>').findall(link)
