@@ -22,11 +22,11 @@ def GetHttpData(url):
 
 def Roots():
     thumb=MEDIA_PATH+'xiyou.png'
-    li=xbmcgui.ListItem('爱西柚',thumb,thumb)
+    li=xbmcgui.ListItem('爱西柚',iconImage='',thumbnailImage=thumb)
     u=sys.argv[0]+"?mode=1&name="+urllib.quote_plus('爱西柚')
     xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
     thumb=MEDIA_PATH+'bugu.png'
-    li=xbmcgui.ListItem('爱布谷',thumb,thumb)
+    li=xbmcgui.ListItem('爱布谷',iconImage='',thumbnailImage=thumb)
     u=sys.argv[0]+"?mode=8&name="+urllib.quote_plus('爱布谷')
     xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
 
@@ -78,7 +78,7 @@ def BuguD(name,url):
     plot=match[0]
     match=re.compile("new title_array\('(.+?)','(.+?)','(.+?)','(.+?)'").findall(link)
     for i in range(0,len(match)):
-        li=xbmcgui.ListItem(str(i+1)+'. '+match[i][0]+'  (时长:'+match[i][2]+')',match[i][1],match[i][1])
+        li=xbmcgui.ListItem(str(i+1)+'. '+match[i][0]+'  (时长:'+match[i][2]+')',iconImage='',thumbnailImage=match[i][1])
         u=sys.argv[0]+"?mode=12&name="+urllib.quote_plus(match[i][0])+"&url="+urllib.quote_plus(match[i][3])+"&plot="+urllib.quote_plus(plot)+"&thumb="+urllib.quote_plus(match[i][1])
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
 
@@ -92,7 +92,7 @@ def BuguE(name,url,thumb,plot):
     match=re.compile('"chapters":\[(.+?)\]').findall(link)
     match0=re.compile('"url":"(.+?)"').findall(match[0])
     for i in range(0,len(match0)):
-        listitem=xbmcgui.ListItem(name,thumb,thumb)
+        listitem=xbmcgui.ListItem(name,iconImage='',thumbnailImage=thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":name,"plot":plot})
         playlist.add(match0[i].replace('\\',''), listitem)
     xbmc.Player().play(playlist)
@@ -167,13 +167,13 @@ def XiyouE(name,category,handler,id,type,page):
     if category=='video':
         match0=re.compile('<ulclass="video"><liclass="vimg"><atitle="(.+?)"href="(.+?)"target="_blank"><img.*?lazy-src="(.+?)"alt=".+?"></a><spanclass="vtime">(.+?)</span><spanid="(.+?)"').findall(link)
         for i in range(0,len(match0)):
-            li=xbmcgui.ListItem(str(i+1)+'.'+match0[i][0],match0[i][2],match0[i][2])
+            li=xbmcgui.ListItem(str(i+1)+'.'+match0[i][0],iconImage='',thumbnailImage=match0[i][2])
             u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(match0[i][0])+"&id="+urllib.quote_plus(match0[i][4])+"&thumb="+urllib.quote_plus(match0[i][2])+"&duration="+urllib.quote_plus(match0[i][3])
             xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
     else:
         match0=re.compile('<ulclass="video"><liclass="vimg"><atitle="(.+?)"href="(.+?)"target="_blank"><img.*?lazy-src="(.+?)"alt=".+?"></a>').findall(link)
         for i in range(0,len(match0)):
-            li=xbmcgui.ListItem(str(i+1)+'.'+match0[i][0],match0[i][2],match0[i][2])
+            li=xbmcgui.ListItem(str(i+1)+'.'+match0[i][0],iconImage='',thumbnailImage=match0[i][2])
             u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name+'>'+match0[i][0])+"&url="+urllib.quote_plus('http://xiyou.cntv.cn'+match0[i][1])
             xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
     #获取其他页码
@@ -201,7 +201,7 @@ def XiyouF(name,url):
     link=re.sub(' ','',link)
     match=re.compile('<ulclass="video"><liclass="vimg"><ahref="(.+?)"title="(.+?)"><img.*?lazy-src="(.+?)"/></a><spanclass="vtime">(.+?)</span><spanclass="vadd"id="(.+?)"').findall(link)
     for i in range(0,len(match)):
-        li=xbmcgui.ListItem(str(i+1)+'.'+match[i][1],match[i][2],match[i][2])
+        li=xbmcgui.ListItem(str(i+1)+'.'+match[i][1],iconImage='',thumbnailImage=match[i][2])
         u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(match[i][1])+"&id="+urllib.quote_plus(match[i][4])+"&thumb="+urllib.quote_plus(match[i][2])+"&duration="+urllib.quote_plus(match[i][3])
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
 
@@ -210,7 +210,7 @@ def XiyouG(name,id,thumb,duration):
     link=GetHttpData(url)
     match=re.compile('"videoFilePath":"(.+?)#').findall(link)
     path=match[0].replace('\\','')+'_001.mp4'
-    li=xbmcgui.ListItem(name,thumb,thumb)
+    li=xbmcgui.ListItem(name,iconImage='',thumbnailImage=thumb)
     li.setInfo(type="Video",infoLabels={"Title":name,"Duration":duration})
     xbmc.Player().play(path, li)
 
