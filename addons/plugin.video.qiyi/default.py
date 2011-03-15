@@ -8,7 +8,7 @@ __addonname__ = "奇艺视频"
 __addonid__ = "plugin.video.qiyi"
 __addon__ = xbmcaddon.Addon(id=__addonid__)
 
-CHANNEL_LIST = [['电影','1'], ['电视剧','2'], ['动漫','4'], ['综艺','6']]
+CHANNEL_LIST = [['电影','1'], ['电视剧','2'], ['动漫','4'], ['综艺','6'], ['娱乐','7']]
 CHANNEL_DICT = dict(CHANNEL_LIST)
 ORDER_LIST = [['关注','5'], ['最新','2'], ['热播','3'], ['好评','4']]
 ORDER_DICT = dict(ORDER_LIST)
@@ -25,6 +25,8 @@ MOVIE_TYPE_LIST['4'] = [['全部',''],['动作','41'],['亲子','316'],['热血'
 MOVIE_AREA_LIST['4'] = [['全部',''],['大陆','37'],['日本','38'],['美国','39'],['其他','40'],]
 MOVIE_TYPE_LIST['6'] = [['全部',''],['播报','155'],['访谈','156'],['搞笑','157'],['游戏','158'],['选秀','159'],['时尚','160'],['杂谈','161'],['情感','163'],['盛会','292'],['曲艺','293'],]
 MOVIE_AREA_LIST['6'] = [['全部',''],['内地','151'],['港台','152'],]
+MOVIE_TYPE_LIST['7'] = [['全部',''],['新闻','189'],['访谈','190'],['专题','191'],['宣传片','192'],['花絮','193'],['MV','194'],['独家','169'],['热点','170'],['原创','171'],['电影','172'],['电视','173'],['明星','174'],['八卦','175'],['选秀','176'],['情感','177'],['时尚','178'],['游戏','179'],['搞笑','180'],['音乐','181'],['颁奖','182'],['活动','183'],]
+MOVIE_AREA_LIST['7'] = [['全部',''],['内地','184'],['港台','185'],['日韩','186'],['海外','187'],['其它','188'],]
 for channel, id in CHANNEL_LIST:
     MOVIE_TYPE_DICT[id] = dict(MOVIE_TYPE_LIST[id])
     MOVIE_AREA_DICT[id] = dict(MOVIE_AREA_LIST[id])
@@ -72,12 +74,18 @@ def rootList():
     c2 = MOVIE_TYPE_DICT[id][movie_type]
     order = __addon__.getSetting('order')
     c13 = ORDER_DICT[order]
-    url = 'http://list.qiyi.com/www/' + id + '/' + c1 + '-' + c2 + '-----------' + c13 + '-1-' + page + '----.html'
+    if id == '7':
+        url = 'http://list.qiyi.com/www/' + id + '/-' + c2 + '-' + c1 + '----------' + c13 + '-1-' + page + '----.html'
+    else:
+        url = 'http://list.qiyi.com/www/' + id + '/' + c1 + '-' + c2 + '-----------' + c13 + '-1-' + page + '----.html'
     link = GetHttpData(url)
     match1 = re.compile('data-key="([0-9]+)"').findall(link)
     totalpages = int(match1[len(match1) - 1])
-    match1 = re.compile('<ulid="rs"(.+?)</ul>').findall(link)
-    match = re.compile('<li><ahref="(.+?)"class="imgBg1(.*?)"><.+?src="(.+?)"title="(.+?)"alt=".+?<spanid="fenshu"class="fRed"><strong>(.+?)</strong>(.*?)</span><spanclass="fBlack"></span>（(.*?)评）</p></li>').findall(match1[0])
+    match1 = re.compile('<divid="c1"(.+?)</ul>').findall(link)
+    if id == '7':
+        match = re.compile('<li><ahref="(.+?)"class="(.*?)"><.+?src="(.+?)"title="(.+?)"alt="').findall(match1[0])
+    else:
+        match = re.compile('<li><ahref="(.+?)"class="(.*?)"><.+?src="(.+?)"title="(.+?)"alt=".+?<spanid="fenshu"class="fRed"><strong>(.+?)</strong>(.*?)</span><spanclass="fBlack"></span>（(.*?)评）</p></li>').findall(match1[0])
     totalItems = len(match) + 2
     if currpage > 1: totalItems = totalItems + 1
     if currpage < totalpages: totalItems = totalItems + 1
@@ -92,11 +100,15 @@ def rootList():
     for i in range(0,len(match)):
         p_url = match[i][0]
         p_name = match[i][3]
-        if match[i][1]=='chaoqing_pic':
+        if match[i][1].find('chaoqing_pic') != -1:
             p_name = p_name + '(超清)'
         p_thumb = match[i][2]
-        p_rating = float(match[i][4] + match[i][5])
-        p_votes = match[i][6]
+        if id == '7':
+            p_rating = 0
+            p_votes = ''
+        else:
+            p_rating = float(match[i][4] + match[i][5])
+            p_votes = match[i][6]
         li = xbmcgui.ListItem(str(i + 1) + '.' + p_name, iconImage = '', thumbnailImage = p_thumb)
         link = GetHttpData(p_url)
         v_url = getPlayURL(link)
@@ -116,7 +128,10 @@ def rootList():
                 p_director = match1[0]
             p_cast = re.compile('class="f14">(.*?)</a>饰演<spanclass="f14">(.*?)</span>').findall(link)
             match1 = re.compile('<pid="desc1".*?>(.*?)</p>').findall(link)
-            p_plot = match1[0]
+            if len(match1) == 0:
+                p_plot = ''
+            else:
+                p_plot = match1[0]
             u = sys.argv[0] + "?mode=2&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(v_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
             li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
