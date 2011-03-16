@@ -8,15 +8,13 @@ __addonname__ = "奇艺视频"
 __addonid__ = "plugin.video.qiyi"
 __addon__ = xbmcaddon.Addon(id=__addonid__)
 
-CHANNEL_LIST = [['电影','1'], ['电视剧','2'], ['纪录片','3'], ['动漫','4'], ['综艺','6'], ['娱乐','7']]
+CHANNEL_LIST = [['电影','1'], ['电视剧','2'], ['纪录片','3'], ['动漫','4'], ['音乐','5'], ['综艺','6'], ['娱乐','7'], ['旅游','9']]
 CHANNEL_DICT = dict(CHANNEL_LIST)
 ORDER_LIST = [['关注','5'], ['最新','2'], ['热播','3'], ['好评','4']]
 ORDER_DICT = dict(ORDER_LIST)
 
 MOVIE_TYPE_LIST = {}
-MOVIE_TYPE_DICT = {}
 MOVIE_AREA_LIST = {}
-MOVIE_AREA_DICT = {}
 MOVIE_TYPE_LIST['1'] = [['全部',''],['爱情','6'],['战争','7'],['喜剧','8'],['动作','11'],['动画','12'],['悲剧','13'],['灾难','14'],['剧情','127'],['惊悚','128'],['青春','130'],['传记','132'],['恐怖','10'],['魔幻','129'],['科幻','9'],['枪战','131'],['艺术片','133'],]
 MOVIE_AREA_LIST['1'] = [['全部',''],['华语','1'],['美国','2'],['欧洲','3'],['韩国','4'],['日本','308'],]
 MOVIE_TYPE_LIST['2'] = [['全部',''],['言情','20'],['历史','21'],['战争','22'],['谍战','290'],['武侠','23'],['古装','24'],['传记','25'],['现代','26'],['年代','27'],['都市','28'],['农村','29'],['偶像','30'],['刑侦','31'],['悬疑','32'],['情景','33'],['伦理','35'],['生活','136'],['宫廷','139'],['励志','147'],['革命','142'],['主旋律','137'],['名著','143'],['儿童','36'],['喜剧','135'],['商战','140'],['神话','145'],['罪案','149'],['科幻','34'],['穿越','148'],['青少','144'],['反腐','146'],['戏说','141'],]
@@ -25,13 +23,14 @@ MOVIE_TYPE_LIST['3'] = [['全部',''],['社会','71'],['军事','72'],['探索',
 MOVIE_AREA_LIST['3'] = []
 MOVIE_TYPE_LIST['4'] = [['全部',''],['动作','41'],['亲子','316'],['热血','42'],['冒险','48'],['古代','45'],['未来','46'],['竞技','49'],['体育','50'],['搞笑','51'],['言情','52'],['校园','53'],['都市','54'],['魔幻','55'],['科幻','56'],['励志','297'],['剧情','59'],['悬疑','60'],['宠物','61'],['LOLI','62'],['益智','298'],['童话','299'],['真人','300'],['神话','301'],]
 MOVIE_AREA_LIST['4'] = [['全部',''],['大陆','37'],['日本','38'],['美国','39'],['其他','40'],]
+MOVIE_TYPE_LIST['5'] = [['全部',''],['流行','222'],['摇滚','224'],['民谣','223'],['Hip-Hop/说唱','227'],['Disco/Club','231'],['爵士/蓝调','228'],['另类','226'],['朋克','234'],['暗潮/哥特','232'],['金属','235'],['独立','237'],['电子','233'],['古典','236'],['民族音乐','238'],['世界音乐','239'],]
+MOVIE_AREA_LIST['5'] = [['全部',''],['内地','221'],['港台','220'],['日韩','218'],]
 MOVIE_TYPE_LIST['6'] = [['全部',''],['播报','155'],['访谈','156'],['搞笑','157'],['游戏','158'],['选秀','159'],['时尚','160'],['杂谈','161'],['情感','163'],['盛会','292'],['曲艺','293'],]
 MOVIE_AREA_LIST['6'] = [['全部',''],['内地','151'],['港台','152'],]
 MOVIE_TYPE_LIST['7'] = [['全部',''],['新闻','189'],['访谈','190'],['专题','191'],['宣传片','192'],['花絮','193'],['MV','194'],['独家','169'],['热点','170'],['原创','171'],['电影','172'],['电视','173'],['明星','174'],['八卦','175'],['选秀','176'],['情感','177'],['时尚','178'],['游戏','179'],['搞笑','180'],['音乐','181'],['颁奖','182'],['活动','183'],]
 MOVIE_AREA_LIST['7'] = [['全部',''],['内地','184'],['港台','185'],['日韩','186'],['海外','187'],['其它','188'],]
-for channel, id in CHANNEL_LIST:
-    MOVIE_TYPE_DICT[id] = dict(MOVIE_TYPE_LIST[id])
-    MOVIE_AREA_DICT[id] = dict(MOVIE_AREA_LIST[id])
+MOVIE_TYPE_LIST['9'] = [['全部',''],['风光','354'],['饮食','355'],['出行','638'],['住宿','356'],]
+MOVIE_AREA_LIST['9'] = [['全部',''],['安徽','599'],['北京','576'],['河南','607'],['湖南','611'],['江苏','595'],['辽宁','589'],['西藏','625'],['埃及','567'],['澳大利亚','559'],['法国','520'],['马尔代夫','460'],['日本','426'],['新西兰','380'],['意大利','371'],]
 
 def GetHttpData(url):
     req = urllib2.Request(url)
@@ -65,35 +64,48 @@ def getPlayURL(html):
         url = ''
     return url
 
+def searchDict(dlist,id,idx):
+    for i in range(0,len(dlist[id])):
+        if dlist[id][i][0] == idx:
+            return dlist[id][i][1]
+    return ''
+
 def rootList():
     c1 = ''
     c2 = ''
     c3 = ''
+    c4 = ''
     page = __addon__.getSetting('page')
     currpage = int(page)
     channel = __addon__.getSetting('channel')
     id = CHANNEL_DICT[channel]
     movie_area = __addon__.getSetting('movie_area')
     if id == '7':
-        c3 = MOVIE_AREA_DICT[id][movie_area]
+        c3 = searchDict(MOVIE_AREA_LIST,id,movie_area)
+    elif id == '9':
+        c2 = searchDict(MOVIE_AREA_LIST,id,movie_area)
     elif id != '3':
-        c1 = MOVIE_AREA_DICT[id][movie_area]
+        c1 = searchDict(MOVIE_AREA_LIST,id,movie_area)
     movie_type = __addon__.getSetting('movie_type')
-    if id == '3':
-        c1 = MOVIE_TYPE_DICT[id][movie_type]
+    if id == '3' or id == '9':
+        c1 = searchDict(MOVIE_TYPE_LIST,id,movie_type)
+    elif id == '5':
+        c4 = searchDict(MOVIE_TYPE_LIST,id,movie_type)
     else:
-        c2 = MOVIE_TYPE_DICT[id][movie_type]
+        c2 = searchDict(MOVIE_TYPE_LIST,id,movie_type)
     order = __addon__.getSetting('order')
     c13 = ORDER_DICT[order]
-    url = 'http://list.qiyi.com/www/' + id + '/' + c1 + '-' + c2 + '-' + c3 + '----------' + c13 + '-1-' + page + '----.html'
+    url = 'http://list.qiyi.com/www/' + id + '/' + c1 + '-' + c2 + '-' + c3 + '-' + c4 + '---------' + c13 + '-1-' + page + '----.html'
     link = GetHttpData(url)
     match1 = re.compile('data-key="([0-9]+)"').findall(link)
-    totalpages = int(match1[len(match1) - 1])
-    match1 = re.compile('<divid="c1"(.+?)</ul>').findall(link)
-    if id == '7':
-        match = re.compile('<li><ahref="(.+?)"class="(.*?)"><.+?src="(.+?)"title="(.+?)"alt="').findall(match1[0])
+    if len(match1) == 0:
+        totalpages = 1
     else:
-        match = re.compile('<li><ahref="(.+?)"class="(.*?)"><.+?src="(.+?)"title="(.+?)"alt=".+?<spanid="fenshu"class="fRed"><strong>(.+?)</strong>(.*?)</span><spanclass="fBlack"></span>（(.*?)评）</p></li>').findall(match1[0])
+        totalpages = int(match1[len(match1) - 1])
+    if id in ['5','7','9']:
+        match = re.compile('<li><ahref="(.+?)"class="(.*?)"><.+?src="(.+?)"title="(.+?)"alt="').findall(link)
+    else:
+        match = re.compile('<li><ahref="(.+?)"class="(.*?)"><.+?src="(.+?)"title="(.+?)"alt=".+?<spanid="fenshu"class="fRed"><strong>(.+?)</strong>(.*?)</span><spanclass="fBlack"></span>（(.*?)评）</p></li>').findall(link)
     totalItems = len(match) + 2
     if currpage > 1: totalItems = totalItems + 1
     if currpage < totalpages: totalItems = totalItems + 1
@@ -111,7 +123,7 @@ def rootList():
         if match[i][1].find('chaoqing_pic') != -1:
             p_name = p_name + '(超清)'
         p_thumb = match[i][2]
-        if id == '7':
+        if id in ['5','7','9']:
             p_rating = 0
             p_votes = ''
         else:
@@ -207,7 +219,7 @@ def seriesList(url, name, thumb):
     for p_url, p_thumb, p_name in match:
         match1 = re.compile('<ahref="' + p_url + '">' + p_name + '</a></span><pstyle=.*?>(.*?)</p>').findall(desc)
         if len(match1) > 0:
-            p_plot = match1[0]
+            p_plot = match1[0].replace('&nbsp;','')
         else:
             p_plot = ''
         li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
