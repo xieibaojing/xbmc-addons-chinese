@@ -100,11 +100,11 @@ def ListsA(url,name):
     u = sys.argv[0] + "?mode=2&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     if currpage > 1:
-        li = xbmcgui.ListItem('上一页', iconImage='', thumbnailImage = MEDIA_PATH + 'NetitvPageup.png')
+        li = xbmcgui.ListItem('上一页')
         u = sys.argv[0] + "?mode=2&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus('http://www.netitv.com/' + uuid + '/newsXml/' + nodeid + '_' + str(currpage - 1) + '.xml')
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     if currpage < pagenum:
-        li = xbmcgui.ListItem('下一页', iconImage='', thumbnailImage = MEDIA_PATH + 'NetitvPagedown.png')
+        li = xbmcgui.ListItem('下一页')
         u = sys.argv[0] + "?mode=2&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus('http://www.netitv.com/' + uuid + '/newsXml/' + nodeid + '_' + str(currpage + 1) + '.xml')
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
@@ -170,11 +170,11 @@ def ListsB(url,name):
     u = sys.argv[0] + "?mode=2&name=" + urllib.quote_plus(name) + "&url="+urllib.quote_plus(url)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     if currpage > 1:
-        li = xbmcgui.ListItem('上一页', iconImage = '', thumbnailImage = MEDIA_PATH + 'NetitvPageup.png')
+        li = xbmcgui.ListItem('上一页')
         u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus('http://www.netitv.com/' + uuid + '/proXml/' + movieid + '_' + str(currpage - 1) + '.xml')
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     if currpage < pagenum:
-        li = xbmcgui.ListItem('下一页', iconImage = '', thumbnailImage = MEDIA_PATH + 'NetitvPagedown.png')
+        li = xbmcgui.ListItem('下一页')
         u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus('http://www.netitv.com/' + uuid + '/proXml/' + movieid + '_' + str(currpage + 1) + '.xml')
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
@@ -206,19 +206,17 @@ def Movies(url,name,thumb):
     plot = match[0]
 
     match = re.compile('<playurls>(.+?)</playurls>').findall(match1[0])
-    match1 = re.compile('type="3".+?<!\[CDATA\[(.+?)]]></url>').findall(match[0]) 
+    match1 = re.compile('type="3" bit_stream="([0-9]+)" ivolume="([0-9]+)".+?<!\[CDATA\[(.+?)]]></url>').findall(match[0]) 
     if len(match1) == 1:
         li = xbmcgui.ListItem('播放：' + name, iconImage = '', thumbnailImage = thumb)
         li.setInfo(type = "Video", infoLabels = {"Title":name, "Director":director, "Cast":cast, "Plot":plot, "Year":year})
-        u = sys.argv[0] + "?mode=6&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(match1[0]) + "&thumb=" + urllib.quote_plus(thumb) + "&director=" + urllib.quote_plus(director) + "&plot=" + urllib.quote_plus(plot) + "&year=" + urllib.quote_plus(str(year))
+        u = sys.argv[0] + "?mode=6&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(match1[0][2]) + "&thumb=" + urllib.quote_plus(thumb) + "&director=" + urllib.quote_plus(director) + "&plot=" + urllib.quote_plus(plot) + "&year=" + urllib.quote_plus(str(year))
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li)
     elif len(match1) > 1:
-        num = 0
         totalItems = len(match1)
-        for info in match1:
-            num = num + 1
-            fullname = name + ' 【第' + str(num) + '集】'
-            li = xbmcgui.ListItem('播放：' + fullname, iconImage = '', thumbnailImage = thumb)
+        for stream, ivolume, info in match1:
+            fullname = '播放（来源' + stream + '）：' + name + ' 【第' + ivolume + '集】'
+            li = xbmcgui.ListItem(fullname, iconImage = '', thumbnailImage = thumb)
             li.setInfo(type = "Video", infoLabels = {"Title":fullname, "Director":director, "Cast":cast, "Plot":plot, "Year":year})
             u=sys.argv[0] + "?mode=6&name=" + urllib.quote_plus(fullname) + "&url=" + urllib.quote_plus(info) + "&thumb=" + urllib.quote_plus(thumb) + "&director=" + urllib.quote_plus(director) + "&plot=" + urllib.quote_plus(plot) + "&year=" + urllib.quote_plus(str(year))
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
