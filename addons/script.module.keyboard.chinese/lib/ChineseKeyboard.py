@@ -2,6 +2,7 @@
 
 import os
 import sys
+import re
 from traceback import print_exc
 
 import xbmc
@@ -33,10 +34,10 @@ CTRL_ID_TEXT = 310
 CTRL_ID_CODE = 401
 CTRL_ID_HZLIST = 402
 
-a = ['a','ai','an','ang','ao','ba','bai','ban','bang','bao','be','bei','ben','beng','bi','bia','bian','biao','bie','bin','bing','bo','bu','ca','cai','can','cang','cao','ce','cen','ceng','ceok','ceom','ceon','ceor','cha','chai','chan','chang','chao','che','chen','cheng','chi','chong','chou','chu','chua','chuai','chuan','chuang','chui','chun','chuo','ci','cis','cong','cou','cu','cuan','cui','cun','cuo','da','dai','dan','dang','dao','de','dei','dem','den','deng','di','dia','dian','diao','die','dim','ding','diu','dong','dou','du','duan','dui','dul','dun','duo','e','en','eng','eo','eol','eom','eos','er','fa','fan','fang','fei','fen','feng','fo','fou','fu','ga','gad','gai','gan','gang','gao','ge','gei','gen','geng','gib','go','gong','gou','gu','gua','guai','guan','guang','gui','gun','guo','ha','hai','hal','han','hang','hao','he','hei','hen','heng','ho','hol','hong','hou','hu','hua','huai','huan','huang','hui','hun','huo','hwa','i','ji','jia','jian','jiang','jiao','jie','jin','jing','jiong','jiu','jou','ju','juan','jue','jun','ka','kai','kal','kan','kang','kao','ke','kei','ken','keng','ki','kong','kos','kou','ku','kua','kuai','kuan','kuang','kui','kun','kuo','kweok','kwi','la','lai','lan','lang','lao','le','lei','li','lia','lian','liang','liao','lie','lin','ling','liu','lo','long','lou','lu','luan','lue','lun','luo','lv','m','ma','mai','man','mang','mao','me','mei','men','meng','meo','mi','mian','miao','mie','min','ming','miu','mo','mou','mu','myeo','myeon','myeong','n','na','nai','nan','nang','nao','ne','nei','nem','nen','neng','neus','ng','ngag','ngai','ngam','ni','nian','niao','nie','nin','ning','niu','nong','nou','nu','nuan','nue','nun','nung','nuo','nv','nve','o','oes','ol','on','ou','pa','pai','pak','pan','pang','pao','pei','pen','peng','peol','phas','phdeng','phoi','phos','pi','pian','piao','pie','pin','ping','po','pou','ppun','pu','q','qi','qia','qian','qiang','qiao','qie','qin','qing','qiong','qiu','qu','quan','que','qun','ra','ram','ran','rang','rao','re','ren','ri','rong','rou','ru','rua','ruan','rui','run','ruo','sa','saeng','sai','sal','san','sang','sao','se','sed','sei','sen','seng','seo','seon','sha','shai','shan','shang','shao','she','shen','sheng','shi','shou','shu','shua','shuai','shuan','shuang','shui','shun','shuo','shw','si','so','sol','song','sou','su','suan','sui','sun','suo','ta','tae','tai','tan','tang','tao','teng','ti','tian','tiao','tie','ting','tol','ton','tong','tou','tu','tuan','tui','tun','tuo','uu','wa','wai','wan','wang','wei','wen','weng','wie','wo','wu','xi','xia','xian','xiang','xiao','xie','xin','xing','xiong','xiu','xu','xuan','xue','xun','ya','yan','yang','yao','ye','yi','yin','ying','yo','yong','you','yu','yuan','yue','yun','za','zad','zai','zan','zang','zao','ze','zei','zen','zeng','zha','zhai','zhan','zhang','zhao','zhe','zhen','zheng','zhi','zhong','zhou','zhu','zhua','zhuai','zhuan','zhuang','zhui','zhun','zhuo','zi','zo','zong','zou','zu','zuan','zui','zun','zuo']
 filename = os.path.join( __addonDir__, "lib", "pinyin.mb" )
 fd = open( filename, 'r')
-b = fd.read().split()
+data = fd.read()
+HANZI_MB = dict(re.compile('([a-z]+)([^\s]+)').findall(data))
 fd.close()
 
 class InputWindow(xbmcgui.WindowXMLDialog):
@@ -134,9 +135,9 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 		if self.nowpage == 0:
 			hzlist = ''
 		else:
-			hzlist = '<  '
+			hzlist = '< '
 		for i in range(self.nowpage*10*2, len(self.words), 2):
-			hzlist = hzlist+str(num)+'.'+unicode(self.words[i:(2+i)],'gbk').encode('utf-8')+'  '
+			hzlist = hzlist+str(num)+'.'+unicode(self.words[i:(2+i)],'gbk').encode('utf-8')+' '
 			num+=1
 			if num > 9: break
 		if self.nowpage < self.totalpage-1:
@@ -147,13 +148,13 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 		self.nowpage = 0
 		self.totalpage = 1
 		self.getControl(CTRL_ID_HZLIST).setLabel('')
-		if py in a:
-			self.words=b[a.index(py)]
+		self.words=HANZI_MB[py]
+		if len(self.words):
 			self.totalpage = int(len(self.words)/2/10)+1
 			num=0
 			hzlist = ''
 			for i in range(0, len(self.words), 2):
-				hzlist = hzlist+str(num)+'.'+unicode(self.words[i:(2+i)],'gbk').encode('utf-8')+'  '
+				hzlist = hzlist+str(num)+'.'+unicode(self.words[i:(2+i)],'gbk').encode('utf-8')+' '
 				num+=1
 				if num > 9: break
 			if self.totalpage>1:
