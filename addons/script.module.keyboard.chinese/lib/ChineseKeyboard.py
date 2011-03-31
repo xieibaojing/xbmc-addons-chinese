@@ -10,8 +10,9 @@ import xbmcgui
 from xbmcaddon import Addon
 
 
-__settings__  = Addon( "script.module.keyboard.chinese" )
-__addonDir__  = __settings__.getAddonInfo( "path" )
+__settings__ = Addon( "script.module.keyboard.chinese" )
+__addonDir__ = __settings__.getAddonInfo( "path" )
+__language__ = __settings__.getLocalizedString
 
 XBMC_SKIN  = xbmc.getSkinDir()
 SKINS_PATH = os.path.join( __addonDir__, "resources", "skins" )
@@ -30,7 +31,9 @@ CTRL_ID_CAPS = 303
 CTRL_ID_SYMB = 304
 CTRL_ID_LEFT = 305
 CTRL_ID_RIGHT = 306
+CTRL_ID_IP = 307
 CTRL_ID_TEXT = 310
+CTRL_ID_HEAD = 311
 CTRL_ID_CODE = 401
 CTRL_ID_HZLIST = 402
 
@@ -48,8 +51,8 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 		xbmcgui.WindowXMLDialog.__init__( self, *args, **kwargs )
 
 	def onInit(self):
-		self.status = 0
 		self.setKeyToChinese()
+		self.getControl(CTRL_ID_HEAD).setLabel(self.getProperty('winTitle'))
 		self.getControl(CTRL_ID_CODE).setLabel('')
 		self.getControl(CTRL_ID_TEXT).setLabel('')
 		self.confirmed = False
@@ -64,6 +67,10 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 			if self.getControl(CTRL_ID_CAPS).isSelected():
 				self.getControl(CTRL_ID_LANG).setSelected(False)
 			self.setKeyToChinese()
+		elif controlID == CTRL_ID_IP:#ip
+			dialog = xbmcgui.Dialog()
+			value = dialog.numeric( 3, __language__(2), '' )
+			self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+value)
 		elif controlID == CTRL_ID_SYMB:#num
 			self.setKeyToChinese()
 		elif controlID == CTRL_ID_LANG:#en/ch
@@ -98,7 +105,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 					s = self.getControl(CTRL_ID_CODE).getLabel() + self.getControl(controlID).getLabel().lower()
 					self.getControl(CTRL_ID_CODE).setLabel(s)
 					self.getChineseWord(s)
-				elif controlID>=48 and controlID<=57:
+				elif controlID>=48 and controlID<=57:#0-9
 					i = self.nowpage*10*2+(controlID-48)*2
 					hanzi = unicode(self.words[i:(2+i)],'gbk').encode('utf-8')
 					self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+hanzi)
@@ -111,6 +118,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 		#s2 = str(action.getButtonCode())
 		#print "======="+s1+"========="+s2+"=========="
 		keycode = action.getButtonCode()
+		#self.getControl(CTRL_ID_HEAD).setLabel(str(keycode))
 		if keycode >= 61505 and keycode <= 61530:
 			if self.getControl(CTRL_ID_LANG).isSelected():
 				keychar = chr(keycode - 61505 + ord('a'))
@@ -123,8 +131,11 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 				else:
 					keychar = chr(keycode - 61505 + ord('a'))
 				self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+keychar)
-				
-		if action == ACTION_PARENT_DIR:
+		elif keycode >= 61536 and keycode <= 61545:
+			self.onClick( keycode-61536+48 )
+		elif keycode == 61472:
+			self.onClick( CTRL_ID_SPACE )
+		elif keycode == 61448:
 			self.onClick( CTRL_ID_BACK )
 		elif action == ACTION_PREVIOUS_MENU:
 			self.close()
@@ -148,8 +159,8 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 		self.nowpage = 0
 		self.totalpage = 1
 		self.getControl(CTRL_ID_HZLIST).setLabel('')
-		self.words=HANZI_MB[py]
-		if len(self.words):
+		if HANZI_MB.has_key(py):
+			self.words=HANZI_MB.get(py)
 			self.totalpage = int(len(self.words)/2/10)+1
 			num=0
 			hzlist = ''
@@ -205,16 +216,23 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 		return self.inputString
 		
 class Keyboard(object):
-	def __init__( self, *args, **kwargs ):
+	def __init__( self, default='', heading='' ):
 		self.confirmed = False
-		self.inputString = ''
+		self.inputString = default
+		self.winTitle = heading
 
 	def doModal (self):
 		self.win = InputWindow("DialogKeyboardChinese.xml", __addonDir__, ADDON_SKIN )
+		print self.winTitle
+		self.win.setProperty('winTitle', self.winTitle)
+		self.win.setProperty('inputString', self.inputString)
 		self.win.doModal()
 		self.confirmed = self.win.isConfirmed()
 		self.inputString = self.win.getText()
 		del self.win
+
+	def setHeading(self, heading):
+		self.winTitle = heading
 
 	def isConfirmed(self):
 		return self.confirmed
