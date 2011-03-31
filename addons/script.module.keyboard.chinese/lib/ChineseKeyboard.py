@@ -48,15 +48,16 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 		self.totalpage = 1
 		self.nowpage = 0
 		self.words = ''
+		self.inputString = kwargs.get( "default" ) or ""
+		self.heading = kwargs.get( "heading" ) or ""
 		xbmcgui.WindowXMLDialog.__init__( self, *args, **kwargs )
 
 	def onInit(self):
 		self.setKeyToChinese()
-		self.getControl(CTRL_ID_HEAD).setLabel(self.getProperty('winTitle'))
+		self.getControl(CTRL_ID_HEAD).setLabel(self.heading)
 		self.getControl(CTRL_ID_CODE).setLabel('')
-		self.getControl(CTRL_ID_TEXT).setLabel('')
+		self.getControl(CTRL_ID_TEXT).setLabel(self.inputString)
 		self.confirmed = False
-		self.inputString = ''
 
 	def onFocus( self, controlId ):
 		self.controlId = controlId
@@ -215,24 +216,21 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 	def getText(self):
 		return self.inputString
 		
-class Keyboard(object):
+class Keyboard:
 	def __init__( self, default='', heading='' ):
 		self.confirmed = False
 		self.inputString = default
-		self.winTitle = heading
+		self.heading = heading
 
 	def doModal (self):
-		self.win = InputWindow("DialogKeyboardChinese.xml", __addonDir__, ADDON_SKIN )
-		print self.winTitle
-		self.win.setProperty('winTitle', self.winTitle)
-		self.win.setProperty('inputString', self.inputString)
+		self.win = InputWindow("DialogKeyboardChinese.xml", __addonDir__, ADDON_SKIN, heading=self.heading, default=self.inputString )
 		self.win.doModal()
 		self.confirmed = self.win.isConfirmed()
 		self.inputString = self.win.getText()
 		del self.win
 
 	def setHeading(self, heading):
-		self.winTitle = heading
+		self.heading = heading
 
 	def isConfirmed(self):
 		return self.confirmed
