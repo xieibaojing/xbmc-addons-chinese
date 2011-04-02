@@ -87,10 +87,9 @@ def ListsA(url,name):
     pagenum = int(match1[0])
     match1 = re.compile('<curr_page>(.+?)</curr_page>').findall(match0)
     currpage = int(match1[0])
-    match1 = re.compile('<channel_uuid>(.+?)</channel_uuid>').findall(match0)
-    uuid = match1[0]
-    match1 = re.compile('<node_id>(.+?)</node_id>').findall(match0)
-    nodeid = match1[0]
+    tmp = url.split('/')
+    uuid = tmp[3]
+    nodeid = tmp[5].split('_')[0]
     match = re.compile('<movie(.+?)</movie>').findall(match0)
     totalItems = len(match) + 1
     if currpage > 1: totalItems = totalItems + 1
