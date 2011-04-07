@@ -81,7 +81,15 @@ def progList(name,id,page,cat,area,year,order):
         areastr = area
     else:
         areastr = '全部地区'
-    li = xbmcgui.ListItem(name+'（第'+str(currpage)+'/'+str(totalpages)+'页）：[COLOR FFFF0000]【' + catstr + '】【' + areastr + '】【' + searchDict(ORDER_LIST,order) + '】[/COLOR]（按此选择）')
+    if not year:
+        yearstr = '全部年份'
+    elif year in ('80','90'):
+        yearstr = year+'年代'
+    elif year == '100':
+        yearstr = '更早年代'
+    else:
+        yearstr = year+'年'
+    li = xbmcgui.ListItem(name+'（第'+str(currpage)+'/'+str(totalpages)+'页）【[COLOR FFFF0000]' + catstr + '[/COLOR]/[COLOR FF00FF00]' + areastr + '[/COLOR]/[COLOR FFFFFF00]' + yearstr + '[/COLOR]/[COLOR FF00FFFF]' + searchDict(ORDER_LIST,order) + '[/COLOR]】（按此选择）')
     u = sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name)+"&id="+id+"&cat="+urllib.quote_plus(cat)+"&area="+urllib.quote_plus(area)+"&year="+urllib.quote_plus(year)+"&order="+order+"&url="+urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     for i in range(0,len(match)):
@@ -112,7 +120,7 @@ def progList(name,id,page,cat,area,year,order):
             p_plot = re.sub('<b id=.*?>','',match1.group(1))
         else:
             p_plot = ''
-        match1 = re.compile('<font>年份：<a href="[^"]*"><font class="highlight"></font>([0-9]+)年</a></font>').search(match[i])
+        match1 = re.compile('<font>年份：<a href="\?c=1&year=([0-9]+)">').search(match[i])
         if match1:
             p_year = int(match1.group(1))
         else:
@@ -200,6 +208,22 @@ def performChanges(name,id,listpage,cat,area,year,order):
                 area = ''
             else:
                 area = arealist[sel]
+            change = True
+    if len(yearlist)>0:
+        tmplist = []
+        for item in yearlist:
+            if item in ('80','90'):
+                tmplist.append(item+'年代')
+            elif item == '100':
+                tmplist.append('更早')
+            else:
+                tmplist.append(item)
+        sel = dialog.select('年份', tmplist)
+        if sel != -1:
+            if sel == 0:
+                year = ''
+            else:
+                year = yearlist[sel]
             change = True
 
     list = [x[0] for x in ORDER_LIST]
