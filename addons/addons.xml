@@ -314,8 +314,8 @@
 
 <addon id="plugin.video.youku"
     name="优酷视频(YouKu)"
-    version="1.0.3"
-    provider-name="Robinttt">
+    version="1.9.0"
+    provider-name="Taxigps">
     <extension
         point="xbmc.python.pluginsource"
         library="default.py">
