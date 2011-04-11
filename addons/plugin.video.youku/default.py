@@ -11,6 +11,8 @@ __addonicon__ = os.path.join( __addon__.getAddonInfo('path'), 'icon.png' )
 
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 ORDER_LIST = [['1','历史最多播放'], ['6','本周最多播放'], ['7','今日最多播放'], ['3','最新上映'], ['9','最近上映'], ['5','最多评论'], ['11','用户好评']]
+ORDER_LIST2 = [['1','最新发布'], ['2','最多播放'], ['3','最热话题'], ['8','最具争议'], ['4','最多收藏'], ['5','最广传播'], ['6','用户推荐']]
+YEAR_LIST2 = [['1','今日'], ['2','本周'], ['3','本月'], ['4','历史']]
 
 def GetHttpData(url):
     req = urllib2.Request(url)
@@ -44,6 +46,17 @@ def getList(listpage):
     yearlist = re.compile('<li.+?>([^<]+)(?:</a>|</span>)</li>').findall(match0.group(1))
     return catlist,arealist,yearlist
 
+def getList2(listpage, cat):
+    match0 = re.compile('<label>类型:</label>(.+?)</ul>', re.DOTALL).search(listpage)
+    if match0:
+        catlist = re.compile('<li><a href="/v_showlist/[^g]*g([0-9]+)[^\.]*.html"[^>]*>(.+?)</a></li>').findall(match0.group(1))
+        match1 = re.compile('<li class="current"><span>(.+?)</span>').search(match0.group(1))
+        if match1:
+            catlist.append([cat,match1.group(1)])
+    else:
+        catlist = []
+    return catlist
+
 def rootList():
     link = GetHttpData('http://www.youku.com/v/')
     match0 = re.compile('<div class="left">(.+?)<!--left end-->', re.DOTALL).search(link)
@@ -51,12 +64,10 @@ def rootList():
     totalItems = len(match)
     for path, id, name in match:
         if path == 'v_olist':
-            mode = 1
+            u = sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus('不限')+"&area="+urllib.quote_plus('不限')+"&year="+urllib.quote_plus('不限')+"&order="+urllib.quote_plus('7')
         else:
-            mode = 11
-            name += '（敬请期待）'
+            u = sys.argv[0]+"?mode=11&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+'0'+"&year="+'1'+"&order="+'2'
         li = xbmcgui.ListItem(name)
-        u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True,totalItems)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -197,6 +208,61 @@ def seriesList(name,id,thumb,page):
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
+def progList2(name,id,page,cat,year,order):
+    url = 'http://www.youku.com/v_showlist/t'+order+'d'+year+id+'g'+cat
+    if page:
+        url += 'p' + page
+        currpage = int(page)
+    else:
+        currpage = 1
+    url += '.html'
+    link = GetHttpData(url)
+    match = re.compile('<ul class="pages">(.+?)</ul>', re.DOTALL).findall(link)
+    if len(match):
+        match1 = re.compile('<li.+?>([0-9]+)(</a>|</span>)</li>', re.DOTALL).findall(match[0])
+        totalpages = int(match1[len(match1)-1][0])
+    else:
+        totalpages = 1
+    match = re.compile('<div class="filter" id="filter">(.+?)<!--filter end-->', re.DOTALL).findall(link)
+    if len(match):
+        listpage = match[0]
+    else:
+        listpage = ''
+    catlist = getList2(listpage, cat)
+    match = re.compile('<ul class="v">(.+?)</ul>', re.DOTALL).findall(link)
+    totalItems = len(match) + 1
+    if currpage > 1: totalItems = totalItems + 1
+    if currpage < totalpages: totalItems = totalItems + 1
+    if cat == '0':
+        catstr = '全部类型'
+    else:
+        catstr = searchDict(catlist,cat)
+    li = xbmcgui.ListItem(name+'（第'+str(currpage)+'/'+str(totalpages)+'页）【[COLOR FFFF0000]' + catstr + '[/COLOR]/[COLOR FF00FF00]' + searchDict(YEAR_LIST2,year) + '[/COLOR]/[COLOR FF00FFFF]' + searchDict(ORDER_LIST2,order) + '[/COLOR]】（按此选择）')
+    u = sys.argv[0]+"?mode=12&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus(cat)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(listpage)
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    for i in range(0,len(match)):
+        match1 = re.compile('<li class="v_link"><a href="(http://v.youku.com/v_show/id_.+?.html)"').search(match[i])
+        p_url = match1.group(1)
+        match1 = re.compile('<li class="v_thumb"><img src="(.+?)"').search(match[i])
+        p_thumb = match1.group(1)
+        match1 = re.compile('<li class="v_title"><a [^>]+>(.+?)</a>').search(match[i])
+        p_name = match1.group(1).replace('&quot;','"')
+        li = xbmcgui.ListItem(str(i + 1) + '.' + p_name, iconImage = '', thumbnailImage = p_thumb)
+        u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+        #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+
+    if currpage > 1:
+        li = xbmcgui.ListItem('上一页')
+        u = sys.argv[0]+"?mode=11&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus(cat)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(str(currpage-1))
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    if currpage < totalpages:
+        li = xbmcgui.ListItem('下一页')
+        u = sys.argv[0]+"?mode=11&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus(cat)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(str(currpage+1))
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
 def PlayVideo(name,url,thumb):
     link = GetHttpData("http://www.flvcd.com/parse.php?kw="+url)
     match = re.compile('"(http://f.youku.com/player/getFlvPath/.+?)" target="_blank"').findall(link)
@@ -208,6 +274,13 @@ def PlayVideo(name,url,thumb):
             listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
             playlist.add(match[i], listitem)
         xbmc.Player().play(playlist)
+    else:
+        if link.find('该视频为加密视频')>0:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '无法播放：该视频为加密视频')
+        elif link.find('解析失败，请确认视频是否被删除')>0:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '无法播放：该视频或为收费节目')
 
 def performChanges(name,id,listpage,cat,area,year,order):
     catlist,arealist,yearlist = getList(listpage)
@@ -238,6 +311,30 @@ def performChanges(name,id,listpage,cat,area,year,order):
     if change:
         progList(name,id,'1',cat,area,year,order)
 
+def performChanges2(name,id,listpage,cat,year,order):
+    catlist = getList2(listpage, cat)
+    change = False
+    dialog = xbmcgui.Dialog()
+    if len(catlist)>0:
+        list = [x[1] for x in catlist]
+        sel = dialog.select('类型', list)
+        if sel != -1:
+            cat = catlist[sel][0]
+            change = True
+    list = [x[1] for x in ORDER_LIST2]
+    sel = dialog.select('排序方式', list)
+    if sel != -1:
+        order = ORDER_LIST2[sel][0]
+        change = True
+    list = [x[1] for x in YEAR_LIST2]
+    sel = dialog.select('统计周期', list)
+    if sel != -1:
+        year = YEAR_LIST2[sel][0]
+        change = True
+
+    if change:
+        progList2(name,id,'1',cat,year,order)
+
 def get_params():
     param = []
     paramstring = sys.argv[2]
@@ -259,10 +356,10 @@ params = get_params()
 mode = None
 name = None
 id = None
-cat = '不限'
-area = '不限'
-year = '不限'
-order = '7'
+cat = None
+area = None
+year = None
+order = None
 page = '1'
 url = None
 thumb = None
@@ -320,3 +417,8 @@ elif mode == 4:
     performChanges(name,id,page,cat,area,year,order)
 elif mode == 10:
     PlayVideo(name,url,thumb)
+elif mode == 11:
+    progList2(name,id,page,cat,year,order)
+elif mode == 12:
+    performChanges2(name,id,page,cat,year,order)
+
