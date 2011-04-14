@@ -13,6 +13,7 @@ UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2
 ORDER_LIST = [['1','历史最多播放'], ['6','本周最多播放'], ['7','今日最多播放'], ['3','最新上映'], ['9','最近上映'], ['5','最多评论'], ['11','用户好评']]
 ORDER_LIST2 = [['1','最新发布'], ['2','最多播放'], ['3','最热话题'], ['8','最具争议'], ['4','最多收藏'], ['5','最广传播'], ['6','用户推荐']]
 YEAR_LIST2 = [['1','今日'], ['2','本周'], ['3','本月'], ['4','历史']]
+RES_LIST = ['normal', 'high', 'super']
 
 def GetHttpData(url):
     req = urllib2.Request(url)
@@ -136,6 +137,14 @@ def progList(name,id,page,cat,area,year,order):
             p_name1 = p_name + '（' + match1.group(1) + '）'
         else:
             p_name1 = p_name
+        if match[i].find('<span class="ico__SD"')>0:
+            p_name1 += '[超清]'
+            p_res = 2
+        elif match[i].find('<span class="ico__HD"')>0:
+            p_name1 += '[高清]'
+            p_res = 1
+        else:
+            p_res = 0
         if match[i].find('<li class="p_ischarge">')>0:
             p_name1 += '[付费节目]'
         if id == 'c_96':
@@ -145,7 +154,7 @@ def progList(name,id,page,cat,area,year,order):
             mode = 3
             isdir = True
         li = xbmcgui.ListItem(str(i + 1) + '.' + p_name1, iconImage = '', thumbnailImage = p_thumb)
-        u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(p_name)+"&id="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)
+        u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(p_name)+"&id="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)+"&res="+str(p_res)
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, isdir, totalItems)
 
@@ -160,11 +169,11 @@ def progList(name,id,page,cat,area,year,order):
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def getMoive(name,id,thumb):
+def getMoive(name,id,thumb,res):
     link = GetHttpData('http://www.youku.com/show_page/id_' + id + '.html')
     match = re.compile('<div id="showBanner".+?href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
     if match:
-        PlayVideo(name, match.group(1), thumb)
+        PlayVideo(name, match.group(1), thumb, res)
 
 def seriesList(name,id,thumb,page):
     url = "http://www.youku.com/show_eplist/showid_"+id+"_type_pic_from_ajax_page_"+page+".html"
@@ -192,8 +201,16 @@ def seriesList(name,id,thumb,page):
         p_thumb = match1.group(1)
         match1 = re.compile('<li class="v_title">[\s]*<a [^>]+>(.+?)</a>').search(match[i])
         p_name = match1.group(1)
+        if match[i].find('<span class="ico__SD"')>0:
+            p_name += '[超清]'
+            p_res = 2
+        elif match[i].find('<span class="ico__HD"')>0:
+            p_name += '[高清]'
+            p_res = 1
+        else:
+            p_res = 0
         li = xbmcgui.ListItem(str(i + 1) + '.' + p_name, iconImage = '', thumbnailImage = p_thumb)
-        u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+        u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)+"&res="+str(p_res)
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
 
@@ -247,8 +264,16 @@ def progList2(name,id,page,cat,year,order):
         p_thumb = match1.group(1)
         match1 = re.compile('<li class="v_title"><a [^>]+>(.+?)</a>').search(match[i])
         p_name = match1.group(1).replace('&quot;','"')
+        if match[i].find('<span class="ico__SD"')>0:
+            p_name += '[超清]'
+            p_res = 2
+        elif match[i].find('<span class="ico__HD"')>0:
+            p_name += '[高清]'
+            p_res = 1
+        else:
+            p_res = 0
         li = xbmcgui.ListItem(str(i + 1) + '.' + p_name, iconImage = '', thumbnailImage = p_thumb)
-        u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+        u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)+"&res="+str(p_res)
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
 
@@ -263,8 +288,11 @@ def progList2(name,id,page,cat,year,order):
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def PlayVideo(name,url,thumb):
-    link = GetHttpData("http://www.flvcd.com/parse.php?kw="+url)
+def PlayVideo(name,url,thumb,res):
+    res_limit = int(__addon__.getSetting('movie_res'))
+    if res > res_limit:
+        res = res_limit
+    link = GetHttpData("http://www.flvcd.com/parse.php?kw="+url+"&format="+RES_LIST[res])
     match = re.compile('"(http://f.youku.com/player/getFlvPath/.+?)" target="_blank"').findall(link)
     if len(match)>0:
         playlist=xbmc.PlayList(1)
@@ -363,7 +391,12 @@ order = None
 page = '1'
 url = None
 thumb = None
+res = 0
 
+try:
+    res = int(params["res"])
+except:
+    pass
 try:
     thumb = urllib.unquote_plus(params["thumb"])
 except:
@@ -410,13 +443,13 @@ if mode == None:
 elif mode == 1:
     progList(name,id,page,cat,area,year,order)
 elif mode == 2:
-    getMoive(name,id,thumb)
+    getMoive(name,id,thumb,res)
 elif mode == 3:
     seriesList(name,id,thumb,page)
 elif mode == 4:
     performChanges(name,id,page,cat,area,year,order)
 elif mode == 10:
-    PlayVideo(name,url,thumb)
+    PlayVideo(name,url,thumb,res)
 elif mode == 11:
     progList2(name,id,page,cat,year,order)
 elif mode == 12:
