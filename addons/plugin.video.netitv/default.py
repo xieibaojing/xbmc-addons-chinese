@@ -1,11 +1,16 @@
 ﻿# -*- coding: utf-8 -*-
-import xbmc, xbmcgui, xbmcplugin, urllib2, urllib, re, string, sys, os
+import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os
 
 # NETITV(天翼高清)
 # write by robinttt, 2010
 # update by taxigps, 2011
 
-MEDIA_PATH = os.getcwd() + '/resources/media/'
+# Plugin constants 
+__addonname__ = "天翼高清"
+__addonid__ = "plugin.video.netitv"
+__addon__ = xbmcaddon.Addon(id=__addonid__)
+__addonpath__ = __addon__.getAddonInfo('path')
+MEDIA_PATH = xbmc.translatePath(os.path.join(__addonpath__,'resources','media'))
 
 def GetHttpData(url):
     req = urllib2.Request(url)
@@ -21,9 +26,9 @@ def GetThumb(reg,data):
         if match1[0].find('CDATA') == -1:
              thumb = 'http://www.netitv.com' + match1[0]
         else:
-             thumb = MEDIA_PATH + 'NetitvDefault.jpg'
+             thumb = os.path.join(MEDIA_PATH, 'NetitvDefault.jpg')
     else:
-        thumb = MEDIA_PATH + 'NetitvDefault.jpg'
+        thumb = os.path.join(MEDIA_PATH, 'NetitvDefault.jpg')
     return thumb
 
 def Roots():
@@ -131,7 +136,7 @@ def ListsA(url,name):
             match1 = re.compile('<playurls>(.+?)</playurls>').findall(info)
             if len(match1)>0:
                 match2 = re.compile('type="3".+?<!\[CDATA\[(.+?)]]></url>').findall(match1[0]) 
-                li = xbmcgui.ListItem('播放：' + name, iconImage = '', thumbnailImage = MEDIA_PATH + 'NetitvPLay.png')
+                li = xbmcgui.ListItem('播放：' + name, iconImage = '', thumbnailImage = os.path.join(MEDIA_PATH, 'NetitvPLay.png'))
                 u = sys.argv[0] + "?mode=5&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(match2[0]) + "&thumb=" + urllib.quote_plus(thumb)
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
             else:
@@ -205,28 +210,36 @@ def Movies(url,name,thumb):
     plot = match[0]
 
     match = re.compile('<playurls>(.+?)</playurls>').findall(match1[0])
-    match1 = re.compile('type="3" bit_stream="([0-9]+)" ivolume="([0-9]+)".+?<!\[CDATA\[(.+?)]]></url>').findall(match[0]) 
+    match1 = re.compile('islive="([0-9]+)" type="3" bit_stream="([0-9]+)" ivolume="([0-9]+)".+?<!\[CDATA\[(.+?)]]></url>').findall(match[0]) 
     if len(match1) == 1:
         li = xbmcgui.ListItem('播放：' + name, iconImage = '', thumbnailImage = thumb)
         li.setInfo(type = "Video", infoLabels = {"Title":name, "Director":director, "Cast":cast, "Plot":plot, "Year":year})
-        u = sys.argv[0] + "?mode=6&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(match1[0][2]) + "&thumb=" + urllib.quote_plus(thumb) + "&director=" + urllib.quote_plus(director) + "&plot=" + urllib.quote_plus(plot) + "&year=" + urllib.quote_plus(str(year))
+        if match1[0][0] == '1':
+            u = sys.argv[0] + "?mode=5&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(match1[0][3]) + "&thumb=" + urllib.quote_plus(thumb) + "&director=" + urllib.quote_plus(director) + "&plot=" + urllib.quote_plus(plot) + "&year=" + urllib.quote_plus(str(year))
+        else:
+            u = sys.argv[0] + "?mode=6&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(match1[0][3]) + "&thumb=" + urllib.quote_plus(thumb) + "&director=" + urllib.quote_plus(director) + "&plot=" + urllib.quote_plus(plot) + "&year=" + urllib.quote_plus(str(year))
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li)
     elif len(match1) > 1:
         totalItems = len(match1)
-        for stream, ivolume, info in match1:
+        for islive, stream, ivolume, info in match1:
             fullname = '播放（来源' + stream + '）：' + name + ' 【第' + ivolume + '集】'
             li = xbmcgui.ListItem(fullname, iconImage = '', thumbnailImage = thumb)
             li.setInfo(type = "Video", infoLabels = {"Title":fullname, "Director":director, "Cast":cast, "Plot":plot, "Year":year})
-            u=sys.argv[0] + "?mode=6&name=" + urllib.quote_plus(fullname) + "&url=" + urllib.quote_plus(info) + "&thumb=" + urllib.quote_plus(thumb) + "&director=" + urllib.quote_plus(director) + "&plot=" + urllib.quote_plus(plot) + "&year=" + urllib.quote_plus(str(year))
+            if islive == '1':
+                u=sys.argv[0] + "?mode=5&name=" + urllib.quote_plus(fullname) + "&url=" + urllib.quote_plus(info) + "&thumb=" + urllib.quote_plus(thumb) + "&director=" + urllib.quote_plus(director) + "&plot=" + urllib.quote_plus(plot) + "&year=" + urllib.quote_plus(str(year))
+            else:
+                u=sys.argv[0] + "?mode=6&name=" + urllib.quote_plus(fullname) + "&url=" + urllib.quote_plus(info) + "&thumb=" + urllib.quote_plus(thumb) + "&director=" + urllib.quote_plus(director) + "&plot=" + urllib.quote_plus(plot) + "&year=" + urllib.quote_plus(str(year))
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
 
 def PlayVideo(url,name,thumb,director,plot,year):
-    v_url = "http://biz.vsdn.tv380.com/playvod.php?" + url + "|smil"
-    link = GetHttpData(v_url)
-    match = re.compile('<video src="(.+?)" />').findall(link)
+    if url[0:11] == 'http://vods':
+        v_url = "http://biz.vsdn.tv380.com/playvod.php?" + url + "|smil"
+        link = GetHttpData(v_url)
+        match = re.compile('<video src="(.+?)" />').findall(link)
+        url = match[0]
     listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
     listitem.setInfo(type = "Video", infoLabels = {"Title":name, "Director":director, "Plot":plot, "Year":int(year)})
-    xbmc.Player().play(match[0], listitem)
+    xbmc.Player().play(url, listitem)
 
 def PlayTV(url,name,thumb):
     v_url = "http://biz.vsdn.tv380.com/playlive.php?" + url + "|smil"

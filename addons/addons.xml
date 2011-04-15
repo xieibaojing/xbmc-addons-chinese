@@ -132,7 +132,7 @@
 
 <addon id="plugin.video.netitv"
     name="天翼高清(NETITV)"
-    version="1.0.9"
+    version="1.1.0"
     provider-name="robinttt">
     <extension
         point="xbmc.python.pluginsource"
