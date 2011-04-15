@@ -1,11 +1,16 @@
 ﻿# -*- coding: utf-8 -*-
-import xbmc,xbmcgui,xbmcplugin,urllib2,urllib,re,sys,os
+import xbmc,xbmcgui,xbmcplugin,xbmcaddon,urllib2,urllib,re,sys,os
 
 # 中国网络电视台点播(CNTV)
 # Write by robinttt 2010.
 # Update by taxigps 2011
 
-MEDIA_PATH = os.getcwd() + '/resources/media/'
+# Plugin constants 
+__addonname__ = "中国网络电视台点播(CNTV)"
+__addonid__ = "plugin.video.cntv"
+__addon__ = xbmcaddon.Addon(id=__addonid__)
+__addonpath__ = __addon__.getAddonInfo('path')
+MEDIA_PATH = xbmc.translatePath(os.path.join(__addonpath__,'resources','media'))
 
 def GetHttpData(url):
     req = urllib2.Request(url)
@@ -21,11 +26,11 @@ def GetHttpData(url):
     return httpdata
 
 def Roots():
-    thumb=MEDIA_PATH+'xiyou.png'
+    thumb=os.path.join(MEDIA_PATH,'xiyou.png')
     li=xbmcgui.ListItem('爱西柚',iconImage='',thumbnailImage=thumb)
     u=sys.argv[0]+"?mode=1&name="+urllib.quote_plus('爱西柚')
     xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-    thumb=MEDIA_PATH+'bugu.png'
+    thumb=os.path.join(MEDIA_PATH,'bugu.png')
     li=xbmcgui.ListItem('爱布谷',iconImage='',thumbnailImage=thumb)
     u=sys.argv[0]+"?mode=8&name="+urllib.quote_plus('爱布谷')
     xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
