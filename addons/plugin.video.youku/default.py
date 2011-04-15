@@ -196,7 +196,10 @@ def seriesList(name,id,thumb,page):
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     for i in range(0,len(match)):
         match1 = re.compile('<li class="v_link"><a .*?href="(http://v.youku.com/v_show/id_.+?.html)"').search(match[i])
-        p_url = match1.group(1)
+        if match1:
+            p_url = match1.group(1)
+        else:
+            continue
         match1 = re.compile('<li class="v_thumb"><img src="(.+?)"').search(match[i])
         p_thumb = match1.group(1)
         match1 = re.compile('<li class="v_title">[\s]*<a [^>]+>(.+?)</a>').search(match[i])
@@ -209,7 +212,7 @@ def seriesList(name,id,thumb,page):
             p_res = 1
         else:
             p_res = 0
-        li = xbmcgui.ListItem(str(i + 1) + '.' + p_name, iconImage = '', thumbnailImage = p_thumb)
+        li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
         u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)+"&res="+str(p_res)
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
