@@ -10,6 +10,8 @@ __addon__ = xbmcaddon.Addon(id=__addonid__)
 
 CHANNEL_LIST = [['电影','1'], ['电视剧','2'], ['综艺','7'], ['纪录片','8'], ['新闻','13'], ['动漫','16'], ['公开课','21'], ['其它','0']]
 ORDER_LIST = [['相关程度',''], ['最多播放','1'], ['最新发布','3'], ['最高评分','4']]
+# 普通=vid+1 高清=vid 超清=vid+2
+RES_LIST = [1, 0, 2]
 
 def GetHttpData(url):
     req = urllib2.Request(url)
@@ -132,11 +134,20 @@ def progList(name,id,page,cat,area,year,order):
         else:
             p_dir = False
             mode = 3
+        if match[i].find("<b class='cq_ico'>")>0:
+            p_name1 = p_name + '[超清]'
+            p_res = 2
+        elif match[i].find("<b class='gq_ico'>")>0:
+            p_name1 = p_name + '[高清]'
+            p_res = 1
+        else:
+            p_name1 = p_name
+            p_res = 0
         if match[i].find('class="pay"')>0:
-            p_name =  p_name + '(付费)'
+            p_name1 += '[付费节目]'
             mode = 100
-        li = xbmcgui.ListItem(str(i + 1) + '.' + p_name, iconImage = '', thumbnailImage = p_thumb)
-        u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)+"&id="+urllib.quote_plus(str(i))
+        li = xbmcgui.ListItem(str(i + 1) + '.' + p_name1, iconImage = '', thumbnailImage = p_thumb)
+        u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)+"&id="+urllib.quote_plus(str(i))+"&res="+str(p_res)
         li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, p_dir, totalItems)
 
@@ -151,7 +162,7 @@ def progList(name,id,page,cat,area,year,order):
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def seriesList(name,id,url,thumb):
+def seriesList(name,id,url,thumb,res):
     link = GetHttpData(url)
     link = re.compile('<div class="list_pack">(.+?)target="_blank"> 播 放 </a>', re.DOTALL).findall(link)[int(id)]
     match0 = re.compile('class="episodes">(.+?)<p class="detail">', re.DOTALL).search(link)
@@ -159,14 +170,16 @@ def seriesList(name,id,url,thumb):
     totalItems = len(match)
     for p_url, p_name in match:
         li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = thumb)
-        u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(thumb)
+        u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(thumb)+"&res="+str(res)
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def PlayVideo(name,url,thumb):
-    print url
+def PlayVideo(name,url,thumb,res):
+    res_limit = int(__addon__.getSetting('movie_res'))
+    if res > res_limit:
+        res = res_limit
     if url[0:5]!='http:':
         url='http://so.tv.sohu.com'+url
     link = GetHttpData(url)
@@ -176,7 +189,8 @@ def PlayVideo(name,url,thumb):
         if match1:
             PlayVideo(name,match1.group(1),thumb)
         return
-    link = GetHttpData('http://hot.vrs.sohu.com/vrs_flash.action?vid='+match1.group(1))
+    p_vid = int(match1.group(1)) + RES_LIST[res]
+    link = GetHttpData('http://hot.vrs.sohu.com/vrs_flash.action?vid='+str(p_vid))
     match = re.compile('"tvName":"(.+?)"').findall(link)
     name = match[0]
     match = re.compile('"clipsURL"\:\["(.+?)"\]').findall(link)
@@ -263,7 +277,12 @@ order = ''
 page = ''
 url = None
 thumb = None
+res = 0
 
+try:
+    res = int(params["res"])
+except:
+    pass
 try:
     thumb = urllib.unquote_plus(params["thumb"])
 except:
@@ -310,9 +329,9 @@ if mode == None:
 elif mode == 1:
     progList(name,id,page,cat,area,year,order)
 elif mode == 2:
-    seriesList(name,id,url,thumb)
+    seriesList(name,id,url,thumb,res)
 elif mode == 3:
-    PlayVideo(name,url,thumb)
+    PlayVideo(name,url,thumb,res)
 elif mode == 4:
     performChanges(name,id,url,cat,area,year,order)
 
