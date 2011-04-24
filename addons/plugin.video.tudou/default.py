@@ -94,7 +94,7 @@ def progList(name,baseurl,page,cat,area,year,order):
     for i in range(0,len(match)):
         match1 = re.compile('<div class="pic"><a href="(.+?)" target="_blank"><img src="(.+?)".+?>').search(match[i])
         if not match1:
-            match1 = re.compile('<div class="pic"><a class="inner" target="new" href=".+?iid=([^"]+)"><img .+?src="(.+?)">').search(match[i])
+            match1 = re.compile('<div class="pic"><a class="inner" target="new" href="http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html"><img .+?src="(.+?)">').search(match[i])
             p_url = match1.group(1)
             p_thumb = match1.group(2)
             mode = 3
@@ -158,7 +158,7 @@ def progList(name,baseurl,page,cat,area,year,order):
 def seriesList(name,url,thumb):
     link = GetHttpData(url)
     match0 = re.compile('<div id="playItems"(.+?)<div class="page_nav"').search(link)
-    match = re.compile('<div class="pic"><a class="inner" target="new" title="(.+?)" href=".+?iid=([^"]+)"><img .+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
+    match = re.compile('<div class="pic"><a class="inner" target="new" title="(.+?)" href="http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html"><img .+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
     totalItems = len(match)
     for p_name, p_iid, alt, src in match:
         if alt[0:5]=='http:':
