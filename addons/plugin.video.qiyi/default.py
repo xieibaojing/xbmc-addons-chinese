@@ -216,16 +216,33 @@ def seriesList(url, name, thumb):
         desc = desc + GetHttpData('http://www.qiyi.com' + url1)
     match = re.compile('<li><ahref="(.+?)"class="imgBg1"><.+?src="(.+?)"title="(.+?)".*?"').findall(album)
     totalItems = len(match)
-    for p_url, p_thumb, p_name in match:
-        match1 = re.compile('<ahref="' + p_url + '">' + p_name + '</a></span><pstyle=.*?>(.*?)</p>').findall(desc)
-        if len(match1) > 0:
-            p_plot = match1[0].replace('&nbsp;','')
-        else:
-            p_plot = ''
-        li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
-        li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year})
-        u = sys.argv[0] + "?mode=2&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+    if totalItems==0:
+        match1 = re.compile('"tvPictureUrl":"(.+?)","producers').findall(link)
+        p_thumb=match1[0]
+        match = re.compile('<ahref="(.+?)">(.+?)</a>').findall(album)
+        totalItems = len(match)
+        for p_url,p_name in match:
+            match1 = re.compile('<ahref="' + p_url + '">' + p_name + '</a></span><pstyle=.*?>(.*?)</p>').findall(desc)
+            if len(match1) > 0:
+                p_plot = match1[0].replace('&nbsp;','')
+            else:
+                p_plot = ''
+            p_name =  name + '(' + p_name + ')'
+            li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
+            li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year})
+            u = sys.argv[0] + "?mode=2&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+    else:
+        for p_url, p_thumb, p_name in match:
+            match1 = re.compile('<ahref="' + p_url + '">' + p_name + '</a></span><pstyle=.*?>(.*?)</p>').findall(desc)
+            if len(match1) > 0:
+                p_plot = match1[0].replace('&nbsp;','')
+            else:
+                p_plot = ''
+            li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
+            li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year})
+            u = sys.argv[0] + "?mode=2&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
