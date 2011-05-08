@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
+import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, httplib, re, string, sys, os, gzip, StringIO
 
 # 搜狐视频(SoHu) by taxigps, 2011
 
@@ -195,12 +195,19 @@ def PlayVideo(name,url,thumb,res):
     name = match[0]
     match = re.compile('"clipsURL"\:\["(.+?)"\]').findall(link)
     paths = match[0].split('","')
+    match = re.compile('"su"\:\["(.+?)"\]').findall(link)
+    newpaths = match[0].split('","')
     playlist = xbmc.PlayList(1)
     playlist.clear()
     for i in range(0,len(paths)):
+        link = GetHttpData('http://220.181.61.229/?prot=2&file='+paths[i].replace('http://data.vod.itc.cn','')+'&new='+newpaths[i])
+        key=link.split('|')[3]
+        req = httplib.HTTPConnection("new.sohuv.dnion.com")
+        req.request("GET", newpaths[i]+'?key='+key)
+        r1 = req.getresponse()
         listitem=xbmcgui.ListItem(name,thumbnailImage=thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(paths))+" 节"})
-        playlist.add(paths[i], listitem)
+        playlist.add(r1.getheader('Location'), listitem)
     xbmc.Player().play(playlist)
 
 def performChanges(name,id,listpage,cat,area,year,order):
