@@ -259,6 +259,24 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.tencent"
+    name="腾讯视频(Tecent)"
+    version="1.0.1"
+    provider-name="wow1122">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">Tencent video plugin</summary>
+        <summary lang="zh">腾讯网视频插件</summary>
+        <description lang="en">online video from v.qq.com</description>
+        <description lang="zh">观看腾讯网在线视频</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
 <addon id="plugin.video.tudou"
     name="土豆视频(Tudou)"
     version="1.0.1"
