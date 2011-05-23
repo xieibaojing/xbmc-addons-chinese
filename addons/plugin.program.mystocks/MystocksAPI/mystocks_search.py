@@ -16,7 +16,7 @@ class Main:
         
 
     def _search( self, inText):
-        req = urllib2.Request('http://biz.finance.sina.com.cn/suggest/lookup_n.php?country=stock&q=' + inText)
+        req = urllib2.Request('http://biz.finance.sina.com.cn/suggest/lookup_n.php?country=&q=' + inText)
         req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
         response = urllib2.urlopen(req)
         link=response.read()
@@ -32,15 +32,17 @@ class Main:
                 if (len(match2) > 0):
                     for info in match2:
                         re_v = info.split(' ')
-                        if(len(re_v[0]) == 8):
-                            addLink(re_v[1].decode('gbk').encode('utf8'), re_v[0][2:], "show_graph", re_v[0][:2], folder=False)
+                        re_v0=re.sub('<span>','',re_v[0])
+                        re_v0=re.sub('</span>','',re_v0)
+                        if(len(re_v0) == 8):
+                            addLink(re_v[1].decode('gbk').encode('utf8'), re_v0[2:], "show_graph", re_v0[:2], folder=False)
                     xbmcplugin.endOfDirectory(int(sys.argv[1]))
             except:
                 ok = xbmcgui.Dialog().ok('股票搜索', '对不起，没有找到相关股票。')
                 u=sys.argv[0]+"?url=&mode=&shsz=&name="
                 xbmc.executebuiltin('XBMC.RunPlugin(%s)' % u)
         else:
-            match=re.compile('var fullcode="(.+?)";').findall(match0)
+            match=re.compile('var fullcode = \'(.+?)\';').findall(match0)
             if(len(match) > 0):
                 stockId = match[0]
                 match=re.compile('var stockname="(.+?)";').findall(match0)
