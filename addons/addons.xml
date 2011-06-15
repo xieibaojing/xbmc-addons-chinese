@@ -130,6 +130,24 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.ku6"
+    name="酷6云中剧场(Ku6)"
+    version="1.0.4"
+    provider-name="wow1122">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">Ku6 video plugin</summary>
+        <summary lang="zh">酷6云中剧场视频插件</summary>
+        <description lang="en">online video from www.juchang.com/n</description>
+        <description lang="zh">观看酷6云中剧场</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
 <addon id="plugin.video.netitv"
     name="天翼高清(NETITV)"
     version="1.1.0"
@@ -223,9 +241,27 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.sina"
+    name="新浪视频(Sina)"
+    version="1.0.1"
+    provider-name="wow1122">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">Sina video plugin</summary>
+        <summary lang="zh">新浪网视频插件</summary>
+        <description lang="en">online video from video.sina.com.cn</description>
+        <description lang="zh">观看新浪网在线视频</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
 <addon id="plugin.video.sohuvideo"
     name="搜狐视频(SoHu)"
-    version="2.0.3"
+    version="2.0.7"
     provider-name="Taxigps">
     <extension
         point="xbmc.python.pluginsource"
@@ -309,6 +345,24 @@
         <summary lang="zh">TV365网络电视直播插件</summary>
         <description>TV365 video plugin</description>
         <description lang="zh">TV365网络电视直播插件，内置播放器对于mms类型的流媒体支持度比较好，其他类型如rtsp等可能无法播放。</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.wzipad"
+    name="热点影院(wzipad)"
+    version="1.0.0"
+    provider-name="wow1122">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">wzipad video plugin</summary>
+        <summary lang="zh">热点影院视频插件</summary>
+        <description lang="en">online video from www.wzipad.com</description>
+        <description lang="zh">观看热点影院在线视频</description>
         <platform>all</platform>
     </extension>
 </addon>
