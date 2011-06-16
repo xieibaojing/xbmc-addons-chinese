@@ -132,7 +132,7 @@
 
 <addon id="plugin.video.ku6"
     name="酷6云中剧场(Ku6)"
-    version="1.0.4"
+    version="1.0.5"
     provider-name="wow1122">
     <extension
         point="xbmc.python.pluginsource"

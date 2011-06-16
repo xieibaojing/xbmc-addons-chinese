@@ -168,7 +168,7 @@ def FindItems(type,link):
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
            return             
    else:
-       match = re.compile('"> <span class="shadow">(.+?)</span> <a href="(.+?)" target="show_v" title=".+?"><span class="icoVideo"> </span><img class="pic1" src="(.+?)"', re.DOTALL).findall(link) 
+       match = re.compile('> <span class="shadow">(.+?)</span> <a href="(.+?)" target="show_v" title=".+?"><span class="icoVideo"> </span><img class="pic1" src="(.+?)"', re.DOTALL).findall(link) 
    totalItems=len(match)
    for p_name,p_url,p_thumb  in match:
         li = xbmcgui.ListItem(name+'-'+p_name, iconImage = '', thumbnailImage = p_thumb)
