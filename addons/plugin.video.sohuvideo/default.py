@@ -251,8 +251,8 @@ def seriesList(name,id,url,thumb):
             pid=match0[0].replace('"','')
             match0 = re.compile('var vid=(.+?);', re.DOTALL).findall(link)
             vid=match0[0].replace('"','')
-            match0 = re.compile('var obType = (.+?);', re.DOTALL).findall(link)
-            obtype= match0[0].replace('"','')  
+            #match0 = re.compile('var obType = (.+?);', re.DOTALL).findall(link)
+            obtype= '2'
             #match0 = re.compile('var ps = (.+?);', re.DOTALL).findall(link)
             #ps= match0[0]     
             link = GetHttpData("http://search.vrs.sohu.com/avs_i"+vid+"_pr"+pid+"_o"+obtype+"_n_p1000_chltv.sohu.com.json")
