@@ -200,7 +200,7 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
             else:
                 p_year = 0
             #if match[i].find('.shtml')>0:
-            if id in ('2','16'):
+            if id in ('2','16','21'):
                 p_dir = True
                 mode = 2
             else:
