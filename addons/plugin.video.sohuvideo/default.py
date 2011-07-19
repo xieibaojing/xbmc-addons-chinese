@@ -1,8 +1,9 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, httplib, re, string, sys, os, gzip, StringIO
-
+        
 # 搜狐视频(SoHu) by taxigps, 2011
-#Modified by wow1122/wht9000@gmail.com
+# Modified by wow1122/wht9000@gmail.com
+# Modified by fxfboy@gmail.com
 # Plugin constants 
 __addonname__ = "搜狐视频(SoHu)"
 __addonid__ = "plugin.video.sohuvideo"
@@ -13,6 +14,7 @@ CHANNEL_LIST = [['电影','1'], ['电视剧','2'], ['综艺','7'], ['纪录片',
 ORDER_LIST = [['0','相关程度'], ['3','最新发布'], ['4','评分最高'], ['1','总播放最多'],['5','日播放最多'], ['7','周播放最多']]
 ORDER_LIST1 = [['0','相关程度'], ['3','最新发布'], ['1','总播放最多']]
 ORDER_LIST2 = [['0','相关程度'], ['3','最新发布'], ['1','总播放最多'],['5','日播放最多'], ['7','周播放最多']]
+
 def GetHttpData(url):
     req = urllib2.Request(url)
     req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
@@ -21,11 +23,11 @@ def GetHttpData(url):
     if response.headers.get('content-encoding', None) == 'gzip':
         httpdata = gzip.GzipFile(fileobj=StringIO.StringIO(httpdata)).read()
     response.close()
-    match = re.compile('<meta http-equiv="[Cc]ontent-[Tt]ype" content="text/html; charset=(.+?)"').findall(httpdata)
+    match = re.compile('<meta http-equiv=["]?[Cc]ontent-[Tt]ype["]? content="text/html;[\s]?charset=(.+?)"').findall(httpdata)
     if len(match)>0:
         charset = match[0].lower()
         if (charset != 'utf-8') and (charset != 'utf8'):
-            httpdata=httpdata.decode('gbk', 'ignore').encode('utf8')
+            httpdata=httpdata.decode(charset, 'ignore').encode('utf8')
             #httpdata = unicode(httpdata, charset).encode('utf8')
     return httpdata
    
@@ -233,79 +235,116 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def seriesList(name,id,url,thumb):
-    print url
+    print 'SeriesList('+name+', '+str(id)+', '+url+', '+thumb+')'
     link = GetHttpData(url)
     if url.find('.shtml')>0:
         match0 = re.compile('var vrs_playlist_id="(.+?)";', re.DOTALL).findall(link)
+        print 'vrs_playlist_id:' + match0.groups()
         link = GetHttpData('http://hot.vrs.sohu.com/vrs_videolist.action?playlist_id='+match0[0])
         match = re.compile('"videoImage":"(.+?)",.+?"videoUrl":"(.+?)".+?"videoOrder":"(.+?)",', re.DOTALL).findall(link)
         totalItems = len(match)
         for p_thumb,p_url,p_name in match:
             li = xbmcgui.ListItem('第'+p_name+'集', iconImage = '', thumbnailImage = p_thumb)
             u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus('第'+p_name+'集') + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
-            #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)       
     else:    
         match0 = re.compile('var pid=(.+?);', re.DOTALL).findall(link)
-        if match0:
+        if len(match0)>0:
+            print 'pid=' + match0[0]
             pid=match0[0].replace('"','')
             match0 = re.compile('var vid=(.+?);', re.DOTALL).findall(link)
             vid=match0[0].replace('"','')
-            #match0 = re.compile('var obType = (.+?);', re.DOTALL).findall(link)
-            obtype= '2'
-            #match0 = re.compile('var ps = (.+?);', re.DOTALL).findall(link)
-            #ps= match0[0]     
+            obtype= '2'    
             link = GetHttpData("http://search.vrs.sohu.com/avs_i"+vid+"_pr"+pid+"_o"+obtype+"_n_p1000_chltv.sohu.com.json")
             match = re.compile('"videoName":"(.+?)",.+?"videoUrl":"(.+?)",.+?"videoBigPic":"(.+?)",', re.DOTALL).findall(link)
             totalItems = len(match)
             for p_name,p_url, p_thumb  in match:
                 li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
                 u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
-                #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
         else:
-            match = re.compile('<a href="(http://tv.sohu.com/\d{8}/n\d{9}.shtml)".+?><img.+?src="(.+?)".+?(第\d+集)', re.I).findall(link)
-            totalItems = len(match)
-            for p_url,p_thumb,p_name  in match:
-                li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
-                u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
-                #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+            link = re.sub("\r|\n|\t","",link)
+            match = re.compile('<a([^>]*)><img([^>]*)></a>').findall(link)
+            thumbDict = {}
+            for i in range(0, len(match)):
+                p_url = re.compile('href="(.+?)"').findall(match[i][0])
+                if len(p_url)>0:
+                    p_url = p_url[0]
+                else:
+                    p_url = match[i][0]
+                p_thumb = re.compile('src="(.+?)"').findall(match[i][1])
+                if len(p_thumb)>0:
+                    p_thumb = p_thumb[0]
+                else:
+                    p_thumb = match[i][1]
+                thumbDict[p_url]=p_thumb
+#            for img in thumbDict.items():
+#                print img
+            url = 'http://so.tv.sohu.com/mts?c=2&wd=' + urllib.quote_plus(name.decode('utf-8').encode('gbk'))
+            html = GetHttpData(url)
+            html = re.sub("\r|\n|\t","",html)
+            match =  re.compile('<p id=".+?" class="episodes">(.+?)</p>').search(html)
+            if not match:
+                return
+            html = match.group(1)
+            items = re.compile('<a([^>]*)>').findall(html)
+            for item in items:
+                href = re.compile('href="(.+?)"').findall(item)
+                if len(href)>0:
+                    p_url = 'http://so.tv.sohu.com/' + href[0]
+                    urlKey = re.compile('u=(http://.+?.shtml)').search(p_url)
+                    if urlKey:
+                        urlKey = urlKey.group(1)
+                    else:
+                        urlKey = p_url
+#                    print urlKey
+                    p_thumb = thumb
+                    try:
+                        p_thumb = thumbDict[urlKey]
+                    except:
+                        pass
+                    title = re.compile('title="(.+?)"').findall(item)
+                    if len(title)>0:
+                        p_name = title[0]
+                        li = xbmcgui.ListItem(p_name, iconImage = p_thumb, thumbnailImage = p_thumb)
+                        u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
+                        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False)
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def PlayVideo(name,url,thumb):
-    print url
+    print 'PlayVideo -> '+url
+    level = int(__addon__.getSetting('resolution'))
     link = GetHttpData(url)
-    print 'PlayVideo'+url
     match1 = re.compile('var vid="(.+?)";').search(link)
     if not match1:
         match1 = re.compile('<a href="(http://[^/]+/[0-9]+/[^\.]+.shtml)" target="?_blank"?><img').search(link)
         if match1:
             PlayVideo(name,match1.group(1),thumb)
         return
-    p_vid = int(match1.group(1))
-    link = GetHttpData('http://search.vrs.sohu.com/mv_i'+str(p_vid)+'.json')
-    match = re.compile('"playlistId":(.+?),"').findall(link)
-    link = GetHttpData('http://hot.vrs.sohu.com/vrs_videolist.action?playlist_id='+match[0])
-    match = re.compile('"videoId":(.+?),"').findall(link)
     p_vid = match1.group(1)
+    if p_vid.find(',') > 0 : p_vid = p_vid.split(',')[0]
     link = GetHttpData('http://hot.vrs.sohu.com/vrs_flash.action?vid='+p_vid)
     match = re.compile('"norVid":(.+?),"highVid":(.+?),"superVid":(.+?),').search(link)
     ratelist=[]
     if match.group(3)!='0':ratelist.append(['超清','3'])
     if match.group(2)!='0':ratelist.append(['高清','2'])
     if match.group(1)!='0':ratelist.append(['流畅','1'])
-    dialog = xbmcgui.Dialog()
-    list = [x[0] for x in ratelist]
-    if len(ratelist)==1:
-        rate=ratelist[0][1]
-    else:
-        sel = dialog.select('类型', list)
-        if sel == -1:
-            return
+    if level == 3 :
+        dialog = xbmcgui.Dialog()
+        list = [x[0] for x in ratelist]
+        if len(ratelist)==1:
+            rate=ratelist[0][1]
         else:
-            rate=ratelist[sel][1]
+            sel = dialog.select('类型', list)
+            if sel == -1:
+                return
+            else:
+                rate=ratelist[sel][1]
+    else:
+        rate = int(ratelist[0][1])
+        if rate > level + 1:
+            rate = level + 1
     if match.group(int(rate))<>str(p_vid):link = GetHttpData('http://hot.vrs.sohu.com/vrs_flash.action?vid='+match.group(int(rate)))
     match = re.compile('"tvName":"(.+?)"').findall(link)
     name = match[0]
@@ -316,54 +355,31 @@ def PlayVideo(name,url,thumb):
     playlist = xbmc.PlayList(1)
     playlist.clear()
     for i in range(0,len(paths)):
-        link = GetHttpData('http://220.181.61.229/?prot=2&file='+paths[i].replace('http://data.vod.itc.cn','')+'&new='+newpaths[i])
+        link = GetHttpData('http://data.vod.itc.cn/?prot=2&file='+paths[i].replace('http://data.vod.itc.cn','')+'&new='+newpaths[i])
         key=link.split('|')[3]
         req = httplib.HTTPConnection("new.sohuv.dnion.com")
         req.request("GET", newpaths[i]+'?key='+key)
         r1 = req.getresponse()
-        #print r1.getheader('Location')
-        listitem=xbmcgui.ListItem(name,thumbnailImage=thumb)
-        listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(paths))+" 节"})
+        title = name+" 第"+str(i+1)+"/"+str(len(paths))+"节"
+        listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
+        listitem.setInfo(type="Video",infoLabels={"Title":title})
         playlist.add(r1.getheader('Location'), listitem)
-    xbmc.Player().play(playlist)
+        if i==0:
+            xbmc.Player().play(playlist)
 
 def PlayBoKe(name,url,thumb):
-    link = GetHttpData(url)
-    print 'PlayVideo:'+url
-    match = re.compile('var _videoId = (.+?);', re.DOTALL).findall(link)
-    print match[0]
-    link = GetHttpData('http://my.tv.sohu.com/videinfo.jhtml?m=viewtv&vid='+match[0])
-    match = re.compile('"clipsURL"\:\["(.+?)"\]').findall(link)
-    paths=match[0].split('","')
-    print link
-    match = re.compile('"su"\:\["(.+?)"\]').findall(link)
-    playlist = xbmc.PlayList(1)
-    playlist.clear()
-    if len(match)>3:
-        for i in range(0,len(paths)):
-            newpaths = match[0].split('","')
-            link = GetHttpData('http://data.vod.itc.cn/?prot=2&file='+paths[i]+'&new='+newpaths[i])
-            key=link.split('|')[3]
-            req = httplib.HTTPConnection("new.sohuv.dnion.com")
-            req.request("GET", newpaths[i]+'?key='+key)
-            r1 = req.getresponse()
-            listitem=xbmcgui.ListItem(name,thumbnailImage=thumb)
-            listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(paths))+" 节"})
-            playlist.add(r1.getheader('Location'), listitem)
+    print 'PlayBoKe2 -> ' + url
+    link = GetHttpData("http://www.flvcd.com/parse.php?kw="+urllib.quote_plus(url))
+    match = re.compile('"(http://.+?video.sohu.com/.+?)" target="_blank"').findall(link)
+    if len(match)>0:
+        playlist=xbmc.PlayList(1)
+        playlist.clear()
+        for i in range(0,len(match)):
+            listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
+            listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
+            playlist.add(match[i], listitem)
         xbmc.Player().play(playlist)
-    else:
-        for i in range(0,len(paths)):
-            listitem=xbmcgui.ListItem(name,thumbnailImage=thumb)
-            listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(paths))+" 节"})
-            playlist.add('http://'+paths[i], listitem)
-            print paths[i]
-        xbmc.Player().play(playlist)    
-    #print r1.getheader('Location')
-    #listitem=xbmcgui.ListItem(name,thumbnailImage=thumb)
-    #listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(paths))+" 节"})
-    #playlist.add(r1.getheader('Location'), listitem)
-    
-    
+
 def performChanges(name,id,listpage,cat,area,year,order,p5,p6,p11):
     change = False
     catlist= getcatList(listpage)
