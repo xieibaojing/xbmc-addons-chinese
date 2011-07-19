@@ -243,7 +243,7 @@
 
 <addon id="plugin.video.sina"
     name="新浪视频(Sina)"
-    version="1.0.1"
+    version="1.0.2"
     provider-name="wow1122">
     <extension
         point="xbmc.python.pluginsource"

@@ -192,20 +192,8 @@ def PlayVideo(name,type,url,thumb):
     match = re.compile(' vid:\'(.+?)\'').findall(link)   
     vid=match[0]
     vidlist=vid.split('|')
-    ratelist=[]
-    if vidlist[1]!='0':ratelist.append(['高清',vidlist[1]])
-    if vidlist[0]!='0':ratelist.append(['普通',vidlist[0]])
-    if len(ratelist)==1:
-        rate=ratelist[0][1]
-    else:
-        dialog = xbmcgui.Dialog()
-        list = [x[0] for x in ratelist]
-        sel = dialog.select('类型', list)
-        if sel == -1:
-            return
-        else:
-            rate=ratelist[sel][1]
-    url='http://v.iask.com/v_play.php?vid='+rate+'&uid=0&pid=1000&tid=4&plid=4002&referrer=http%3A%2F%2Fvideo.sina.com.cn%2Fmovie%2Fdetail%2Fmhls&r=video.sina.com.cn'
+    #vidlist[0]普通vidlist[1]清晰
+    url='http://v.iask.com/v_play.php?vid='+vidlist[1]+'&uid=0&pid=1000&tid=4&plid=4002&referrer=http%3A%2F%2Fvideo.sina.com.cn%2Fmovie%2Fdetail%2Fmhls&r=video.sina.com.cn'
     link = GetHttpData(url)
     match = re.compile('<url><!\[CDATA\[(.+?)\]\]></url>').findall(link)
     if match:
