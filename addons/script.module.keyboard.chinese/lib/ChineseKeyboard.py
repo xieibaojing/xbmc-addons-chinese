@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -9,6 +9,7 @@ import xbmc
 import xbmcgui
 from xbmcaddon import Addon
 
+import urllib2, urllib, httplib, time
 
 __settings__ = Addon( "script.module.keyboard.chinese" )
 __addonDir__ = __settings__.getAddonInfo( "path" )
@@ -36,12 +37,6 @@ CTRL_ID_TEXT = 310
 CTRL_ID_HEAD = 311
 CTRL_ID_CODE = 401
 CTRL_ID_HZLIST = 402
-
-filename = os.path.join( __addonDir__, "lib", "pinyin.mb" )
-fd = open( filename, 'r')
-data = fd.read()
-HANZI_MB = dict(re.compile('([a-z]+)([^\s]+)').findall(data))
-fd.close()
 
 class InputWindow(xbmcgui.WindowXMLDialog):
 	def __init__( self, *args, **kwargs ):
@@ -107,10 +102,12 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 					self.getControl(CTRL_ID_CODE).setLabel(s)
 					self.getChineseWord(s)
 				elif controlID>=48 and controlID<=57:#0-9
-					i = self.nowpage*10*2+(controlID-48)*2
-					hanzi = unicode(self.words[i:(2+i)],'gbk').encode('utf-8')
-					self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+hanzi)
+					i = self.nowpage*5+(controlID-48)
+					hanzi = self.words[i]
+					self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+ hanzi)
 					self.getControl(CTRL_ID_CODE).setLabel('')
+					self.getControl(CTRL_ID_HZLIST).setLabel('')
+					self.words = []
 			else:
 				self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+self.getControl(controlID).getLabel().encode('utf-8'))
 
@@ -148,8 +145,8 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 			hzlist = ''
 		else:
 			hzlist = '< '
-		for i in range(self.nowpage*10*2, len(self.words), 2):
-			hzlist = hzlist+str(num)+'.'+unicode(self.words[i:(2+i)],'gbk').encode('utf-8')+' '
+		for i in range(self.nowpage*5, len(self.words)):
+			hzlist = hzlist+str(num)+'.'+self.words[i]+' '
 			num+=1
 			if num > 9: break
 		if self.nowpage < self.totalpage-1:
@@ -160,18 +157,18 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 		self.nowpage = 0
 		self.totalpage = 1
 		self.getControl(CTRL_ID_HZLIST).setLabel('')
-		if HANZI_MB.has_key(py):
-			self.words=HANZI_MB.get(py)
-			self.totalpage = int(len(self.words)/2/10)+1
-			num=0
-			hzlist = ''
-			for i in range(0, len(self.words), 2):
-				hzlist = hzlist+str(num)+'.'+unicode(self.words[i:(2+i)],'gbk').encode('utf-8')+' '
-				num+=1
-				if num > 9: break
-			if self.totalpage>1:
-				hzlist = hzlist + '>'
-			self.getControl(CTRL_ID_HZLIST).setLabel(hzlist)
+		#if HANZI_MB.has_key(py):
+		self.words=self.getwords(py)
+		self.totalpage = int(len(self.words)/5)+1
+		num=0
+		hzlist = ''
+		for i in range(0, len(self.words)):
+			hzlist = hzlist+str(num)+'.'+self.words[i]+' '
+			num+=1
+			if num > 5: break
+		if self.totalpage>1:
+			hzlist = hzlist + '>'
+		self.getControl(CTRL_ID_HZLIST).setLabel(hzlist)
 
 	def setKeyToChinese (self):
 		self.getControl(CTRL_ID_CODE).setLabel('')
@@ -215,7 +212,21 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 
 	def getText(self):
 		return self.inputString
-		
+	
+	def getwords(self, py):
+		t = time.time()
+		url = 'http://olime.baidu.com/py?py=' + py + '&rn=0&pn=20&ol=1&prd=shurufa.baidu.com&t=' + str(int(t))
+		req = urllib2.Request(url)
+		req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
+		response = urllib2.urlopen(req)
+		httpdata = response.read()
+		response.close()
+		words = []
+		match = re.compile('\["(.+?)",\d+\]').findall(httpdata)
+		for word in match:
+                        words.append(eval('u"'+word+'"').encode('utf-8'))
+		return words
+
 class Keyboard:
 	def __init__( self, default='', heading='' ):
 		self.confirmed = False
