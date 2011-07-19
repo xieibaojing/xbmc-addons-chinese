@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
+import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO,ChineseKeyboard
 
 # 腾讯视频(v.qq.com) by wow1122(wht9000@gmail.com), 2011
 
@@ -68,6 +68,9 @@ def rootList():
     xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
     li=xbmcgui.ListItem('财经')
     u=sys.argv[0]+"?mode=1&name="+urllib.quote_plus('财经')+"&type="+urllib.quote_plus('8')+"&cat="+urllib.quote_plus('-1')+"&area="+urllib.quote_plus('-1')+"&year="+urllib.quote_plus('-1')+"&order="+urllib.quote_plus('1')+"&page="+urllib.quote_plus('0')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    li=xbmcgui.ListItem('搜索')
+    u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus('搜索')+"&type="+urllib.quote_plus('8')+"&cat="+urllib.quote_plus('-1')+"&area="+urllib.quote_plus('-1')+"&year="+urllib.quote_plus('-1')+"&order="+urllib.quote_plus('1')+"&page="+urllib.quote_plus('0')
     xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
     
@@ -168,14 +171,22 @@ def listA(name,url,thumb):
     print url
     print thumb
     link = GetHttpData(url)
-    match = re.compile('<li><a target="_self".+?title="(.+?)".+?sv="(.+?)"', re.DOTALL).findall(link)
-    totalItems=len(match)
-    for p_name,p_url  in match:
-        li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = thumb)
-        print p_url
-        u = sys.argv[0] + "?mode=10&name="+urllib.quote_plus(p_name)+"&type=3&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(thumb)
-        #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+    if link.find('sv=""') > 0 :
+        match = re.compile('<li><a target="_self".+?id="(.+?)"  title="(.+?)"', re.DOTALL).findall(link)
+        totalItems=len(match)
+        for p_url,p_name  in match:
+            li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = thumb)
+            u = sys.argv[0] + "?mode=10&name="+urllib.quote_plus(p_name)+"&type=3&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(thumb)
+            #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+    else:
+        match = re.compile('<li><a target="_self".+?title="(.+?)".+?sv="(.+?)"', re.DOTALL).findall(link)
+        totalItems=len(match)
+        for p_name,p_url  in match:
+            li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = thumb)
+            u = sys.argv[0] + "?mode=10&name="+urllib.quote_plus(p_name)+"&type=3&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(thumb)
+            #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
     
@@ -190,6 +201,7 @@ def PlayVideo(name,type,url,thumb):
         vidlist=vid.split('|')
     elif type=='3':
         vidlist=url.split('|')
+    print vidlist
     if len(vidlist)>0:
         playlist=xbmc.PlayList(1)
         playlist.clear()
@@ -212,6 +224,32 @@ def PlayMv(name,url,thumb):
     match = re.compile('<url>(.+?)</url>').findall(link)
     xbmc.Player().play(match[0])
 
+
+def SearchVideo(name,type,url,thumb):
+		kb=xbmc.Keyboard('','输入所查影片中文信息-拼音或简拼(拼音首字母)',False)
+		kb.doModal()
+		kw=kb.getText() 
+		
+    #li=xbmcgui.ListItem("搜索结果")
+    #u=""
+    #xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    #keyboard = ChineseKeyboard.Keyboard('缺省输入字串','中文输入窗标题')
+    #keyboard.doModal()
+    #if (keyboard.isConfirmed()):
+        #input_string = keyboard.getText()
+        #link = GetHttpData('http://v.qq.com/search.html?pagetype=3&ms_key='+input_string)
+        #match = re.compile('<img src="(.+?)".+?playid="(.+?)">(.+?)</a>.+?([.+?])', re.DOTALL).findall(link)
+        #totalItems=len(match)
+        #for p_thumb,p_vid,p_name,p_type  in match:
+            #li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
+            #print p_url
+            #u = sys.argv[0] + "?mode=10&name="+urllib.quote_plus(p_name)+"&type=3&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+            #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
+            #xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+        #xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+        #xbmcplugin.endOfDirectory(int(sys.argv[1]))        
+        
+        
 def performChanges(name,type,page,cat,area,year,order):
     change = False
     dialog = xbmcgui.Dialog()
@@ -363,6 +401,8 @@ elif mode == 3:
     PlayMv(name,url,thumb)
 elif mode == 5:
     performChanges(name,type,page,cat,area,year,order)
+elif mode == 6:
+    SearchVideo(name,type,url,thumb)
 elif mode == 10:
     PlayVideo(name,type,url,thumb)
 

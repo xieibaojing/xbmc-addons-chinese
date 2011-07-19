@@ -1,13 +1,16 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.tencent"
     name="腾讯视频(Tecent)"
-    version="1.0.1"
+    version="1.0.2"
     provider-name="wow1122">
     <extension
         point="xbmc.python.pluginsource"
         library="default.py">
         <provides>video</provides>
     </extension>
+    <requires>
+        <import addon="script.module.keyboard.chinese" version="1.0.0"/>
+    </requires>    
     <extension point="xbmc.addon.metadata">
         <summary lang="en">Tencent video plugin</summary>
         <summary lang="zh">腾讯网视频插件</summary>
