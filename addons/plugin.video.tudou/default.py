@@ -35,13 +35,12 @@ def searchDict(dlist,idx):
     return ''
 
 def getList(listpage):
-    print listpage
     match0 = re.compile('<h3>类型:</h3><ul>(.+?)</ul>').search(listpage)
-    catlist = re.compile('<li[^>]*><a href="c[0-9]+t([\-0-9]+)[^"]+">(.+?)</a></li>').findall(match0.group(1))
+    catlist = re.compile('<li[^>]*><a href=".+?/c[0-9]+t([\-0-9]+)[^"]+">(.+?)</a></li>').findall(match0.group(1))
     match0 = re.compile('<h3>国家地区:</h3><ul>(.+?)</ul>').search(listpage)
-    arealist = re.compile('<li[^>]*><a href="c[0-9]+t[\-0-9]+a([\-0-9]+)[^"]+">(.+?)</a></li>').findall(match0.group(1))
+    arealist = re.compile('<li[^>]*><a href=".+?/c[0-9]+t[\-0-9]+a([\-0-9]+)[^"]+">(.+?)</a></li>').findall(match0.group(1))
     match0 = re.compile('<h3>年份:</h3><ul>(.+?)</ul>').search(listpage)
-    yearlist = re.compile('<li[^>]*><a href="c[0-9]+t[\-0-9]+a[\-0-9]+y([\-0-9]+)[^"]+">(.+?)</a></li>').findall(match0.group(1))
+    yearlist = re.compile('<li[^>]*><a href=".+?/c[0-9]+t[\-0-9]+a[\-0-9]+y([\-0-9]+)[^"]+">(.+?)</a></li>').findall(match0.group(1))
     return catlist,arealist,yearlist
 
 def rootList():
