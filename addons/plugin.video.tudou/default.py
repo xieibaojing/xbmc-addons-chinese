@@ -35,6 +35,7 @@ def searchDict(dlist,idx):
     return ''
 
 def getList(listpage):
+    print listpage
     match0 = re.compile('<h3>类型:</h3><ul>(.+?)</ul>').search(listpage)
     catlist = re.compile('<li[^>]*><a href="c[0-9]+t([\-0-9]+)[^"]+">(.+?)</a></li>').findall(match0.group(1))
     match0 = re.compile('<h3>国家地区:</h3><ul>(.+?)</ul>').search(listpage)
@@ -64,7 +65,7 @@ def progList(name,baseurl,page,cat,area,year,order):
         totalpages = int(match1[len(match1)-1][0])
     else:
         totalpages = 1
-    match = re.compile('<div class="side_col">(.+?)<!-- side_col -->', re.DOTALL).findall(link)
+    match = re.compile('<div class="side_col" id="sideCol">(.+?)<!-- side_col -->', re.DOTALL).findall(link)
     if len(match):
         listpage = match[0]
     else:
@@ -158,7 +159,7 @@ def progList(name,baseurl,page,cat,area,year,order):
 def seriesList(name,url,thumb):
     link = GetHttpData(url)
     match0 = re.compile('<div id="playItems"(.+?)<div class="page_nav"').search(link)
-    match = re.compile('<div class="pic"><a class="inner" target="new" title="(.+?)" href="http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html"><img .+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
+    match = re.compile('<div class="pic"><a target="new" title="(.+?)" href="http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html"></a><img .+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
     totalItems = len(match)
     for p_name, p_iid, alt, src in match:
         if alt[0:5]=='http:':
