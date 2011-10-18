@@ -264,12 +264,14 @@ def seriesList(name,id,url,thumb):
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
         else:
             link = re.sub("\r|\n|\t","",link)
-            match = re.compile('<a([^>]*)><img([^>]*)></a>').findall(link)
+            #print link
+            match = re.compile('<a([^>]*)><IMG([^>]*)></a>',re.I).findall(link)
             thumbDict = {}
             for i in range(0, len(match)):
                 p_url = re.compile('href="(.+?)"').findall(match[i][0])
                 if len(p_url)>0:
                     p_url = p_url[0]
+                    #print p_url
                 else:
                     p_url = match[i][0]
                 p_thumb = re.compile('src="(.+?)"').findall(match[i][1])
@@ -283,29 +285,33 @@ def seriesList(name,id,url,thumb):
             url = 'http://so.tv.sohu.com/mts?c=2&wd=' + urllib.quote_plus(name.decode('utf-8').encode('gbk'))
             html = GetHttpData(url)
             html = re.sub("\r|\n|\t","",html)
-            match =  re.compile('<p id=".+?" class="episodes">(.+?)</p>').search(html)
+            match =  re.compile('<p id=".+?" class="episodes">(.+?)</p>').findall(html)
             if not match:
                 return
-            html = match.group(1)
-            items = re.compile('<a([^>]*)>').findall(html)
-            for item in items:
-                href = re.compile('href="(.+?)"').findall(item)
-                if len(href)>0:
-                    p_url = 'http://so.tv.sohu.com/' + href[0]
-                    urlKey = re.compile('u=(http://.+?.shtml)').search(p_url)
-                    if urlKey:
-                        urlKey = urlKey.group(1)
-                    else:
-                        urlKey = p_url
-#                    print urlKey
-                    p_thumb = thumb
-                    try:
-                        p_thumb = thumbDict[urlKey]
-                    except:
-                        pass
-                    title = re.compile('title="(.+?)"').findall(item)
-                    if len(title)>0:
-                        p_name = title[0]
+            for i in range(0,len(match)):
+                #html = match.group(i)
+                items = re.compile('<a([^>]*)>(.+?)</a>',re.I).findall(match[i])
+                for item in items:
+                    if item[1]=='更多>>':
+                        continue
+                    href = re.compile('href="(.+?)"').findall(item[0])
+                    if len(href)>0:
+                        p_url = 'http://so.tv.sohu.com/' + href[0]
+                        urlKey = re.compile('u=(http://.+?.shtml)').search(p_url)
+                        if urlKey:
+                            urlKey = urlKey.group(1)
+                        else:
+                            urlKey = p_url
+                        #print urlKey
+                        p_thumb = thumb
+                        try:
+                            p_thumb = thumbDict[urlKey]
+                        except:
+                            pass
+                        #title = re.compile('title="(.+?)"').findall(item)
+                        #if len(title)>0:
+                            #p_name = title[0]
+                        p_name = item[1]
                         li = xbmcgui.ListItem(p_name, iconImage = p_thumb, thumbnailImage = p_thumb)
                         u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
                         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False)
