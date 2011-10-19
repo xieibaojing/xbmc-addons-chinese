@@ -171,7 +171,7 @@ def progList(name,id,page,cat,area,year,order):
 
 def getMoive(name,id,thumb,res):
     link = GetHttpData('http://www.youku.com/show_page/id_' + id + '.html')
-    match = re.compile('<div id="showBanner".+?href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
+    match = re.compile('<div class="showbanner">.+?href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
     if match:
         PlayVideo(name, match.group(1), thumb, res)
 
