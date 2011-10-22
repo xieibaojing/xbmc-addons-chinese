@@ -98,10 +98,12 @@ def progList(name,baseurl,page,cat,area,year,order):
             p_url = match1.group(1)
             p_thumb = match1.group(2)
             mode = 3
+            #print p_url
         else:
             p_url = match1.group(1)
             p_thumb = match1.group(2)
             mode = 2
+
         match1 = re.compile('<div class="txt"><h6 class="caption"><a [^>]+>(.+?)</a></h6>').search(match[i])
         p_name = match1.group(1)
         match1 = re.compile('<a .*?class="vinf".*?>(.+?)</a>').search(match[i])
@@ -157,18 +159,35 @@ def progList(name,baseurl,page,cat,area,year,order):
 
 def seriesList(name,url,thumb):
     link = GetHttpData(url)
+    link= re.sub("\r|\n|\t","",link)
     match0 = re.compile('<div id="playItems"(.+?)<div class="page_nav"').search(link)
-    match = re.compile('<div class="pic"><a target="new" title="(.+?)" href="http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html"></a><img .+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
-    totalItems = len(match)
-    for p_name, p_iid, alt, src in match:
-        if alt[0:5]=='http:':
-            p_thumb = alt
-        else:
-            p_thumb = src
-        li = xbmcgui.ListItem(name+'：'+p_name, iconImage = '', thumbnailImage = p_thumb)
-        u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_iid)+ "&thumb=" + urllib.quote_plus(p_thumb)
-        #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+    match = re.compile('<div class="pic"><a target="new" title="(.+?)" href=" http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html"></a><img .+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
+    if match:
+        totalItems = len(match)
+        for p_name, p_iid, alt, src in match:
+            if alt[0:5]=='http:':
+                p_thumb = alt
+            else:
+                p_thumb = src
+            li = xbmcgui.ListItem(name+'：'+p_name, iconImage = '', thumbnailImage = p_thumb)
+            u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_iid)+ "&thumb=" + urllib.quote_plus(p_thumb)
+            #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+    else:
+        match=re.compile('href=" (http://tudou.letv.com/playlist/p/le/.+?/play.html)"></a><img').findall(match0.group(1))
+        link=GetHttpData(match[0])
+        match = re.compile('partnerIds = {(.+?)}').search(link)
+        jjlist = re.compile('"(.+?)":([0-9]+)').findall(match.group(1))
+        match = re.compile('title:"(.+?)".+?icode:"(.+?)".+?pic:"(.+?)"', re.DOTALL).findall(link)
+        #match = re.compile('<div class="pic"><a target="new" title="(.+?)" href=" (.+?)"></a><img.+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
+        totalItems = len(match)
+        for p_name, p_iid, p_thumb in match:
+            p_id=searchDict(jjlist,p_iid)
+            print 'p_id===='+p_id+','+p_iid
+            li = xbmcgui.ListItem(name+'：'+p_name, iconImage = '', thumbnailImage = p_thumb)
+            u = sys.argv[0] + "?mode=5&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_id)+ "&thumb=" + urllib.quote_plus(p_thumb)
+            #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)        
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -180,6 +199,23 @@ def PlayVideo(name,url,thumb):
     #listitem.setInfo(type = "Video", infoLabels = {"Title":name, "Director":director, "Plot":plot, "Year":int(year)})
     xbmc.Player().play(match[0]+'|User-Agent='+UserAgent, listitem)
 
+def PlayVideo1(name,url,thumb):
+    link = GetHttpData('http://www.letv.com/v_xml/'+url+'.xml')
+    match = re.compile('&high=(.+?)&hd=').findall(link)
+    if match:
+        match0 = re.compile('&df=(.+?)&br=(.+?)').findall(urllib.unquote(match[0]))
+        link = GetHttpData('http://g3.letv.com/'+match0[0][0]+'?format=1&b='+match0[0][1])
+        match=re.compile('"location": "(.+?)", "').findall(link)
+        url=match[0].replace('\\','')
+    else:
+        match0 = re.compile('"newuri":"&df=(.+?)","', re.DOTALL).findall(link)
+        url1=match0[0].replace('&','?')
+        url1=url1.replace('\\','')
+        url='http://g3.letv.com/'+url1
+    listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
+    #listitem.setInfo(type = "Video", infoLabels = {"Title":name, "Director":director, "Plot":plot, "Year":int(year)})
+    xbmc.Player().play(url+'|User-Agent='+UserAgent, listitem)
+    
 def performChanges(name,url,listpage,cat,area,year,order):
     catlist,arealist,yearlist = getList(listpage)
     change = False
@@ -287,3 +323,5 @@ elif mode == 3:
     PlayVideo(name,url,thumb)
 elif mode == 4:
     performChanges(name,url,page,cat,area,year,order)
+elif mode == 5:
+    PlayVideo1(name,url,thumb)
