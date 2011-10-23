@@ -130,6 +130,24 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.ipadpptv"
+    name="PPTV IPAD专区"
+    version="1.0.1"
+    provider-name="wow1122-modify by cchen">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">pptv ipad video plugin</summary>
+        <summary lang="zh">PPTV IPAD专区视频插件</summary>
+        <description lang="en">online video from ipad.pptv.com</description>
+        <description lang="zh">观看PPTV IPAD专区在线视频</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
 <addon id="plugin.video.ku6"
     name="酷6云中剧场(Ku6)"
     version="1.0.5"
@@ -205,7 +223,7 @@
 
 <addon id="plugin.video.qiyi"
     name="奇艺视频(QIYI)"
-    version="1.0.1"
+    version="1.0.2"
     provider-name="taxigps">
     <extension
         point="xbmc.python.pluginsource"

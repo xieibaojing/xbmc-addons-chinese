@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os
 
 # QIYI.COM(奇艺视频) by taxigps, 2011
@@ -12,6 +12,8 @@ CHANNEL_LIST = [['电影','1'], ['电视剧','2'], ['纪录片','3'], ['动漫',
 CHANNEL_DICT = dict(CHANNEL_LIST)
 ORDER_LIST = [['关注','5'], ['最新','2'], ['热播','3'], ['好评','4']]
 ORDER_DICT = dict(ORDER_LIST)
+PAYTYPE_LIST = [['全部',''], ['免费','0'], ['会员免费','1'], ['付费','2']]
+PAYTYPE_DICT = dict(PAYTYPE_LIST)
 
 MOVIE_TYPE_LIST = {}
 MOVIE_AREA_LIST = {}
@@ -33,13 +35,17 @@ MOVIE_TYPE_LIST['9'] = [['全部',''],['风光','354'],['饮食','355'],['出行
 MOVIE_AREA_LIST['9'] = [['全部',''],['安徽','599'],['北京','576'],['河南','607'],['湖南','611'],['江苏','595'],['辽宁','589'],['西藏','625'],['埃及','567'],['澳大利亚','559'],['法国','520'],['马尔代夫','460'],['日本','426'],['新西兰','380'],['意大利','371'],]
 
 def GetHttpData(url):
-    req = urllib2.Request(url)
-    req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-    response = urllib2.urlopen(req)
-    httpdata = response.read()
-    response.close()
-    httpdata = re.sub("\s", "", httpdata)
-    return httpdata
+	try:
+		print "GetHttpData %s " % url
+		req = urllib2.Request(url)
+		req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
+		response = urllib2.urlopen(req)
+		httpdata = response.read()
+		response.close()
+		httpdata = re.sub("\s", "", httpdata)
+		return httpdata
+	except:
+		return ""
 
 def urlExists(url):
     try:
@@ -94,8 +100,12 @@ def rootList():
     else:
         c2 = searchDict(MOVIE_TYPE_LIST,id,movie_type)
     order = __addon__.getSetting('order')
+    paytype = '免费'
+    print "rootList order = %s" % order
+    print "rootList paytype = %s" % paytype
     c13 = ORDER_DICT[order]
-    url = 'http://list.qiyi.com/www/' + id + '/' + c1 + '-' + c2 + '-' + c3 + '-' + c4 + '---------' + c13 + '-1-' + page + '----.html'
+    cpaytype = PAYTYPE_DICT[paytype]
+    url = 'http://list.qiyi.com/www/' + id + '/' + c1 + '-' + c2 + '-' + c3 + '-' + c4 + '-------' + cpaytype + '--' + c13 + '-1-' + page + '----.html'
     link = GetHttpData(url)
     match1 = re.compile('data-key="([0-9]+)"').findall(link)
     if len(match1) == 0:
@@ -359,6 +369,12 @@ try:
     mode = int(params["mode"])
 except:
     pass
+
+if mode == None:
+	print 'run mode = None'
+else:
+	print 'run mode = %d' % mode
+
 
 if mode == None:
     rootList()
