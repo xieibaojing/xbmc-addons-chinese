@@ -126,7 +126,7 @@ def progList(name,id,page,cat,area,year,order):
     u = sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus(cat)+"&area="+urllib.quote_plus(area)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     for i in range(0,len(match)):
-        match1 = re.compile('<li class="p_link"><a href="http://www.youku.com/show_page/id_(.+?).html"').search(match[i])
+        match1 = re.compile('/id_(.+?).html"').search(match[i])   
         p_id = match1.group(1)
         match1 = re.compile('<li class="p_thumb"><img src="(.+?)"').search(match[i])
         p_thumb = match1.group(1)
@@ -147,7 +147,8 @@ def progList(name,id,page,cat,area,year,order):
             p_res = 0
         if match[i].find('<li class="p_ischarge">')>0:
             p_name1 += '[付费节目]'
-        if id == 'c_96':
+        print id
+        if id in ('c_96','c_95'):
             mode = 2
             isdir = False
         else:
@@ -169,14 +170,18 @@ def progList(name,id,page,cat,area,year,order):
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def getMoive(name,id,thumb,res):
-    link = GetHttpData('http://www.youku.com/show_page/id_' + id + '.html')
-    match = re.compile('<div class="showbanner">.+?href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
-    if match:
-        PlayVideo(name, match.group(1), thumb, res)
+def getMovie(name,id,thumb,res):
+    if len(id)==21:
+        link = GetHttpData('http://www.youku.com/show_page/id_' + id + '.html')
+        match = re.compile('<div class="showbanner">.+?href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
+        if match:
+            PlayVideo(name, match.group(1), thumb, res)
+    else:
+        PlayVideo(name, 'http://v.youku.com/v_show/id_'+id+'.html', thumb, res)
 
 def seriesList(name,id,thumb,page):
     url = "http://www.youku.com/show_eplist/showid_"+id+"_type_pic_from_ajax_page_"+page+".html"
+    print url
     currpage = int(page)
     link = GetHttpData(url)
     match = re.compile('<ul class="pages">(.+?)</ul>', re.DOTALL).findall(link)
@@ -446,7 +451,7 @@ if mode == None:
 elif mode == 1:
     progList(name,id,page,cat,area,year,order)
 elif mode == 2:
-    getMoive(name,id,thumb,res)
+    getMovie(name,id,thumb,res)
 elif mode == 3:
     seriesList(name,id,thumb,page)
 elif mode == 4:
