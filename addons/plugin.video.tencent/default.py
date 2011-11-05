@@ -172,7 +172,7 @@ def listA(name,url,thumb):
     print thumb
     link = GetHttpData(url)
     if link.find('sv=""') > 0 :
-        match = re.compile('<li><a target="_self".+?id="(.+?)"  title="(.+?)"', re.DOTALL).findall(link)
+        match = re.compile('</i><a target="_self".+?id="(.+?)"  title="(.+?)"', re.DOTALL).findall(link)
         totalItems=len(match)
         for p_url,p_name  in match:
             li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = thumb)
@@ -180,8 +180,9 @@ def listA(name,url,thumb):
             #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
     else:
-        match = re.compile('<li><a target="_self".+?title="(.+?)".+?sv="(.+?)"', re.DOTALL).findall(link)
+        match = re.compile('</i><a target="_self".+?title="(.+?)".+?sv="(.+?)"', re.DOTALL).findall(link)
         totalItems=len(match)
+        print str(totalItems)
         for p_name,p_url  in match:
             li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = thumb)
             u = sys.argv[0] + "?mode=10&name="+urllib.quote_plus(p_name)+"&type=3&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(thumb)
