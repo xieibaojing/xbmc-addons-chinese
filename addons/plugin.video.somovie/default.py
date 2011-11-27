@@ -324,7 +324,7 @@ def	searchYouku(keyword, page,plugin):
 	print url
 	html = getHttpData(url)
 	html = re.sub("\r|\n|\t","",html)
-	match = re.compile('站内搜索<span class="key">'+keyword+'</span>共找到(.+?)个视频').search(html)
+	match = re.compile('<div class="stat">共找到(.+?)个结果</div>').search(html)
 	if match:
 		totalItems = int(match.group(1))
 	else:
