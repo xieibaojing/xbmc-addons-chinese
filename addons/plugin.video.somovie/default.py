@@ -293,8 +293,11 @@ def	searchSohu(keyword, page,plugin):
 				p_type = match1.group(1)
 			if p_type=='[电视剧]':
 				isTeleplay = True
+				p_type='【[COLOR FF00FF00]电视剧[/COLOR]】'
+			elif p_type=='[电影]':
+				p_type='【[COLOR FF00FF00]电影[/COLOR]】'
 			if item.find('<em class="pay"></em>')>0:
-				p_ispay = '[付费]'
+				p_ispay = '【[COLOR FFFF0000]付费[/COLOR]】'
 			if isTeleplay:
 				u= 'plugin://'+plugin+'/?mode=2&url=http://so.tv.sohu.com'+urllib.quote_plus(p_url)+'&name='+urllib.quote_plus(p_name)+"&thumb="+urllib.quote_plus(p_thumb)
 				addDir(u, p_type + p_name + p_ispay, p_thumb)
@@ -334,6 +337,58 @@ def	searchYouku(keyword, page,plugin):
 		addItem('', '抱歉，没有找到[COLOR FFFF0000]'+keyword+'[/COLOR]的相关视频', getPluginIcon(plugin))
 	else:
 		addItem('', '第'+str(currpage)+'/'+str(totalpages)+'页,【优酷站内搜索"[COLOR FFFF0000]'+keyword+'[/COLOR]",共找到'+str(totalItems)+'个视频】', getPluginIcon(plugin))
+		# 2011/11/28 update start (Added the direct search result)
+		match=re.compile('<div class="item">(.+?)</div><!--item end-->').findall(html)
+		print str(len(match))
+		for item in match:
+			v_link = re.compile('<li class="base_name">(.+?)</li>').findall(item)[0]
+			v_link = re.compile('href="([^"]*)"').findall(v_link)[0]
+			print 'v_link=' + v_link
+			if (v_link.find('http://www.youku.com') < 0):
+				# Not in youku
+				continue
+			if (item.find('<div class="tv">') > -1):
+				p_type = 'tv'
+			elif (item.find('<div class="movie">') > -1):
+				p_type = 'movie'
+			else:
+				p_type = 'other'
+			print 'p_type=' + p_type
+			p_name = stripHtml(re.compile('<h1>(.+?)</h1>').findall(item)[0])
+			print 'p_name=' + p_name
+			p_id = re.compile('http://www.youku.com/show_page/id_(.+?).html').findall(v_link)[0]
+			p_url = v_link;
+			print 'p_id=' + p_id
+			p_thumb = re.compile('<li class="p_thumb">(.+?)</li>').search(item)
+			if p_thumb:
+				p_thumb = re.compile('src="(.+?)"').search(p_thumb.group(1))
+				if p_thumb:
+					p_thumb = p_thumb.group(1)
+			if p_thumb and len(p_thumb) > 0:
+				p_thumb = createTempThumb(p_thumb)
+			p_ishd = re.compile('<li class="v_ishd"><span ([^>]*)></span>').findall(item)
+			if len(p_ishd) > 0:
+				if p_ishd[0].find('ico__SD') > 0:
+					p_res = 2
+					p_name += '[超清]'
+				elif p_ishd[0].find('ico__HD') > 0:
+					p_res = 1
+					p_name += '[高清]'
+				else:
+					p_res = 0
+			else:
+				p_res = 0
+			li=xbmcgui.ListItem(p_name,p_name,p_thumb,p_thumb)
+			if p_type=='tv':
+				u='plugin://'+plugin+'/?mode=3&name='+urllib.quote_plus(p_name)+'&id='+urllib.quote_plus(p_id)+'&thumb='+urllib.quote_plus(p_thumb)+'&page=1'
+				addDir(u, '【[COLOR FF00FF00]电视剧】[/COLOR] ' + p_name, p_thumb)
+			elif p_type=='movie':
+				u='plugin://'+plugin+'/?mode=10&name='+urllib.quote_plus(p_name)+'&url='+urllib.quote_plus(p_url)+'&thumb='+urllib.quote_plus(p_thumb)+'&res=' + str(p_res)
+				addItem(u, '【[COLOR FF00FF00]电影】[/COLOR] ' + p_name, p_thumb)
+			else:
+				u='plugin://'+plugin+'/?mode=10&name='+urllib.quote_plus(p_name)+'&url='+urllib.quote_plus(p_url)+'&thumb='+urllib.quote_plus(p_thumb)+'&res=' + str(p_res)
+				addItem(u, p_name, p_thumb)
+		# 2011/11/28 update end
 		match=re.compile('<ul class="v">(.+?)</ul>').findall(html)
 		for item in match:
 			v_link = re.compile('<li class="v_link"><a([^>]*)></a></li>').findall(item)[0]

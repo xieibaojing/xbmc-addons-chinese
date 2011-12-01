@@ -297,7 +297,7 @@
 
 <addon id="plugin.video.somovie"
     name="搜索电影(SoMovie)"
-    version="1.0.4"
+    version="1.0.5"
     provider-name="visualcjy@21cn.com">
     <requires>
         <import addon="script.module.keyboard.chinese" version="1.0.0"/>
