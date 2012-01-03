@@ -19,11 +19,15 @@
 </addon>
 
 <addon id="plugin.audio.kuwobox"
-    name="KuwoBox"
-    version="1.0.0"
-    provider-name="Robinttt">
-    <extension
-        point="xbmc.python.pluginsource"
+    name="酷我音乐盒(KuwoBox)"
+    version="1.1.0"
+    provider-name="Robinttt, D744000">
+    <requires>
+        <import addon="xbmc.python" version="1.0"/>
+        <import addon="script.module.beautifulsoup" version="3.0.8"/>
+        <import addon="script.module.keyboard.chinese" version="1.0.0"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource"
         library="default.py">
         <provides>audio</provides>
     </extension>
