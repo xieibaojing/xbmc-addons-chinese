@@ -21,7 +21,7 @@ ADDON_SKIN = ( "default", XBMC_SKIN )[ os.path.exists( os.path.join( SKINS_PATH,
 MEDIA_PATH = os.path.join( SKINS_PATH, ADDON_SKIN, "media" )
 
 ACTION_PARENT_DIR     = 9
-ACTION_PREVIOUS_MENU  = 10
+ACTION_PREVIOUS_MENU  = ( 10, 92 )
 ACTION_CONTEXT_MENU   = 117
 
 CTRL_ID_BACK = 8
@@ -135,7 +135,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 			self.onClick( CTRL_ID_SPACE )
 		elif keycode == 61448:
 			self.onClick( CTRL_ID_BACK )
-		elif action == ACTION_PREVIOUS_MENU:
+		elif action.getId() in ACTION_PREVIOUS_MENU:
 			self.close()
 
 	def changepages (self):
