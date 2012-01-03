@@ -1,595 +1,629 @@
 ﻿# -*- coding: utf-8 -*-
-import xbmc,xbmcgui,xbmcplugin,urllib2,urllib,re,sys,os
+import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
 
-#PPS网络电视- by robinttt 2010.
+######################################################
+# PPStream 网络电视
+######################################################
+# Version 1.1.1 2011-12-25 (CM Eng)
+# a. update to pps new video link
+# b. correct error in categories selection
+# c. correct error in page selection
 
-def Roots():
-	li=xbmcgui.ListItem("PPS看看")
-	u=sys.argv[0]+"?mode=1&name="+urllib.quote_plus("PPS看看")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem("影视百科")
-	u=sys.argv[0]+"?mode=16&name="+urllib.quote_plus("影视百科")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+# Version 1.1.0 2011-11-26 (CM Eng)
+# a. Change new UI Similar to taxigps format
+# b. Repair broken links
+# c. Highlight selected page title
 
-def Kankan(name):
-	li=xbmcgui.ListItem(name+">分类")
-	u=sys.argv[0]+"?mode=2&name="+urllib.quote_plus(name+">分类")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">地区")
-	u=sys.argv[0]+"?mode=5&name="+urllib.quote_plus(name+">地区")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">年份")
-	u=sys.argv[0]+"?mode=8&name="+urllib.quote_plus(name+">年份")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">明星")
-	u=sys.argv[0]+"?mode=9&name="+urllib.quote_plus(name+">明星")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">综合")
-	u=sys.argv[0]+"?mode=11&name="+urllib.quote_plus(name+">综合")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+# Version 1.0.2 2010 (Originator: robinttt))
+######################################################
 
-def KankanA(name):
-	li=xbmcgui.ListItem(name+">电影")
-	u=sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name+">电影")+"&url="+urllib.quote_plus("http://kan.pps.tv/movie_index.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">电视")
-	u=sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name+">电视")+"&url="+urllib.quote_plus("http://kan.pps.tv/tv_index.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">动漫")
-	u=sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name+">动漫")+"&url="+urllib.quote_plus("http://kan.pps.tv/anime_index.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">综艺")
-	u=sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name+">综艺")+"&url="+urllib.quote_plus("http://kan.pps.tv/arts_index.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+# Plugin constants 
+__addonname__ = "PPS 网络电视"
+__addonid__ = "plugin.video.ppstream"
+__addon__ = xbmcaddon.Addon(id=__addonid__)
+__addonicon__ = os.path.join(__addon__.getAddonInfo('path'), 'icon.png')
 
-def KankanA0(name,url):
-        req = urllib2.Request(url)
-        req.add_header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3")
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub("\r","",link)
-        link=re.sub("\n","",link)
-        link=re.sub("\t","",link)
-        match=re.compile("<dt>"+u"按类型".encode("gbk")+"</dt>(.+?)</dd>").findall(link)
-        match0=re.compile('href="/nlist/(.+?)/1.html">(.+?)</a>').findall(match[0])
-        for url1,name1 in match0:
-	        li=xbmcgui.ListItem(name+">"+name1.decode("gbk").encode("utf8"))
-	        u=sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name+">"+name1.decode("gbk").encode("utf8"))+"&url="+urllib.quote_plus(url1)
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
+VIDEO_LIST = [['movie','电影'],['tv','电视剧'],['fun','娱乐'],['anime','动漫']]
+#ALL_LIST = [['caijing','财经'],['zonghe','综合'],['tiyu','体育'],['qiche','汽车'],['youxi','游戏'],['lvyoumeishi','旅游美食'],['news','焦点']]
+SORT_LIST = [['sum_online_sum','按观众数'],['vote_num','按评分']]
+#DATE_LIST = [['1','全部'],['2','今日'],['3','本周'],['4','本月']]
+#ORDER_LIST = [['1','最新发布'],['2','最多播放'],['3','最多评论'],['4','最多推荐']]
+COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]']
 
-def KankanA1(name,url):
-	li=xbmcgui.ListItem(name+">最新更新")
-	u=sys.argv[0]+"?mode=13&name="+urllib.quote_plus(name+">最新更新")+"&url="+urllib.quote_plus("http://kan.pps.tv/nlist/"+url+"/1.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">播放最多")
-	u=sys.argv[0]+"?mode=13&name="+urllib.quote_plus(name+">播放最多")+"&url="+urllib.quote_plus("http://kan.pps.tv/nlist_v5_play_num/"+url+"/1.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+#CAT_LIST=[['all','全部'],['dongzuo','动作'],['xiju','喜剧'],['kongbu','恐怖'],['zhanzheng','战争'],['kehuan','科幻'],['aiqing','爱情'],['wenyi','文艺'],['mohuan','魔幻'],['zainan','警匪'],['xuanyi','悬疑'],['donghua','动画'],['wuxia','武侠'],['xibu','西部']]
+#AREA_LIST=[['all','全部'],['cn','内地'],['hk','香港'],['tw','台湾'],['jp','日本'],['kr','韩国'],['us','美国'],['uk','英国'],['fr','法国'],['de','德国'],['other','其他']]
+#YEAR_LIST=[['all','全部'],['2011','2011'],['2010','2010'],['2009','2009'],['2008','2008'],['2007','2007'],['2006','2006'],['2005','2005'],['2004','2004'],['2003','2003'],['2002','2002'],['2001','2001'],['2000','2000']]             
+#SERIES_LIST=[['all','全部'],['ouxiang','偶像'],['jiating','家庭'],['guzhuang','古装'],['xiju','喜剧'],['jingfei','警匪'],['kehuan','科幻'],['yanqing','言情'],['junshi','军事']]
+     
+##################################################################################
+# Routine to fetech url site data using Mozilla browser
+# - deletc '\r|\n|\t' for easy re.compile
+# - do not delete ' ' i.e. <space> as some url include spaces
+# - unicode with 'replace' option to avoid exception on some url
+# - translate to utf8
+##################################################################################
+def GetHttpData(url):
+    req = urllib2.Request(url)
+    req.add_header('User-Agent', UserAgent)
+    response = urllib2.urlopen(req)
+    httpdata = response.read()
+    response.close()
+    httpdata = re.sub('\r|\n|\t', '', httpdata)
+    match = re.compile('<meta.+?charset="(.+?)"[ ]*/>').findall(httpdata)
+    if len(match):
+        charset = match[0].lower()
+        if (charset != 'utf-8') and (charset != 'utf8'):
+            httpdata = unicode(httpdata, charset,'replace').encode('utf8')
+    return httpdata
 
-def KankanB(name):
-	li=xbmcgui.ListItem(name+">欧美")
-	u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name+">欧美")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">日韩")
-	u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name+">日韩")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">中国")
-	u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name+">中国")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">港台")
-	u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name+">港台")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+##################################################################################
+# Routine to extract url ID based on given selected filter
+# List = ['movie', '电影'], ['tv', '电视剧'] ...
+# list = ['1', '全部'], ['2', '今日'] ...
+# List = ['1', '最新发布'], ['2', '最多播放']....
+# .......
+##################################################################################
+def fetchID(dlist, idx):
+    for i in range(0, len(dlist)):
+        if dlist[i][1] == idx:
+            return dlist[i][0]
+    return ''
 
-def KankanB0(name):
-        if name=="PPS看看>地区>欧美":
-        	li=xbmcgui.ListItem(name+">欧美电影")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">欧美电影")+"&url="+urllib.quote_plus("movie_bk_europe")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-		li=xbmcgui.ListItem(name+">美国电影")
-		u=sys.argv[0]+"?mode=14&name="+urllib.quote_plus(name+">美国电影")+"&url="+urllib.quote_plus("http://kan.pps.tv/movie_region/%C3%C0%B9%FA_1.html")
-		xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)        
-		li=xbmcgui.ListItem(name+">法国电影")
-		u=sys.argv[0]+"?mode=14&name="+urllib.quote_plus(name+">法国电影")+"&url="+urllib.quote_plus("http://kan.pps.tv/movie_region/%B7%A8%B9%FA_1.html")
-		xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True) 
-		li=xbmcgui.ListItem(name+">英国电影")
-		u=sys.argv[0]+"?mode=14&name="+urllib.quote_plus(name+">英国电影")+"&url="+urllib.quote_plus("http://kan.pps.tv/movie_region/%D3%A2%B9%FA_1.html")
-		xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)   
-		li=xbmcgui.ListItem(name+">德国电影")
-		u=sys.argv[0]+"?mode=14&name="+urllib.quote_plus(name+">德国电影")+"&url="+urllib.quote_plus("http://kan.pps.tv/movie_region/%B5%C2%B9%FA_1.html")
-		xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True) 
-        	li=xbmcgui.ListItem(name+">欧美电视")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">欧美电视")+"&url="+urllib.quote_plus("tv_bk_europe")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        	li=xbmcgui.ListItem(name+">欧美动漫")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">欧美动漫")+"&url="+urllib.quote_plus("anime_bk_europe")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        	li=xbmcgui.ListItem(name+">欧美综艺")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">欧美综艺")+"&url="+urllib.quote_plus("arts_bk_europe")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        elif name=="PPS看看>地区>日韩":
-        	li=xbmcgui.ListItem(name+">日韩电影")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">日韩电影")+"&url="+urllib.quote_plus("movie_bk_japan")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-		li=xbmcgui.ListItem(name+">日本电影")
-		u=sys.argv[0]+"?mode=14&name="+urllib.quote_plus(name+">日本电影")+"&url="+urllib.quote_plus("http://kan.pps.tv/movie_region/%C8%D5%B1%BE_1.html")
-		xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)        
-		li=xbmcgui.ListItem(name+">韩国电影")
-		u=sys.argv[0]+"?mode=14&name="+urllib.quote_plus(name+">韩国电影")+"&url="+urllib.quote_plus("http://kan.pps.tv/movie_region/%BA%AB%B9%FA_1.html")
-		xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)    
-        	li=xbmcgui.ListItem(name+">日韩电视")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">日韩电视")+"&url="+urllib.quote_plus("tv_bk_japan")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        	li=xbmcgui.ListItem(name+">日韩动漫")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">日韩动漫")+"&url="+urllib.quote_plus("anime_bk_japan")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        	li=xbmcgui.ListItem(name+">日韩综艺")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">日韩综艺")+"&url="+urllib.quote_plus("arts_bk_japan")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        elif name=="PPS看看>地区>中国":
-        	li=xbmcgui.ListItem(name+">中国电影")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">中国电影")+"&url="+urllib.quote_plus("movie_bk_mainland")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        	li=xbmcgui.ListItem(name+">中国电视")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">中国电视")+"&url="+urllib.quote_plus("tv_bk_mainland")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        	li=xbmcgui.ListItem(name+">中国动漫")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">中国动漫")+"&url="+urllib.quote_plus("anime_bk_mainland")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        	li=xbmcgui.ListItem(name+">中国综艺")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">中国综艺")+"&url="+urllib.quote_plus("arts_bk_mainland")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        elif name=="PPS看看>地区>港台":
-  		li=xbmcgui.ListItem(name+">香港电影")
-		u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name+">香港电影")+"&url="+urllib.quote_plus("http://kan.pps.tv/movie_region/%CF%E3%B8%DB_1.html")
-		xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)        
-		li=xbmcgui.ListItem(name+">台湾电影")
-		u=sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name+">台湾电影")+"&url="+urllib.quote_plus("http://kan.pps.tv/movie_region/%CC%A8%CD%E5_1.html")
-		xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True) 
-        	li=xbmcgui.ListItem(name+">港台电影")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">港台电影")+"&url="+urllib.quote_plus("movie_bk_hongkong")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        	li=xbmcgui.ListItem(name+">港台电视")
-        	u=sys.argv[0]+"?mode=7&name="+urllib.quote_plus(name+">港台电视")+"&url="+urllib.quote_plus("tv_bk_hongkong")
-        	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+##################################################################################
+# Routine to fetch and build video filter list
+# - 按类型  (Categories)
+# - 按国家/地区 (Countries/Areas)
+# - 按年份 (Year)
+# 
+##################################################################################
+def getList(listpage):
+    match0 = re.compile('<dt>按类型</dt>(.+?)</ul>', re.DOTALL).search(listpage)
+    catlist = re.compile('<li><a href="/.+?/.+?/(.+?),.+?title="(.+?)">.+?</a></li>').findall(match0.group(1))
+    match0 = re.compile('<dt>按国家/地区</dt>(.+?)</ul>', re.DOTALL).search(listpage)
+    arealist = re.compile('<li><a href="/.+?/.+?/(.+?),.+?title="(.+?)">.+?</a></li>').findall(match0.group(1))
+    match0 = re.compile('<dt>按年份</dt>(.+?)</ul>', re.DOTALL).search(listpage)
+    yearlist = re.compile('<a href="/.+?/.+?/(.+?),.+?title="(.+?)">.+?</a></li>').findall(match0.group(1))
 
-def KankanB1(name,url):
-	li=xbmcgui.ListItem(name+">最新更新")
-	u=sys.argv[0]+"?mode=13&name="+urllib.quote_plus(name+">最新更新")+"&url="+urllib.quote_plus("http://kan.pps.tv/"+url+"_new_1.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">播放最多")
-	u=sys.argv[0]+"?mode=13&name="+urllib.quote_plus(name+">播放最多")+"&url="+urllib.quote_plus("http://kan.pps.tv/"+url+"_play_num_1.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">评分最高")
-	u=sys.argv[0]+"?mode=13&name="+urllib.quote_plus(name+">评分最高")+"&url="+urllib.quote_plus("http://kan.pps.tv/"+url.replace("_bk","")+"_paihan_1.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+# tuple to list coversion not necessary    
+#    catlist = [[x[0],x[1]] for x in catlist]
+#    arealist = [[x[0],x[1]] for x in arealist]
+#    yearlist = [[x[0],x[1]] for x in yearlist]
+    return catlist, arealist, yearlist
 
-def KankanC(name):
-        for i in range(1998,2010):
-	        li=xbmcgui.ListItem(name+">"+str(i))
-	        u=sys.argv[0]+"?mode=14&name="+urllib.quote_plus(name+">"+str(i))+"&url="+urllib.quote_plus("http://kan.pps.tv/movie_year/"+str(i)+"_1.html")
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+##################################################################################
+# Routine to fetch and build ugc filter list
+# - 发布时间 (Published date)
+# - 排序方式 (Order)
+##################################################################################
+def getListUgc(listpage):
+    match0 = re.compile('<div class="sort2">发布时间:(.+?)</div>').search(listpage)
+    datelist = re.compile('href="/ugc/.+?-t([0-9]+)-.+?">[ ]*(.+?)[ ]*</a>').findall(match0.group(1))
+    match0 = re.compile('<div class="sort2">排序方式:(.+?)</div>').search(listpage)
+    orderlist = re.compile('href="/ugc/.+?-o([0-9]+)-.+?">[ ]*(.+?)[ ]*</a>').findall(match0.group(1))
+    return datelist, orderlist
 
-def KankanD(name):
-	li=xbmcgui.ListItem(name+">热门")
-	u=sys.argv[0]+"?mode=10&name="+urllib.quote_plus(name+">热门")+"&url="+urllib.quote_plus("http://kan.pps.tv/people_index.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        for i in range(65,91):
-	        li=xbmcgui.ListItem(name+">"+chr(i))
-	        u=sys.argv[0]+"?mode=10&name="+urllib.quote_plus(name+">"+chr(i))+"&url="+urllib.quote_plus("http://kan.pps.tv/star_list/"+chr(i).lower()+"-1.html")
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">其他")
-	u=sys.argv[0]+"?mode=10&name="+urllib.quote_plus(name+">其他")+"&url="+urllib.quote_plus("http://kan.pps.tv/star_list/*-1.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def KankanD0(name,url):
-        req = urllib2.Request(url)
-        req.add_header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3")
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub("\r","",link)
-        link=re.sub("\n","",link)
-        link=re.sub("\t","",link)
-        matchp=re.compile('<div class="pageNav">(.+?)</div>').findall(link)
-        matchp1=re.compile('<span>(.+?)</span>').findall(matchp[0])
-	li=xbmcgui.ListItem(name+" "+matchp1[0].decode("gbk").encode("utf8"))
-	u=sys.argv[0]+"?mode=40&name="+urllib.quote_plus(name)
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)        
-        match=re.compile('<div class="pltr">(.+?)<img src="(.+?)"(.+?)<span>(.+?)</span><a  href="(.+?)" >(.+?)</a></dt>').findall(link)
-        for i in range(0,len(match)):
-	        li=xbmcgui.ListItem(str(i+1)+"."+match[i][5].decode("gbk").encode("utf8")+"  ("+match[i][3].decode("gbk").encode("utf8")+")",match[i][1].replace(" ","%20"),match[i][1].replace(" ","%20"))
-	        u=sys.argv[0]+"?mode=13&name="+urllib.quote_plus(match[i][5].decode("gbk").encode("utf8")+"的相关视频")+"&url="+urllib.quote_plus(match[i][4])
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        matchp2=re.compile('href="(.+?)">(.+?)</a>').findall(matchp[0].replace(" ","").replace("&lt;&lt;","").replace("&gt;&gt;",""))
-        for url1,name1 in matchp2:
-                if name1.find(u"页".encode("gbk"))==-1: name1="第"+name1.decode("gbk").encode("utf8")+"页"
-	        li=xbmcgui.ListItem(".."+name1)
-	        u=sys.argv[0]+"?mode=10&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus("http://kan.pps.tv"+url1)
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def KankanE(name):
-        req = urllib2.Request("http://kan.pps.tv/movie_index.html")
-        req.add_header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3")
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub("\r","",link)
-        link=re.sub("\n","",link)
-        link=re.sub("\t","",link)
-        match=re.compile('href="/olist/(.+?)/1.html">(.+?)</a></li>').findall(link)
-        for url1,name1 in match:
-	        li=xbmcgui.ListItem(name+">"+name1.decode("gbk").encode("utf8"))
-	        u=sys.argv[0]+"?mode=12&name="+urllib.quote_plus(name+">"+name1.decode("gbk").encode("utf8"))+"&url="+urllib.quote_plus(url1)
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def KankanE0(name,url):
-	li=xbmcgui.ListItem(name+">最新更新")
-	u=sys.argv[0]+"?mode=13&name="+urllib.quote_plus(name+">最新更新")+"&url="+urllib.quote_plus("http://kan.pps.tv/olist/"+url+"/1.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">播放最多")
-	u=sys.argv[0]+"?mode=13&name="+urllib.quote_plus(name+">播放最多")+"&url="+urllib.quote_plus("http://kan.pps.tv/olist_v5_play_num/"+url+"/1.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-
-def KankanList0(name,url):
-        req = urllib2.Request(url)
-        req.add_header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3")
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub('\s','',link)
-        matchp=re.compile('<divclass="pageNav">(.+?)</div>').findall(link)
-        matchp1=re.compile('<span>(.+?)</span>').findall(matchp[0])
-	li=xbmcgui.ListItem(name+" "+matchp1[0].decode("gbk").encode("utf8"))
-	u=sys.argv[0]+"?mode=40&name="+urllib.quote_plus(name)
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)        
-
-        match=re.compile('<divclass="pltr"><divclass="img"><ahref="(.+?)"target="_blank"><imgsrc="(.+?)"alt="(.+?)"/></a></div><dlclass="tr"><dt><span>(.+?)</span>').findall(link)
-        for i in range(0,len(match)):
-                img=match[i][1][0:len(match[i][1])-12]+"%20"+match[i][1][len(match[i][1])-12:len(match[i][1])]
-		li=xbmcgui.ListItem(str(i+1)+"."+match[i][2].decode("gbk").encode("utf8")+"  ("+match[i][3].decode("gbk").encode("utf8")+")",img,img)
-		u=sys.argv[0]+"?mode=15&name="+urllib.quote_plus(match[i][2].decode("gbk").encode("utf8"))+"&url="+urllib.quote_plus("http://kan.pps.tv"+match[i][0])
-		xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)     
-
-        matchp2=re.compile('href="(.+?)">(.+?)</a>').findall(matchp[0].replace(" ","").replace("&lt;&lt;","").replace("&gt;&gt;",""))
-        for url1,name1 in matchp2:
-                if name1.find(u"页".encode("gbk"))==-1: name1="第"+name1.decode("gbk").encode("utf8")+"页"
-	        li=xbmcgui.ListItem(".."+name1)
-	        u=sys.argv[0]+"?mode=13&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url1)
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-
-def KankanList1(name,url):
-        req = urllib2.Request(url)
-        req.add_header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3")
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub("\r","",link)
-        link=re.sub("\n","",link)
-        link=re.sub("\t","",link)
-        matchp=re.compile('<div class="pageNav">(.+?)</div>').findall(link)
-        matchp1=re.compile('<span>(.+?)</span>').findall(matchp[0])
-	li=xbmcgui.ListItem(name+" "+matchp1[0].decode("gbk").encode("utf8"))
-	u=sys.argv[0]+"?mode=40&name="+urllib.quote_plus(name)
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)        
-        match=re.compile('<div class="pltr">(.+?)<img src="(.+?)"(.+?)<span>(.+?)</span><a href="(.+?)" target="_blank">(.+?)</a></dt>').findall(link)
-        for i in range(0,len(match)):
-	        li=xbmcgui.ListItem(str(i+1)+"."+match[i][5].decode("gbk").encode("utf8")+"  ("+match[i][3].decode("gbk").encode("utf8")+")",match[i][1].replace(" ","%20"),match[i][1].replace(" ","%20"))
-	        u=sys.argv[0]+"?mode=15&name="+urllib.quote_plus(match[i][5].decode("gbk").encode("utf8"))+"&url="+urllib.quote_plus("http://kan.pps.tv"+match[i][4])
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        matchp2=re.compile('href="(.+?)">(.+?)</a>').findall(matchp[0].replace(" ","").replace("&lt;&lt;","").replace("&gt;&gt;",""))
-        for url1,name1 in matchp2:
-                if name1.find(u"页".encode("gbk"))==-1: name1="第"+name1.decode("gbk").encode("utf8")+"页"
-	        li=xbmcgui.ListItem(".."+name1)
-	        u=sys.argv[0]+"?mode=14&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url1)
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def KankanList2(name,url):
-        if url.find("http://kan.pps.tv/play_list_v5_")==-1:
-                req = urllib2.Request(url)
-                req.add_header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3")
-                response = urllib2.urlopen(req)
-                link=response.read()
-                response.close()
-                link=re.sub("\r","",link)
-                link=re.sub("\n","",link)
-                link=re.sub("\t","",link)
-                if link.find('<iframe src="http://kan.pps.tv/play_list_v5_')==-1:
-	                li=xbmcgui.ListItem("当前视频："+name)
-	                u=sys.argv[0]+"?mode=40&name="+urllib.quote_plus(name)
-	                xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)  
-                        match=re.compile("plist\[(.+?)\]\='(.+?)\|\|\|(.+?)\|\|\|(.+?)';").findall(link)
-                        for i in range(0,len(match)):
-	                        li=xbmcgui.ListItem(str(i+1)+"."+match[i][1].decode("gbk").encode("utf8"))
-	                        u=sys.argv[0]+"?mode=23&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(match[i][2])
-	                        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
-                else:
-	                li=xbmcgui.ListItem("当前视频："+name+" 第1页")
-	                u=sys.argv[0]+"?mode=40&name="+urllib.quote_plus(name)
-	                xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)  
-                        match=re.compile("http://kan.pps.tv/play/(.+?).html").findall(url)
-                        url1=match[0].split("_")[1]
-                        req = urllib2.Request("http://kan.pps.tv/play_list_v5_"+url1+"/1.html")
-                        req.add_header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3")
-                        response = urllib2.urlopen(req)
-                        link=response.read()
-                        response.close()
-                        link=re.sub("\r","",link)
-                        link=re.sub("\n","",link)
-                        link=re.sub("\t","",link)
-                        link=re.sub(" ","",link)
-                        match=re.compile('<liid="li(.+?)class="mc">(.+?)</a><ahref="(.+?)"').findall(link)
-                        for i in range(0,len(match)):
-	                        li=xbmcgui.ListItem(str(i+1)+"."+match[i][1].decode("gbk").encode("utf8"))
-	                        u=sys.argv[0]+"?mode=23&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(match[i][2])
-	                        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
-                        matchp=re.compile('<divclass="pageNav">(.+?)</div>').findall(link)
-                        matchp0=re.compile('href="(.+?)">(.+?)</a>').findall(matchp[0])
-                        for url1,name1 in matchp0:
-	                        li=xbmcgui.ListItem("..第"+name1.decode("gbk").encode("utf8")+"页")
-	                        u=sys.argv[0]+"?mode=15&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url1)
-	                        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-        else:
-                req = urllib2.Request(url)
-                req.add_header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3")
-                response = urllib2.urlopen(req)
-                link=response.read()
-                response.close()
-                link=re.sub("\r","",link)
-                link=re.sub("\n","",link)
-                link=re.sub("\t","",link)
-                link=re.sub(" ","",link)
-                matchp=re.compile('<divclass="pageNav">(.+?)</div>').findall(link)
-                matchp0=re.compile('<spanclass="cur">(.+?)</span>').findall(matchp[0])
-	        li=xbmcgui.ListItem("当前视频："+name+" 第"+matchp0[0].decode("gbk").encode("utf8")+"页")
-	        u=sys.argv[0]+"?mode=40&name="+urllib.quote_plus(name)
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)  
-                match=re.compile('<liid="li(.+?)class="mc">(.+?)</a><ahref="(.+?)"').findall(link)
-                for i in range(0,len(match)):
-	                li=xbmcgui.ListItem(str(i+1)+"."+match[i][1].decode("gbk").encode("utf8"))
-	                u=sys.argv[0]+"?mode=23&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(match[i][2])
-	                xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
-                matchp0=re.compile('href="(.+?)">(.+?)</a>').findall(matchp[0])
-                for url1,name1 in matchp0:
-	                li=xbmcgui.ListItem("..第"+name1.decode("gbk").encode("utf8")+"页")
-	                u=sys.argv[0]+"?mode=15&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url1)
-	                xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-
-def Baike(name):
-	li=xbmcgui.ListItem(name+">电影")
-	u=sys.argv[0]+"?mode=17&name="+urllib.quote_plus(name+">电影")+"&url="+urllib.quote_plus("http://bk.pps.tv/navi_cate/2.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">电视")
-	u=sys.argv[0]+"?mode=17&name="+urllib.quote_plus(name+">电视")+"&url="+urllib.quote_plus("http://bk.pps.tv/navi_cate/61.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">动漫")
-	u=sys.argv[0]+"?mode=17&name="+urllib.quote_plus(name+">动漫")+"&url="+urllib.quote_plus("http://bk.pps.tv/navi_cate/110.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">综艺")
-	u=sys.argv[0]+"?mode=17&name="+urllib.quote_plus(name+">综艺")+"&url="+urllib.quote_plus("http://bk.pps.tv/navi_cate/109.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">人物")
-	u=sys.argv[0]+"?mode=17&name="+urllib.quote_plus(name+">人物")+"&url="+urllib.quote_plus("http://bk.pps.tv/navi_cate/1.html")
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def BaikeA(name,url):
-        req = urllib2.Request(url)
-        req.add_header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3")
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub("\r","",link)
-        link=re.sub("\n","",link)
-        link=re.sub("\t","",link)
-        link=re.sub(" ","",link)
-        match=re.compile('<h1id="element(.+?)">'+u'按'.encode('gbk')+'(.+?)'+u'查询'.encode('gbk')+'</h1>').findall(link)
-        for i in range(0,len(match)):
-	        li=xbmcgui.ListItem(name+">"+match[i][1].decode("gbk").encode("utf8"))
-	        u=sys.argv[0]+"?mode=18&name="+urllib.quote_plus(name+">"+match[i][1].decode("gbk").encode("utf8"))+"&url="+urllib.quote_plus(url)+"&type="+urllib.quote_plus('<h1id="element'+match[i][0]+'">'+u'按'.encode('gbk')+match[i][1]+u'查询'.encode('gbk')+'</h1>')
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def BaikeB(name,url,type):
-        req = urllib2.Request(url)
-        req.add_header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3")
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub("\r","",link)
-        link=re.sub("\n","",link)
-        link=re.sub("\t","",link)
-        link=re.sub(" ","",link)
-        match=re.compile(type+'(.+?)</div>').findall(link)
-        match0=re.compile('href="http://bk.pps.tv/class(.+?)">(.+?)</a>').findall(match[0])
-        for url1,name1 in match0:
-	        li=xbmcgui.ListItem(name+">"+name1.decode("gbk").encode("utf8"))
-	        u=sys.argv[0]+"?mode=19&name="+urllib.quote_plus(name+">"+name1.decode("gbk").encode("utf8"))+"&url="+urllib.quote_plus(url1)
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def BaikeC(name,url):
-	li=xbmcgui.ListItem(name+">按评分")
-	u=sys.argv[0]+"?mode=20&name="+urllib.quote_plus(name+">按评分")+"&url="+urllib.quote_plus("http://bk.pps.tv/class"+url)
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-	li=xbmcgui.ListItem(name+">按更新")
-	u=sys.argv[0]+"?mode=20&name="+urllib.quote_plus(name+">按更新")+"&url="+urllib.quote_plus("http://bk.pps.tv/update"+url)
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def BaikeD(name,url):
-        req = urllib2.Request(url)
-        req.add_header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3")
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub("\r","",link)
-        link=re.sub("\n","",link)
-        link=re.sub("\t","",link)
-
-        matchp=re.compile('<div class="pagenav(.+?)</div>').findall(link)
-        matchp0=re.compile('<span class="on">(.+?)</span>').findall(matchp[0])
-        if len(matchp0)>0:
-		li=xbmcgui.ListItem("当前位置："+name+"  第"+matchp0[0].decode("gbk").encode("utf8")+"页")
-		u=sys.argv[0]+"?mode=40&name="+urllib.quote_plus(name)
-		xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
-        else:
-		li=xbmcgui.ListItem("当前位置："+name+"  第1页")
-		u=sys.argv[0]+"?mode=40&name="+urllib.quote_plus(name)
-		xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
-
-        match=re.compile('<dt><span style="float:right;" title="(.+?)"(.+?)href="(.+?)"(.+?)</a>(.+?)src="(.+?)"').findall(link)
-        for i in range(0,len(match)):
-                li=xbmcgui.ListItem(str(i+1)+"."+re.sub(' title(.+?)>',"",match[i][3]).decode("gbk").encode("utf8")+"  ("+match[i][0].decode("gbk").encode("utf8")+"分)",match[i][5].replace(" ","%20"),match[i][5].replace(" ","%20"))
-	        u=sys.argv[0]+"?mode=21&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(match[i][2])
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-        matchp0=re.compile('href="(.+?)">(.+?)</a>').findall(matchp[0].replace(" ","").replace("&lt;&lt;","").replace("&gt;&gt;",""))
-        for url1,name1 in matchp0:
-                if name1.find(u"页".encode("gbk"))==-1: name1="第"+name1.decode("gbk").encode("utf8")+"页"
-	        li=xbmcgui.ListItem(".."+name1)
-	        u=sys.argv[0]+"?mode=20&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url1)
-	        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
-
-def BaikeList(name,url):
-        url="http://bk.pps.tv"+url
-        req = urllib2.Request(url)
-        req.add_header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3")
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        link=re.sub("\r","",link)
-        link=re.sub("\n","",link)
-        link=re.sub("\t","",link)
-        match=re.compile('<ul class="bs_new">(.+?)</ul>').findall(link)
-        if len(match)>0:
-                match0=re.compile('href="(.+?)"(.+?)>(.+?)</a>').findall(match[0])
-                for i in range(0,len(match0)):
-                        if match0[i][2].find("更多")==-1 and match0[i][2].find("视频")==-1:
-	                        li=xbmcgui.ListItem("【在线观看】"+match0[i][2].decode("gbk").encode("utf8"))
-	                        u=sys.argv[0]+"?mode=22&name="+urllib.quote_plus(match0[i][2].decode("gbk").encode("utf8"))+"&url="+urllib.quote_plus(match0[i][0])
-	                        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
-        match=re.compile('<ul class="xg_new">(.+?)</ul>').findall(link)
-        if len(match)>0:
-                match0=re.compile('href="(.+?)"(.+?)>(.+?)</a>').findall(match[0])
-                for i in range(0,len(match0)):
-	                li=xbmcgui.ListItem("【相关播放】"+match0[i][2].decode("gbk").encode("utf8"))
-	                u=sys.argv[0]+"?mode=22&name="+urllib.quote_plus(match0[i][2].decode("gbk").encode("utf8"))+"&url="+urllib.quote_plus(match0[i][0])
-	                xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li)
-
-
-def BaikePlay(name,url):
-        req = urllib2.Request(url)
-        req.add_header("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3")
-        response = urllib2.urlopen(req)
-        link=response.read()
-        response.close()
-        match=re.compile("ppspowerplayer.setsrc\('(.+?)'").findall(link)
-        if len(match)>0:
-		if (os.name == 'nt'):
-                	xbmc.executebuiltin('System.ExecWait(\\"'+ os.getcwd()+'\\resources\\player\\pps4xbmc\\" '+match[0].decode("gbk").encode("utf8")+')')
-		else:
-                	xbmc.executebuiltin('System.ExecWait(\\"'+ os.getcwd()+'\\resources\\player\\pps4xbmc\\" '+match[0].decode("gbk").encode("utf8")+')')
-
-def KankanPlay(url):
-	if (os.name == 'nt'):
-               	xbmc.executebuiltin('System.ExecWait(\\"'+ os.getcwd()+'\\resources\\player\\pps4xbmc\\" '+url.decode("gbk").encode("utf8")+')')
-	else:
-               	xbmc.executebuiltin('System.ExecWait(\\"'+ os.getcwd()+'\\resources\\player\\pps4xbmc\\" '+url.decode("gbk").encode("utf8")+')')
-
-def get_params():
-        param=[]
-        paramstring=sys.argv[2]
-        if len(paramstring)>=2:
-                params=sys.argv[2]
-                cleanedparams=params.replace('?','')
-                if (params[len(params)-1]=='/'):
-                        params=params[0:len(params)-2]
-                pairsofparams=cleanedparams.split('&')
-                param={}
-                for i in range(len(pairsofparams)):
-                        splitparams={}
-                        splitparams=pairsofparams[i].split('=')
-                        if (len(splitparams))==2:
-                                param[splitparams[0]]=splitparams[1]
-                                
-        return param
-
-params=get_params()
-mode=None
-name=None
-url=None
-type=None
-
-
-try:
-        url=urllib.unquote_plus(params["url"])
-except:
-        pass
-try:
-        name=urllib.unquote_plus(params["name"])
-except:
-        pass
-try:
-        type=urllib.unquote_plus(params["type"])
-except:
-        pass
-try:
-        mode=int(params["mode"])
-except:
-        pass
-
-
-
-if mode==None:
-	name=''
-	Roots()
-elif mode==1:
-	Kankan(name)
-elif mode==2:
-	KankanA(name)
-elif mode==3:
-        KankanA0(name,url)
-elif mode==4:
-        KankanA1(name,url)
-elif mode==5:
-        KankanB(name)
-elif mode==6:
-	KankanB0(name)
-elif mode==7:
-	KankanB1(name,url)
-elif mode==8:
-	KankanC(name)
-elif mode==9:
-	KankanD(name)
-elif mode==10:
-	KankanD0(name,url)
-elif mode==11:
-	KankanE(name)
-elif mode==12:
-	KankanE0(name,url)
-elif mode==13:
-	KankanList0(name,url)
-elif mode==14:
-	KankanList1(name,url)
-elif mode==15:
-	KankanList2(name,url)
-elif mode==16:
-	Baike(name)
-elif mode==17:
-	BaikeA(name,url)
-elif mode==18:
-	BaikeB(name,url,type)
-elif mode==19:
-	BaikeC(name,url)
-elif mode==20:
-	BaikeD(name,url)
-elif mode==21:
-	BaikeList(name,url)
-elif mode==22:
-        BaikePlay(name,url)
-elif mode==23:
-        KankanPlay(url)
-
-xbmcplugin.setPluginCategory(int(sys.argv[1]), name )
-xbmcplugin.endOfDirectory(int(sys.argv[1]))
-
+##################################################################################
+# Routine to fetch & build PPS 网络电视 main menu
+# - video list as per [VIDEO_LIST]
+# - ugc list
+# - movie, series & ugc require different sub-menu access methods
+##################################################################################
+def mainMenu():
+    link = GetHttpData('http://v.pps.tv/ugc/list-c30.html')
+    match0 = re.compile('<ul id="menu">(.+?)</ul>', re.DOTALL).search(link)
     
+    # fetch the url for video channels specified in VIDEO_LIST
+    match = re.compile('<li class.+?<a href="(.+?)">(.+?)</a></li>').findall(match0.group(1))
+    totalItems = len(match)
+    i = 0
+    for path, name in match:
+        id = fetchID(VIDEO_LIST, name)
+        if id == '': continue
+        i = i + 1
+        li = xbmcgui.ListItem(str(i) + '. ' + name)
+        u = sys.argv[0] + "?mode=1&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&cat=" + urllib.quote_plus('全部') + "&area=" + urllib.quote_plus('全部') + "&year=" + urllib.quote_plus('全部') + "&order=" + urllib.quote_plus('按观众数')
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    
+    # fetch the url for ugc channels, exclude those already in VIDEO_LIST 
+    match1 = re.compile('<ul class="ugc-cat-list">(.+?)</ul>').search(link)
+    match = re.compile('<li class="ucl-item "><a class="ucl-a" href="/ugc/list-(.+?)-.+?">(.+?)<b class="b"></b></a></li>').findall(match1.group(1))
+    totalItems = len(match)
+    for cat, name in match:
+        list = [x[1] for x in VIDEO_LIST]
+        if name in list: continue # skip if already listed
+        id = 'ugc'
+        i = i + 1
+        li = xbmcgui.ListItem(str(i) + '. ' + name)
+        u = sys.argv[0] + "?mode=11&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&cat=" + urllib.quote_plus(cat) + "&year=" + urllib.quote_plus('全部') + "&order=" + urllib.quote_plus('最新发布')
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))  
+
+##################################################################################
+# Routine to fetch and build the video selection menu
+# - selected page & filters (user selectable)
+# - video items list
+# - user selectable pages
+##################################################################################
+#def progListMovie(name, id, page, cat, area, year, order):
+def progListMovie(name, id, page, cat, area, year, order, listpage):
+    # fetch user specified url filter ID's  
+    catID = areaID = yearID = ''
+    if re.search(cat,'全部'): catstr = ''
+    else:
+        catlist, arealist, yearlist = getList(listpage)
+        catstr = fetchID(catlist, cat) + ','
+        if catstr != None: catID = 'genre,'
+        
+    if re.search(area,'全部'): areastr = ''
+    else:
+        areastr = fetchID(arealist, area) + ','
+        if areastr != None: areaID = 'area,'
+
+    if re.search(year,'全部'): yearstr = ''
+    else:
+        yearstr = fetchID(yearlist, year) + ','
+        if yearstr != None: yearID = 'year,'
+        
+    sortID = fetchID(SORT_LIST, order) + ','    
+    if sortID == ',': sortID = 'sum_online_sum,'  
+    videoID = fetchID(VIDEO_LIST, name)    
+    if videoID == '': videoID = 'movie'
+                   
+    # construct url based on user elected filter ID's
+    url = 'http://v.pps.tv/' + videoID + '/' + areaID + catID + yearID + 'orderby_field,asc_desc/' + areastr + catstr + yearstr + sortID + 'dec/'
+    if page: currpage = int(page)
+    else: currpage = 1
+    url += page
+    url += '.html'
+    link = GetHttpData(url)
+    # Extract filter list for user selection - list order valid on first entry only    
+    match = re.compile('<!--classification ' + name + '-->(.+?)<!--/classification-->', re.DOTALL).findall(link)
+    if len(match):
+        if listpage==None: listpage = match[0]
+    else:
+        listpage = ''        
+    match = re.compile('<li class="mv-item lrBx">(.+?)</dd>', re.DOTALL).findall(link)                  
+    totalItems = len(match)
+    if re.search(cat,'全部'): cat = '全部类型'
+    if re.search(area,'全部'): area = '全部地区'
+    if re.search(year,'全部'): year = '全部年份'
+
+    # Fetch & build video titles list for user selection, highlight user selected filter  
+    li = xbmcgui.ListItem(name + '（第' + str(currpage) + '页）【[COLOR FFFF0000]' + cat + '[/COLOR]/[COLOR FF00FF00]' + area + '[/COLOR]/[COLOR FFFFFF00]' + year + '[/COLOR]/[COLOR FF00FFFF]' + order + '[/COLOR]】（按此选择）')
+    u = sys.argv[0] + "?mode=4&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&cat=" + urllib.quote_plus(cat) + "&area=" + urllib.quote_plus(area) + "&year=" + urllib.quote_plus(year) + "&order=" + order + "&listpage=" + urllib.quote_plus(listpage)
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+
+    for i in range(0, len(match)):
+        # Video & Series titles need different routines
+        if name == '电视剧':
+            mode = 3
+        else:
+            mode = 2
+
+        match1 = re.compile('<a class="but" href="(.+?)" title="播放" target="PPS_PLAY">播放</a>').search(match[i])
+        # No playback button for playing video
+        if match1 == None: continue
+#            match1 = re.compile('<div class="lbx"><a href="(.+?)"').search(match[i])
+#            mode = 21
+        p_id = match1.group(1)
+                               
+        match1 = re.compile('.+?<img src="(.+?)" class="imgs".+?').search(match[i])
+        p_thumb = match1.group(1)
+        match1 = re.compile('<dt class="t"><a href=".+?".+?title="(.+?)".+?</a></dt>').search(match[i])
+        p_name = p_list = match1.group(1)       
+        match1 = re.compile('<li>播放人次:<span class="rc">([0-9]+)</span></li>').search(match[i])
+        if match1: p_list += ': ' + match1.group(1) #+ ' ('+p_id+')'
+  
+        li = xbmcgui.ListItem(str(i + 1) + '. ' + p_list, iconImage='', thumbnailImage=p_thumb)
+        u = sys.argv[0] + "?mode=" + str(mode) + "&name=" + urllib.quote_plus(p_name) + "&id=" + urllib.quote_plus(p_id) + "&thumb=" + urllib.quote_plus(p_thumb)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+
+    # Fetch and build user selectable page number
+    matchp = re.compile('<div class="pagenav">(.+?)</div>', re.DOTALL).findall(link)
+    if len(matchp): 
+        matchp1 = re.compile('<a href=".+?">([0-9]+)</a>', re.DOTALL).findall(matchp[0])    
+        if len(matchp1):
+            plist=[]
+            for num in matchp1:
+                if num not in plist:
+                    plist.append(num)
+                    li = xbmcgui.ListItem("... 第" + num + "页")
+                    u = sys.argv[0] + "?mode=1&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&cat=" + urllib.quote_plus(cat) + "&area=" + urllib.quote_plus(area) + "&year=" + urllib.quote_plus(year) + "&order=" + order + "&page=" + urllib.quote_plus(str(num))+ "&listpage=" + urllib.quote_plus(listpage)
+                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)        
+
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+##################################################################################
+# Routine to update video list as per user selected filters
+# - 按类型  (Categories)
+# - 按国家/地区 (Countries/Areas)
+# - 按年份 (Year)
+##################################################################################
+def updateListMovie(name, id, page, cat, area, year, order, listpage):
+    change = False
+    dialog = xbmcgui.Dialog()
+    catlist, arealist, yearlist = getList(listpage)
+
+    list = [x[1] for x in catlist]        
+    sel = dialog.select('类型', list)
+    if sel != -1:
+        cat = catlist[sel][1]
+        change = True
+                    
+    list = [x[1] for x in arealist]
+    sel = dialog.select('地区', list)
+    if sel != -1:
+        area = arealist[sel][1]
+        change = True
+    list = [x[1] for x in yearlist]
+    sel = dialog.select('年份', list)
+    if sel != -1:
+        year = yearlist[sel][1]
+        change = True
+    list = [x[1] for x in SORT_LIST]
+    sel = dialog.select('排序方式', list)
+    if sel != -1:
+        order = SORT_LIST[sel][1]
+        change = True
+        
+    if change: progListMovie(name, id, '1', cat, area, year, order, listpage)
+    else: return(name, id, '1', cat, area, year, order, listpage)
+                  
+##################################################################################
+# Routine to fetch and build the ugc selection menu
+# - selected page & filters (user selectable)
+# - ugc items list
+# - user selectable pages
+##################################################################################
+def progListUgc(name, id, page, cat, year, order, datelist=[], orderlist=[]): 
+    # fetch url filter ID's
+    dateID = '1'
+    orderID = '1'
+    if len(datelist):
+        dateID = fetchID(datelist, year)
+        if dateID == '': dateID = '1'
+        
+    if len(orderlist):
+        orderID = fetchID(orderlist, order)    
+        if orderID == '': orderID = '1' 
+                   
+    # Construct url based on filter ID's & selected page           
+    url = 'http://v.pps.tv/' + id + '/list-' + cat + '-t' + dateID + '-o' + orderID + '-p'
+    if page:
+        currpage = int(page)
+    else:
+        currpage = 1
+    url += page
+    url += '.html'
+    link = GetHttpData(url)
+    match = re.compile('<!--ugc-tag-list-->(.+?)<!--/ugc-tag-list-->').findall(link)
+    
+    # Extract filter list for user selection
+    match1 = re.compile('id="ugc-tag-list">(.+?)<ul class="ugc-list">').findall(match[0])
+    if len(match1):
+        listpage = match1[0]
+    else:
+        listpage = ''
+          
+    # Fetch & build ugc list for user selection, highlight user selected filter      
+    match = re.compile('<li class="ugc-item">(.+?)</ul>').findall(match[0])
+    totalItems = len(match)   
+    li = xbmcgui.ListItem(name + '（第' + str(currpage) + '页）【[COLOR FFFFFF00]' + year + '[/COLOR]/[COLOR FF00FFFF]' + order + '[/COLOR]】（按此选择）')
+    u = sys.argv[0] + "?mode=12&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&cat=" + urllib.quote_plus(cat) + "&year=" + urllib.quote_plus(year) + "&order=" + urllib.quote_plus(order)+ "&page=" + urllib.quote_plus(listpage)
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    for i in range(0, len(match)):
+        match1 = re.compile('<a href="(.+?)"').search(match[i])
+        p_url = 'http://v.pps.tv' + match1.group(1)
+        
+        match1 = re.compile('<a href.+?title="(.+?)".*?>').search(match[i])
+        p_name = p_list = match1.group(1)
+        
+        match1 = re.compile('<span class="nm">播放：</span>([0-9]+)<a.+?').search(match[i])      
+        if match1: p_list += ': ' + match1.group(1) #+' ('+p_url+')'  
+          
+        match1 = re.compile('class="imgm" src="(.+?)">').search(match[i])
+        p_thumb = match1.group(1)
+            
+        li = xbmcgui.ListItem(str(i + 1) + '. ' + p_list, iconImage='', thumbnailImage=p_thumb)
+        u = sys.argv[0] + "?mode=14&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+            
+    # Fetch and build user selectable page number 
+    matchp = re.compile('<div class="pagenav">(.+?)</div>').findall(link)
+    if len(matchp): matchp1 = re.compile('<a href=".+?">([0-9]+)</a>').findall(matchp[0])      
+    if len(matchp1):
+        plist=[]
+        for num in matchp1:
+            if num not in plist:
+                plist.append(num)
+                li = xbmcgui.ListItem("... 第" + num + "页")
+                u = sys.argv[0] + "?mode=11&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&cat=" + urllib.quote_plus(cat) + "&year=" + urllib.quote_plus(year) + "&order=" + order + "&page=" + urllib.quote_plus(str(num))
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems) 
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    
+##################################################################################
+# Routine to update ugc list as per user selected filters
+# - 发布时间 (Published date)
+# - 排序方式 (Order)
+##################################################################################
+def updateListUgc(name, id, listpage, cat, year, order):
+    datelist, orderlist = getListUgc(listpage)
+    change = False
+    dialog = xbmcgui.Dialog()
+    list = [x[1] for x in datelist]
+    sel = dialog.select('发布时间:', list)
+    if sel != -1:
+        year = datelist[sel][1]
+        change = True
+
+    list = [x[1] for x in orderlist]
+    sel = dialog.select('排序方式', list)
+    if sel != -1:
+        order = orderlist[sel][1]
+        change = True
+
+    if change:
+        progListUgc(name, id, '1', cat, year, order, datelist, orderlist)
+
+##################################################################################
+# Routine to fetch and build the video series selection menu
+# - selected page & filters (user selectable)
+# - Video series list
+# - user selectable pages
+##################################################################################
+def progListSeries(name, id, thumb, episodeSel):
+    url = 'http://v.pps.tv' + id
+    link = GetHttpData(url)
+    episodeList = re.compile('<!--episode-list-->(.+?)<!--/episode-list-->').findall(link)
+    listpage = episodeList[0]
+               
+    episodeSet = re.compile('class="dra-version".+?<h[0-9]>(.+?)</h[0-9]>').findall(episodeList[0])
+    if len(episodeSet):
+        # let user select series option if on first time entry i.e. language, HD, related info etc
+        if episodeSel=='1' and len(episodeSet)>1: episodeSel=updateListSeries(name,'1',thumb,listpage)
+        epsel = 0 
+        eList = ''
+        for i in range(0, len(episodeSet)):
+            if episodeSet[i]==episodeSel: 
+                epsel = i
+            eList = eList + COLOR_LIST[i] + episodeSet[i] + '[/COLOR]|'
+        episodeSel=episodeSet[epsel]
+        
+    li = xbmcgui.ListItem("[选择:"+episodeSel+"] " + eList + '（按此选择）', iconImage='', thumbnailImage=thumb)
+    u = sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&thumb="+urllib.quote_plus(thumb)+"&page="+urllib.quote_plus(listpage) 
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+    
+    # fetch and build the video series list  / related info list
+    match = re.compile('<div id="tag-[0-9]+" class="dra-version">(.+?)</ul>').findall(episodeList[0])
+#    if len(match):
+    for j in range(0,len(match)):
+        if re.search('>'+episodeSel+'<',match[j]) == None: continue
+        matchp = re.compile('<li id=(.+?)</li>').findall(match[j])                  
+        totalItems = len(matchp)
+        for i in range(0, len(matchp)):
+            match1 = re.compile('<a.+?href="(.+?)"').search(matchp[i])
+            if match1 == None: continue
+            p_url = 'http://v.pps.tv' + match1.group(1)
+            match1 = re.compile('title="(.+?)".*?>(.+?)</a>').search(matchp[i])           
+            sn = re.sub(' ','',match1.group(2))
+            p_name = match1.group(1)
+            p_list = sn + ': ' + p_name   #+' ('+p_url+')'
+ 
+            li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage='')
+            u = sys.argv[0] + "?mode=10&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+        break
+    xbmcplugin.setContent(int(sys.argv[1]), '电视剧')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+           
+##################################################################################
+# Routine to update video series list as per user selections
+# - 剧集列表 (Series Options)
+##################################################################################
+def updateListSeries(name, id, thumb, listpage):   
+    elist = re.compile('class="dra-version".+?<h[0-9]>(.+?)</h[0-9]>').findall(listpage)
+    dialog = xbmcgui.Dialog()
+    sel = dialog.select('剧集列表', elist)
+    if sel != -1:
+        epSel = elist[sel]
+        # return selected value on local call
+        if id=='1': return epSel
+        else: progListSeries(name, id, thumb, epSel)
+    else: return(name, id, thumb, '1')
+
+##################################################################################
+# Routine to play TV series video file
+# Player using ppstream player
+##################################################################################
+def PlaySeries(name, url, thumb):
+    link = GetHttpData(url)
+    if (os.name == 'nt'):
+        xbmc.executebuiltin('System.ExecWait(\\"' + os.getcwd() + '\\resources\\player\\pps4xbmc\\" ' + url + ')')
+    else:
+        xbmc.executebuiltin('System.ExecWait(\\"' + os.getcwd() + '\\resources\\player\\pps4xbmc\\" ' + url + ')')
+ 
+##################################################################################
+# Routine to play movide video file
+# Player using ppstream player
+##################################################################################
+def PlayVideo(name, url):
+    link = GetHttpData(url)
+    match0 = re.compile('<!--播放相关js-->.+?src="(.+?)".+?</script>').findall(link)
+    match1 = GetHttpData(match0[0])
+#    match = re.compile("ppspowerplayer.setencsrc\('(.+?)'\)").findall(match1)
+    match = re.compile('var encsrc="(.+?)"').findall(match1)
+    if len(match):  
+        url = match[0]
+        if (os.name == 'nt'):
+            xbmc.executebuiltin('System.ExecWait(\\"' + os.getcwd() + '\\resources\\player\\pps4xbmc\\" ' + url + ')')
+        else:
+            xbmc.executebuiltin('System.ExecWait(\\"' + os.getcwd() + '\\resources\\player\\pps4xbmc\\" ' + url + ')')
+    else:
+        dialog = xbmcgui.Dialog()
+        ok = dialog.ok(__addonname__,'您当前观看的视频暂不能播放，请选择其它节目')
+        
+##################################################################################
+# Routine to play ugc embedded swf video file
+# fetch the swf file directly using one of the hardcoded link below
+# http://dp.ppstv.com/get_play_url_rate.php?sid=30NG77&flash_type=1&type=0
+# http://dp.ppstream.com/get_play_url_rate.php?sid=30NG77&flash_type=1&type=0
+# http://dp.ugc.pps.tv/get_play_url_rate.php?sid=30NG77&flash_type=1&type=0
+##################################################################################
+def playVideoUgc(name, url, thumb): 
+    match = re.compile('play_(.+?).html').findall(url)
+    videolink = 'http://dp.ppstv.com/get_play_url_rate.php?sid='+match[0]+'&flash_type=1&type=0'
+    link = GetHttpData(videolink)   
+    if (link):
+        match = re.compile('(.+?)\?hd=').findall(link)
+        playlist=xbmc.PlayList(1)
+        playlist.clear()
+        listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
+        listitem.setInfo(type="Video",infoLabels={"Title":name})
+        playlist.add(match[0], listitem)
+        xbmc.Player().play(playlist)       
+    else:
+        dialog = xbmcgui.Dialog()
+        ok = dialog.ok(__addonname__,'您当前观看的视频暂不能播放，请选择其它节目')        
+          
+##################################################################################
+# Routine to fetch different playback options for the selected movie
+# e.g. HD(高清), languages, related info etc
+##################################################################################
+def getMovie(name, id, thumb):
+    url = 'http://v.pps.tv' + id
+    link = GetHttpData(url)
+    match0 = re.compile('js-list[0-9]*?(.+?)</ul>').findall(link)
+    if len(match0):
+        j=0
+        li = xbmcgui.ListItem("当前视频：" + name, iconImage='', thumbnailImage=thumb)
+        u = sys.argv[0] + "?mode=40&name=" + urllib.quote_plus(name)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li)
+        for k in range (0, len(match0)):
+            match = re.compile('<li id(.+?)</li>').findall(match0[k])
+            for i in range(0, len(match)):
+                match1 = re.compile('href="\.{0,1}?(.+?)"').search(match[i])
+#                p_url = match1.group(1).replace("^\.","")
+                p_url = match1.group(1)
+                match1 = re.compile('title="(.+?)"').search(match[i])
+#                p_name = match1.group(1)+"  ("+url+")"
+                p_name = match1.group(1)
+                j=j+1
+                url = "http://v.pps.tv" + p_url
+                li = xbmcgui.ListItem(str(j) + ". " + p_name)
+                u = sys.argv[0] + "?mode=10&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url)
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False)
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))   
+
+##################################################################################
+# Routine to fetch video info only (no implemented), no video for playback.
+##################################################################################    
+def getInfo(name, id, thumb):
+    dialog = xbmcgui.Dialog()
+    ok = dialog.ok(__addonname__,'您当前观看的视频暂不能播放，请选择其它节目')             
+                              
+##################################################################################
+# Routine to extra parameters from xbmc
+##################################################################################
+def get_params():
+    param = []
+    paramstring = sys.argv[2]
+    if len(paramstring) >= 2:
+        params = sys.argv[2]
+        cleanedparams = params.replace('?', '')
+        if (params[len(params) - 1] == '/'):
+            params = params[0:len(params) - 2]
+        pairsofparams = cleanedparams.split('&')
+        param = {}
+        for i in range(len(pairsofparams)):
+            splitparams = {}
+            splitparams = pairsofparams[i].split('=')
+            if (len(splitparams)) == 2:
+                param[splitparams[0]] = splitparams[1]
+    return param
+
+params = get_params()
+mode = None
+name = None
+id = None
+cat = None
+area = None
+year = None
+order = None
+page = '1'
+listpage = None
+url = None
+thumb = None
+
+try:
+    thumb = urllib.unquote_plus(params["thumb"])
+except:
+    pass
+try:
+    url = urllib.unquote_plus(params["url"])
+except:
+    pass
+try:
+    page = urllib.unquote_plus(params["page"])
+except:
+    pass
+try:
+    order = urllib.unquote_plus(params["order"])
+except:
+    pass
+try:
+    year = urllib.unquote_plus(params["year"])
+except:
+    pass
+try:
+    area = urllib.unquote_plus(params["area"])
+except:
+    pass
+try:
+    cat = urllib.unquote_plus(params["cat"])
+except:
+    pass
+try:
+    id = urllib.unquote_plus(params["id"])
+except:
+    pass
+try:
+    name = urllib.unquote_plus(params["name"])
+except:
+    pass
+try:
+    listpage = urllib.unquote_plus(params["listpage"])
+except:
+    pass
+try:
+    mode = int(params["mode"])
+except:
+    pass
+
+if mode == None:
+    mainMenu()
+elif mode == 1:
+    progListMovie(name, id, page, cat, area, year, order, listpage)
+elif mode == 2:
+    getMovie(name, id, thumb)
+elif mode == 3:
+    progListSeries(name, id, thumb, page)
+elif mode == 4:
+    updateListMovie(name, id, page, cat, area, year, order, listpage)
+elif mode == 6:
+    updateListSeries(name, id, thumb, page)
+elif mode == 10:
+    PlayVideo(name, url)
+    
+elif mode == 11:
+    progListUgc(name, id, page, cat, year, order)
+elif mode == 12:
+    updateListUgc(name, id, page, cat, year, order) 
+elif mode == 14:
+    playVideoUgc(name, url, thumb)    
+    
+elif mode == 21:
+    getInfo(name, id, thumb)
+
