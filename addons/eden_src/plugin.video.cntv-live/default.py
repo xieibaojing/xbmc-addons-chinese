@@ -13,7 +13,7 @@ __addonpath__ = xbmc.translatePath(__addon__.getAddonInfo('path'))
 
 # 初次运行本插件时自动注册CNTV播放控件
 if __addon__.getSetting('CCTVPlayerOcxReg') == "false":
-         xbmc.executebuiltin('System.Exec(\\"'+ __addonpath__+'\\resources\\player\\CCTVPlayerOcxReg.exe\\")')
+         xbmc.executebuiltin('System.Exec(\\"'+ __addonpath__+'\\resources\\player\\CCTVPlayerOcxReg.exe\\" null)')
          __addon__.setSetting(id="CCTVPlayerOcxReg", value="true")
 
 def CATEGORIES():
