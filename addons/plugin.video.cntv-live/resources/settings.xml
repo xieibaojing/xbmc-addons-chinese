@@ -1,4 +1,0 @@
-﻿<?xml version="1.0" encoding="utf8" standalone="yes"?>
-<settings>
-	<setting id="CCTVPlayerOcxReg" type="bool" label="注册播放控件" default="false" enable="false"/>
-</settings>

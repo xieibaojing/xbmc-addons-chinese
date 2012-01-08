@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf8" standalone="yes"?>
-<settings>
-	<setting id="history" type="enum" label="历史记录" values="不显示|20|10|5" default="2"/>
-	<setting type="sep"/>
-	<setting id="keyword" type="text" label="搜索关键字" default="" enable="false"/>
-</settings>
