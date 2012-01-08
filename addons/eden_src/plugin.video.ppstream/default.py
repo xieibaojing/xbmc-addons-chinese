@@ -18,10 +18,10 @@ import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, o
 ######################################################
 
 # Plugin constants 
-__addonname__ = "PPS 网络电视"
-__addonid__ = "plugin.video.ppstream"
-__addon__ = xbmcaddon.Addon(id=__addonid__)
-__addonicon__ = os.path.join(__addon__.getAddonInfo('path'), 'icon.png')
+__addonname__     = "PPS 网络电视"
+__addonid__       = "plugin.video.ppstream"
+__settings__      = xbmcaddon.Addon(id=__addonid__)
+__cwd__           = xbmc.translatePath( __settings__.getAddonInfo('path') )
 
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 VIDEO_LIST = [['movie','电影'],['tv','电视剧'],['fun','娱乐'],['anime','动漫']]
@@ -440,10 +440,7 @@ def updateListSeries(name, id, thumb, listpage):
 ##################################################################################
 def PlaySeries(name, url, thumb):
     link = GetHttpData(url)
-    if (os.name == 'nt'):
-        xbmc.executebuiltin('System.ExecWait(\\"' + os.getcwd() + '\\resources\\player\\pps4xbmc\\" ' + url + ')')
-    else:
-        xbmc.executebuiltin('System.ExecWait(\\"' + os.getcwd() + '\\resources\\player\\pps4xbmc\\" ' + url + ')')
+    xbmc.executebuiltin('System.ExecWait(\\"' + __cwd__ + '\\resources\\player\\pps4xbmc\\" ' + url + ')')
  
 ##################################################################################
 # Routine to play movide video file
@@ -457,10 +454,7 @@ def PlayVideo(name, url):
     match = re.compile('var encsrc="(.+?)"').findall(match1)
     if len(match):  
         url = match[0]
-        if (os.name == 'nt'):
-            xbmc.executebuiltin('System.ExecWait(\\"' + os.getcwd() + '\\resources\\player\\pps4xbmc\\" ' + url + ')')
-        else:
-            xbmc.executebuiltin('System.ExecWait(\\"' + os.getcwd() + '\\resources\\player\\pps4xbmc\\" ' + url + ')')
+        xbmc.executebuiltin('System.ExecWait(\\"' + __cwd__ + '\\resources\\player\\pps4xbmc\\" ' + url + ')')
     else:
         dialog = xbmcgui.Dialog()
         ok = dialog.ok(__addonname__,'您当前观看的视频暂不能播放，请选择其它节目')

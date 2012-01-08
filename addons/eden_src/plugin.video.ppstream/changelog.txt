@@ -1,3 +1,6 @@
+Version 1.2.0 2012-1-8 (Taxigps)
+ changed for eden - not use os.getcwd()
+
 Version 1.1.1 2011-12-25 (CM Eng)
  a. update to pps new video link
  b. correct error in categories selection
