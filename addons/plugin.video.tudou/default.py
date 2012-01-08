@@ -94,7 +94,7 @@ def progList(name,baseurl,page,cat,area,year,order):
     for i in range(0,len(match)):
         match1 = re.compile('<div class="pic"><a href="(.+?)" target="_blank"><img src="(.+?)".+?>').search(match[i])
         if not match1:
-            match1 = re.compile('<div class="pic"><a class="inner" target="new" href="http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html"><img .+?src="(.+?)">').search(match[i])
+            match1 = re.compile('<div class="pic"><a class="inner" target="new" href="\s*http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html\s*"><img .+?src="(.+?)">').search(match[i])
             p_url = match1.group(1)
             p_thumb = match1.group(2)
             mode = 3
@@ -161,7 +161,7 @@ def seriesList(name,url,thumb):
     link = GetHttpData(url)
     link= re.sub("\r|\n|\t","",link)
     match0 = re.compile('<div id="playItems"(.+?)<div class="page_nav"').search(link)
-    match = re.compile('<div class="pic"><a target="new" title="(.+?)" href=" http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html"></a><img .+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
+    match = re.compile('<div class="pic"><a target="new" title="(.+?)" href="\s*http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html\s*"></a><img .+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
     if match:
         totalItems = len(match)
         for p_name, p_iid, alt, src in match:
@@ -174,7 +174,7 @@ def seriesList(name,url,thumb):
             #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
     else:
-        match=re.compile('href=" (http://tudou.letv.com/playlist/p/le/.+?/play.html)"></a><img').findall(match0.group(1))
+        match=re.compile('href="\s*(http://tudou.letv.com/playlist/p/le/.+?/play.html)\s*"></a><img').findall(match0.group(1))
         link=GetHttpData(match[0])
         match = re.compile('partnerIds = {(.+?)}').search(link)
         jjlist = re.compile('"(.+?)":([0-9]+)').findall(match.group(1))
