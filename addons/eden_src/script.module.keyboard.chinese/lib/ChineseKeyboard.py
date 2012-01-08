@@ -45,7 +45,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 		self.words = ''
 		self.inputString = kwargs.get( "default" ) or ""
 		self.heading = kwargs.get( "heading" ) or ""
-		xbmcgui.WindowXMLDialog.__init__( self, *args, **kwargs )
+		xbmcgui.WindowXMLDialog.__init__( self )
 
 	def onInit(self):
 		self.setKeyToChinese()
