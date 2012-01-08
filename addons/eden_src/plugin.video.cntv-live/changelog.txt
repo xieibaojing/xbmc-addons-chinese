@@ -1,4 +1,7 @@
-﻿1.0.6(taxigps)
+﻿1.1.0(taxigps)
+eden版: 修正无法自动注册控件问题。
+
+1.0.6(taxigps)
 修正插件目录获取。
 
 1.0.4(taxigps)
