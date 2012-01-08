@@ -17,10 +17,11 @@ import urllib,urllib2,re,os,xbmcplugin,xbmcgui,xbmc
 # Version 1.2.0  2011-2-24 (Originator: Skyemperor))
 ######################################################
 
-if os.name == 'nt':
-    THUMB_PATH = os.environ['APPDATA'] + '/xbmc/userdata/addon_data/plugin.video.yinyuetai'
-else:
-    THUMB_PATH = os.environ['HOME'] + '/.xbmc/userdata/addon_data/plugin.video.yinyuetai'
+import xbmcaddon
+# Script constants 
+__settings__      = xbmcaddon.Addon()
+__icon__          = xbmc.translatePath( __settings__.getAddonInfo('icon') )
+__profile__       = xbmc.translatePath( __settings__.getAddonInfo('profile') )
 
 def Root(ctl):
     j=0
@@ -321,8 +322,8 @@ def get_content(url):
 
 def get_Thumb(icon):
     if len(icon) < 2:
-        return os.getcwd()+'/icon.png'
-    pic=THUMB_PATH+icon.split('?')[0]
+        return __icon__
+    pic = __profile__ + icon.split('?')[0]
     if not os.path.isfile(pic):
         if not os.path.isdir(os.path.dirname(pic)):
             os.makedirs(os.path.dirname(pic))

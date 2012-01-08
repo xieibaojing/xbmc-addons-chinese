@@ -1,3 +1,6 @@
+Version 1.4.0 2012-1-8 (Taxigps)
+ changed for eden - not use os.getcwd()
+
 Version 1.3.1 2011-12-22 (CM Eng)
  a. add support for video queue list
  b. repair AllMV submenu broken link
