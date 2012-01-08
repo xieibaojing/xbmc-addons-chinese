@@ -8,9 +8,10 @@
 #20110712 fxfboy@gmail.com 大幅修改，只保留了原来的插件id，使用百度输入法，需要安装基于百度输入法的中文输入法插件
 
 # Plugin constants 
-__addonname__ = "搜索电影"
-__addonid__ = "plugin.video.somovie"
-__addon__ = xbmcaddon.Addon(id=__addonid__)
+__addonname__     = "搜索电影"
+__addonid__       = "plugin.video.somovie"
+__addon__         = xbmcaddon.Addon(id=__addonid__)
+__profile__       = xbmc.translatePath( __addon__.getAddonInfo('profile') )
 
 CHANNEL_LIST = [['搜狐高清','11','plugin.video.sohuvideo'], ['优酷视频','12','plugin.video.youku'], ['奇艺视频','13','plugin.video.qiyi'], ['腾讯视频','14','plugin.video.tencent'], ['新浪视频','15','plugin.video.sina'], ['天翼高清','16','plugin.video.netitv'], ['土豆视频','17','plugin.video.tudou'], ['音悦台MV','18','plugin.video.yinyuetai']]
 
@@ -93,7 +94,7 @@ def	stripHtml(htmlstr):
     return s
        
 def createTempThumb(image_url):
-	temp_dir = os.path.abspath(os.path.join(os.getcwd(), 'temp'))
+	temp_dir = os.path.join(__profile__, 'temp')
 	if not os.path.exists(temp_dir):
 		os.mkdir(temp_dir)
 	imagedata = urllib2.urlopen(image_url).read()
@@ -106,7 +107,7 @@ def createTempThumb(image_url):
 	return f_name
 
 def clearTempThumb():
-	temp_dir = os.path.abspath(os.path.join(os.getcwd(), 'temp'))
+	temp_dir = os.path.join(__profile__, 'temp')
 	if os.path.isdir(temp_dir):
 		for f in os.listdir(temp_dir):
 			file = os.path.join(temp_dir, f)
@@ -151,7 +152,7 @@ def loadHistory():
 	histCount=getHistoryCount()
 	if histCount==0:
 		return []
-	path = os.path.join(os.getcwd(), 'history.txt')
+	path = os.path.join(__profile__, 'history.txt')
 	if not os.path.exists(path):
 		return []
 	if not os.path.isfile(path):
@@ -175,11 +176,15 @@ def saveHistory(keyword):
 	histCount=getHistoryCount()
 	if histCount==0:
 		return
-	path = os.path.join(os.getcwd(), 'history.txt')
+	path = os.path.join(__profile__, 'history.txt')
+	if ( not os.path.isdir( os.path.dirname( path ) ) ):
+		os.makedirs( os.path.dirname( path ) )
 	if os.path.exists(path):
 		if not os.path.isfile(path):
 			return
-	history = loadHistory()
+		history = loadHistory()
+	else:
+		history = []
 #	for item in history:
 #		print item
 	pos = -1
@@ -239,7 +244,7 @@ def searchSite(history):
 
 def	clearHistory():
 	setKeyword('')
-	path = os.path.join(os.getcwd(), 'history.txt')
+	path = os.path.join(__profile__, 'history.txt')
 	try:
 		os.remove(path)
 	except:
