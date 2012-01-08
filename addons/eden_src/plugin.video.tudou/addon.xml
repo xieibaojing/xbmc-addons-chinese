@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.tudou"
+    name="土豆视频(Tudou)"
+    version="1.0.5"
+    provider-name="taxigps">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">Tudou Video plugin</summary>
+        <summary lang="zh">土豆视频插件</summary>
+        <description lang="en">Tudou.com is the first and leading online video platform in China, where users can upload, view and share video clips.Tudou went live on April 15, 2005 and has grown into one of the world’s largest content delivery networks. A comprehensive video entertainment destination, Tudou's content library includes user generated videos, premium licensed contents, and in-house developed programming.</description>
+        <description lang="zh">土豆网(Tudou.com)是中国最早和最具影响力的视频分享网站，是中国网络视频行业的领军品牌，也是全球最早上线的视频分享网站之一。土豆网视频内容包括三大类：[CR]* 网友自行制作或分享的视频节目，例如播客和用户原创视频；[CR]* 来自土豆众多内容提供商的视频节目，例如电影、电视剧和MV等等。土豆网与2500多家国内外知名的音乐厂牌、内容制作方、内容代理商和电视台建立了广泛的深度合作。[CR]* 土豆投资制作的节目，例如土豆摄线等等日播栏目及系列短剧。</description>
+        <platform>all</platform>
+    </extension>
+</addon>
