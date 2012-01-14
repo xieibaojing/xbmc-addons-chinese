@@ -122,7 +122,7 @@ class GUI( xbmcgui.WindowXMLDialog ):
     def get_lyrics_from_file2( self ):
         try:
             xbmc.sleep( 60 )
-            path = xbmc.getInfoLabel( "Player.Filenameandpath" )
+            path = xbmc.Player().getPlayingFile()
             dirname = os.path.dirname(path)
             basename = os.path.basename(path)
             filename = basename.rsplit( ".", 1 )[ 0 ]
@@ -255,11 +255,12 @@ class GUI( xbmcgui.WindowXMLDialog ):
             self.exit_script()
         else:
             for cnt in range( 5 ):
-                song = xbmc.getInfoLabel( "MusicPlayer.Title" )
-                print "Song" + song
-
-                artist = xbmc.getInfoLabel( "MusicPlayer.Artist" )
-                print "Artist" + artist                
+                try:
+                    song = xbmc.Player().getMusicInfoTag().getTitle()
+                    artist = xbmc.Player().getMusicInfoTag().getArtist()
+                    print "Song: " + song + " /Artist: " + artist                
+                except:
+                    pass
                 if ( song and ( not artist or self.settings[ "use_filename" ] ) ):
                     artist, song = self.get_artist_from_filename( xbmc.Player().getPlayingFile() )
                 if ( song and ( self.song != song or self.artist != artist or force_update ) ):
