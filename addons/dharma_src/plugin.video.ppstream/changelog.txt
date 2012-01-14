@@ -1,11 +1,18 @@
-Version 1.1.1 2011-12-25 (CM Eng)
- a. update to pps new video link
- b. correct error in categories selection
- c. correct error in page selection
+######################################################
+# PPStream �������
+######################################################
+# Version 1.1.2 2012-01-14 (cmeng)
+# a. update to pps 2012 latest web layout structure
 
-Version 1.1.0 2011-11-26 (CM Eng)
- a. Change new UI Similar to taxigps format
- b. Repair broken links
- c. Highlight selected page title
+# Version 1.1.1 2011-12-25 (cmeng)
+# a. update to pps new video link
+# b. correct error in categories selection
+# c. correct error in page selection
 
-Version 1.0.2 2010 (Originator: robinttt)
+# Version 1.1.0 2011-11-26 (cmeng)
+# a. Change new UI Similar to taxigps format
+# b. Repair broken links
+# c. Highlight selected page title
+
+# Version 1.0.2 2010 (Originator: robinttt))
+######################################################

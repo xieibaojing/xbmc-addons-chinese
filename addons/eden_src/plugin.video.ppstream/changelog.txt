@@ -1,14 +1,21 @@
-Version 1.2.0 2012-1-8 (Taxigps)
- changed for eden - not use os.getcwd()
+######################################################
+# PPStream 网络电视
+######################################################
+# Version 1.2.1 2012-01-14 (cmeng)
+# a. update to pps 2012 latest web layout structure
 
-Version 1.1.1 2011-12-25 (CM Eng)
- a. update to pps new video link
- b. correct error in categories selection
- c. correct error in page selection
+# Version 1.2.0 2012-1-8 (Taxigps)
+# a. changed for eden - not use os.getcwd()
+ 
+# Version 1.1.1 2011-12-25 (cmeng)
+# a. update to pps new video link
+# b. correct error in categories selection
+# c. correct error in page selection
 
-Version 1.1.0 2011-11-26 (CM Eng)
- a. Change new UI Similar to taxigps format
- b. Repair broken links
- c. Highlight selected page title
+# Version 1.1.0 2011-11-26 (cmeng)
+# a. Change new UI Similar to taxigps format
+# b. Repair broken links
+# c. Highlight selected page title
 
-Version 1.0.2 2010 (Originator: robinttt)
+# Version 1.0.2 2010 (Originator: robinttt))
+######################################################

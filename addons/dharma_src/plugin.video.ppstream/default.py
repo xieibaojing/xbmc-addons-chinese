@@ -4,12 +4,15 @@ import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, o
 ######################################################
 # PPStream 网络电视
 ######################################################
-# Version 1.1.1 2011-12-25 (CM Eng)
+# Version 1.1.2 2012-01-14 (cmeng)
+# a. update to pps 2012 latest web layout structure
+
+# Version 1.1.1 2011-12-25 (cmeng)
 # a. update to pps new video link
 # b. correct error in categories selection
 # c. correct error in page selection
 
-# Version 1.1.0 2011-11-26 (CM Eng)
+# Version 1.1.0 2011-11-26 (cmeng)
 # a. Change new UI Similar to taxigps format
 # b. Repair broken links
 # c. Highlight selected page title
@@ -24,7 +27,7 @@ __addon__ = xbmcaddon.Addon(id=__addonid__)
 __addonicon__ = os.path.join(__addon__.getAddonInfo('path'), 'icon.png')
 
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
-VIDEO_LIST = [['movie','电影'],['tv','电视剧'],['fun','娱乐'],['anime','动漫']]
+VIDEO_LIST = [['tv','电视剧'],['movie','电影'],['fun','综艺'],['anime','动漫']]
 #ALL_LIST = [['caijing','财经'],['zonghe','综合'],['tiyu','体育'],['qiche','汽车'],['youxi','游戏'],['lvyoumeishi','旅游美食'],['news','焦点']]
 SORT_LIST = [['sum_online_sum','按观众数'],['vote_num','按评分']]
 #DATE_LIST = [['1','全部'],['2','今日'],['3','本周'],['4','本月']]
@@ -111,10 +114,10 @@ def getListUgc(listpage):
 ##################################################################################
 def mainMenu():
     link = GetHttpData('http://v.pps.tv/ugc/list-c30.html')
-    match0 = re.compile('<ul id="menu">(.+?)</ul>', re.DOTALL).search(link)
+    match0 = re.compile('<ul class="main-nav nav-list">(.+?)</ul>', re.DOTALL).search(link)
     
     # fetch the url for video channels specified in VIDEO_LIST
-    match = re.compile('<li class.+?<a href="(.+?)">(.+?)</a></li>').findall(match0.group(1))
+    match = re.compile('<li class.+?<a.+?href="(.+?)"><.+?>(.+?)</span></a></li>').findall(match0.group(1))
     totalItems = len(match)
     i = 0
     for path, name in match:
