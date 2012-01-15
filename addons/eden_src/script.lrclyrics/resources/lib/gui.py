@@ -255,14 +255,19 @@ class GUI( xbmcgui.WindowXMLDialog ):
             self.exit_script()
         else:
             for cnt in range( 5 ):
+                song = ''
+                artist = ''
+                songfile = ''
                 try:
                     song = xbmc.Player().getMusicInfoTag().getTitle()
                     artist = xbmc.Player().getMusicInfoTag().getArtist()
-                    print "Song: " + song + " /Artist: " + artist                
+                    print "Song: " + song + " /Artist: " + artist
+
+                    songfile = xbmc.Player().getPlayingFile()
                 except:
                     pass
                 if ( song and ( not artist or self.settings[ "use_filename" ] ) ):
-                    artist, song = self.get_artist_from_filename( xbmc.Player().getPlayingFile() )
+                    artist, song = self.get_artist_from_filename( songfile )
                 if ( song and ( self.song != song or self.artist != artist or force_update ) ):
                     self.artist = artist
                     self.song = song
