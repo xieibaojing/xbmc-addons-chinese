@@ -53,6 +53,9 @@ def rootList():
     li=xbmcgui.ListItem('综艺')
     u=sys.argv[0]+"?mode=1&name="+urllib.quote_plus('综艺')+"&url="+urllib.quote_plus('http://zy.tudou.com/albumtop/c31')
     xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    li=xbmcgui.ListItem('动漫')
+    u=sys.argv[0]+"?mode=1&name="+urllib.quote_plus('动漫')+"&url="+urllib.quote_plus('http://zy.tudou.com/albumtop/c9')
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def progList(name,baseurl,page,cat,area,year,order):
