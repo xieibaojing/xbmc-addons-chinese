@@ -114,19 +114,24 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
         lxstr=''
         if id!='13':
             catlist= getcatList(listpage)
+            lxstr = lxstr+'[COLOR FFFF0000]'
             if cat:
                 lxstr = lxstr+searchDict(catlist,cat)
             elif id=='24':
                 lxstr = lxstr+'全部风格'
             else:    
                 lxstr = lxstr+'全部类型'
+            lxstr = lxstr+'[/COLOR]'
             if id in ('1','2','7'):          
+                lxstr = lxstr+'[COLOR FF00FF00]'
                 arealist= getareaList(listpage)
                 if area:
                     lxstr = lxstr+'/'+searchDict(arealist,area)
                 else:
                     lxstr = lxstr+'/全部地区'
+                lxstr = lxstr+'[/COLOR]'
             if id in ('1','2','16','24'):
+                lxstr = lxstr+'[COLOR FF5555FF]'
                 yearlist = getyearList(listpage)
                 if year=='-1':
                     lxstr = lxstr+'/全部年份'
@@ -136,7 +141,9 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
                     lxstr = lxstr+'/更早年代'
                 else:
                     lxstr = lxstr+'/'+year+'年'
+                lxstr = lxstr+'[/COLOR]'
             if id=='16':
+                lxstr = lxstr+'[COLOR FFFFFF00]'
                 pflist,nllist=getList16(listpage)
                 if p5:
                     lxstr = lxstr+'/'+searchDict(pflist,p5)
@@ -146,7 +153,9 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
                     lxstr = lxstr+'/'+searchDict(nllist,p6)
                 else:
                     lxstr = lxstr+'/全部年龄'
+                lxstr = lxstr+'[/COLOR]'
             if id=='24': 
+                lxstr = lxstr+'[COLOR FFFF00FF]'
                 lxlist,gslist,yylist,arealist=getList24(listpage)
                 if p5:
                     lxstr = lxstr+'/'+searchDict(lxlist,p5)
@@ -164,7 +173,8 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
                     lxstr = lxstr+'/'+searchDict(arealist,area)
                 else:
                     lxstr = lxstr+'/全部地区'
-            li = xbmcgui.ListItem(name+'（第'+str(currpage)+'/'+str(totalpages)+'页）【[COLOR FFFF0000]' + lxstr + '/' + searchDict(ORDER_LIST,order) + '[/COLOR]】（按此选择）')
+                lxstr = lxstr+'[/COLOR]'
+            li = xbmcgui.ListItem(name+'（第'+str(currpage)+'/'+str(totalpages)+'页）【' + lxstr + '/[COLOR FF00FFFF]' + searchDict(ORDER_LIST,order) + '[/COLOR]】（按此选择）')
             u = sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name)+"&id="+id+"&cat="+urllib.quote_plus(cat)+"&area="+urllib.quote_plus(area)+"&year="+urllib.quote_plus(year)+"&order="+order+"&listpage="+urllib.quote_plus(listpage)+"&p5="+urllib.quote_plus(p5)+"&p6="+urllib.quote_plus(p6)+"&p11="+urllib.quote_plus(p11)
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
         for i in range(0,len(match)):
@@ -363,13 +373,14 @@ def PlayVideo(name,url,thumb):
     for i in range(0,len(paths)):
         link = GetHttpData('http://data.vod.itc.cn/?prot=2&file='+paths[i].replace('http://data.vod.itc.cn','')+'&new='+newpaths[i])
         key=link.split('|')[3]
-        req = httplib.HTTPConnection("new.sohuv.dnion.com")
-        req.request("GET", newpaths[i]+'?key='+key)
-        r1 = req.getresponse()
+        #req = httplib.HTTPConnection("new.sohuv.dnion.com")
+        #req.request("GET", newpaths[i]+'?key='+key)
+        #r1 = req.getresponse()
+        url=link.split('|')[0].rstrip("/")+newpaths[i]+'?key='+key
         title = name+" 第"+str(i+1)+"/"+str(len(paths))+"节"
         listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":title})
-        playlist.add(r1.getheader('Location'), listitem)
+        playlist.add(url, listitem)
         if i==0:
             xbmc.Player().play(playlist)
 
