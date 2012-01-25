@@ -103,11 +103,12 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 					self.getChineseWord(s)
 				elif controlID>=48 and controlID<=57:#0-9
 					i = self.nowpage*5+(controlID-48)
-					hanzi = self.words[i]
-					self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+ hanzi)
-					self.getControl(CTRL_ID_CODE).setLabel('')
-					self.getControl(CTRL_ID_HZLIST).setLabel('')
-					self.words = []
+					if i < len(self.words):
+						hanzi = self.words[i]
+						self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+ hanzi)
+						self.getControl(CTRL_ID_CODE).setLabel('')
+						self.getControl(CTRL_ID_HZLIST).setLabel('')
+						self.words = []
 			else:
 				self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+self.getControl(controlID).getLabel().encode('utf-8'))
 
@@ -129,8 +130,8 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 				else:
 					keychar = chr(keycode - 61505 + ord('a'))
 				self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+keychar)
-		elif keycode >= 61536 and keycode <= 61545:
-			self.onClick( keycode-61536+48 )
+		elif keycode >= 61488 and keycode <= 61497:
+			self.onClick( keycode-61488+48 )
 		elif keycode == 61472:
 			self.onClick( CTRL_ID_SPACE )
 		elif keycode == 61448:
