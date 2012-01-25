@@ -301,7 +301,7 @@
 
 <addon id="script.lrclyrics"
        name="LRC Lyrics"
-       version="1.4.2"
+       version="1.4.3"
        provider-name="Taxigps">
   <requires>
     <import addon="xbmc.python" version="1.0"/>
