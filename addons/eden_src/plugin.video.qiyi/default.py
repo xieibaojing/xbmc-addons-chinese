@@ -217,11 +217,11 @@ def seriesList(url, name, thumb):
         p_director = match1[0]
     p_cast = re.compile('class="f14">(.*?)</a>饰演<spanclass="f14">(.*?)</span>').findall(link)
 #    match1 = re.compile('<divid="j-album-[^>]*>(.*?)</div>').findall(link)
-    match1 = re.compile('<divid="j-album-[0-9]*[^>]*>(.*?)</div>').findall(link)
+    match1 = re.compile('<divid="j-album-[0-9]+[^>]*>(.*?)</div>').findall(link)
     album = ''
     for url1 in match1:
         album = album + GetHttpData('http://www.qiyi.com' + url1)
-    match2 = re.compile('<divid="j-desc-[0-9]*[^>]*>(.*?)</div>').findall(link)
+    match2 = re.compile('<divid="j-desc-[0-9]+[^>]*>(.*?)</div>').findall(link)
     desc = ''
     for url1 in match2:
         desc = desc + GetHttpData('http://www.qiyi.com' + url1)
@@ -263,6 +263,7 @@ def PlayVideo(url,name,thumb):
     if url.find('http://cache.video.qiyi.com/v/') == -1:
         link = GetHttpData(url)
         url = getPlayURL(link)
+    print 'cmeng: ' +  url
     link = GetHttpData(url)
     match=re.compile('<file>http://data.video.qiyi.com/videos/([^/]+?)/(.+?)</file>').findall(link)
     playlist=xbmc.PlayList(1)
@@ -274,10 +275,12 @@ def PlayVideo(url,name,thumb):
     else:
         baseurl = 'http://qiyi.soooner.com/videos/'
     playlist.add(baseurl+match[0][0]+'/'+match[0][1], listitem = listitem)
+    print 'cmeng: ' + baseurl+match[0][0]+'/'+match[0][1] 
     for i in range(1,len(match)):
         listitem=xbmcgui.ListItem(name, thumbnailImage = thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
         playlist.add(baseurl+match[i][0]+'/'+match[i][1], listitem = listitem)
+        print str(i) + '. cmeng: ' + baseurl+match[i][0]+'/'+match[i][1] 
     xbmc.Player().play(playlist)
 
 def performChannel():
