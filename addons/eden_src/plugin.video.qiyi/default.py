@@ -263,7 +263,6 @@ def PlayVideo(url,name,thumb):
     if url.find('http://cache.video.qiyi.com/v/') == -1:
         link = GetHttpData(url)
         url = getPlayURL(link)
-    print 'cmeng: ' +  url
     link = GetHttpData(url)
     match=re.compile('<file>http://data.video.qiyi.com/videos/([^/]+?)/(.+?)</file>').findall(link)
     playlist=xbmc.PlayList(1)
@@ -275,12 +274,10 @@ def PlayVideo(url,name,thumb):
     else:
         baseurl = 'http://qiyi.soooner.com/videos/'
     playlist.add(baseurl+match[0][0]+'/'+match[0][1], listitem = listitem)
-    print 'cmeng: ' + baseurl+match[0][0]+'/'+match[0][1] 
     for i in range(1,len(match)):
         listitem=xbmcgui.ListItem(name, thumbnailImage = thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
         playlist.add(baseurl+match[i][0]+'/'+match[i][1], listitem = listitem)
-        print str(i) + '. cmeng: ' + baseurl+match[i][0]+'/'+match[i][1] 
     xbmc.Player().play(playlist)
 
 def performChannel():
