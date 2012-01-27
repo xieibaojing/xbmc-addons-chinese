@@ -1,9 +1,18 @@
 ######################################################
-# PPStream �������
+# PPStream 网络电视
 ######################################################
-# Version 1.1.2 2012-01-14 (cmeng)
+# Version 2.0.0 2012-01-27 (cmeng)
+# a. Add PPStream 网络电视 video search function
+# b. Include related video players for the site providers: 
+# c. PPS,优酷,土豆,奇艺,搜狐,新浪
+
+
+# Version 1.2.1 2012-01-14 (cmeng)
 # a. update to pps 2012 latest web layout structure
 
+# Version 1.2.0 2012-1-8 (Taxigps)
+# a. changed for eden - not use os.getcwd()
+ 
 # Version 1.1.1 2011-12-25 (cmeng)
 # a. update to pps new video link
 # b. correct error in categories selection

@@ -209,7 +209,7 @@
 
 <addon id="plugin.video.ppstream"
     name="PPS网络电视(PPStream)"
-    version="1.1.2"
+    version="2.0.0"
     provider-name="Robinttt/cmeng">
     <extension
         point="xbmc.python.pluginsource"
@@ -451,7 +451,7 @@
 
 <addon id="script.module.keyboard.chinese"
     name="Chinese keyboard"
-    version="1.0.3"
+    version="1.0.4"
     provider-name="Taxigps">
     <extension point="xbmc.python.module" library="lib" />
     <extension point="xbmc.addon.metadata">
