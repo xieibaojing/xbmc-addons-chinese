@@ -35,17 +35,17 @@ MOVIE_TYPE_LIST['9'] = [['全部',''],['风光','354'],['饮食','355'],['出行
 MOVIE_AREA_LIST['9'] = [['全部',''],['安徽','599'],['北京','576'],['河南','607'],['湖南','611'],['江苏','595'],['辽宁','589'],['西藏','625'],['埃及','567'],['澳大利亚','559'],['法国','520'],['马尔代夫','460'],['日本','426'],['新西兰','380'],['意大利','371'],]
 
 def GetHttpData(url):
-	try:
-		print "GetHttpData %s " % url
-		req = urllib2.Request(url)
-		req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-		response = urllib2.urlopen(req)
-		httpdata = response.read()
-		response.close()
-		httpdata = re.sub("\s", "", httpdata)
-		return httpdata
-	except:
-		return ""
+    try:
+        print "GetHttpData %s " % url
+        req = urllib2.Request(url)
+        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
+        response = urllib2.urlopen(req)
+        httpdata = response.read()
+        response.close()
+        httpdata = re.sub("\s", "", httpdata)
+        return httpdata
+    except:
+        return ""
 
 def urlExists(url):
     try:
@@ -216,21 +216,23 @@ def seriesList(url, name, thumb):
     else:
         p_director = match1[0]
     p_cast = re.compile('class="f14">(.*?)</a>饰演<spanclass="f14">(.*?)</span>').findall(link)
-    match1 = re.compile('<divid="j-album-[^>]*>(.*?)</div>').findall(link)
+#    match1 = re.compile('<divid="j-album-[^>]*>(.*?)</div>').findall(link)
+    match1 = re.compile('<divid="j-album-[0-9]+[^>]*>(.*?)</div>').findall(link)
     album = ''
     for url1 in match1:
         album = album + GetHttpData('http://www.qiyi.com' + url1)
-    match2 = re.compile('<divid="j-desc-[^>]*>(.*?)</div>').findall(link)
+    match2 = re.compile('<divid="j-desc-[0-9]+[^>]*>(.*?)</div>').findall(link)
     desc = ''
     for url1 in match2:
         desc = desc + GetHttpData('http://www.qiyi.com' + url1)
-    match = re.compile('<li><ahref="(.+?)"class="imgBg1"><.+?src="(.+?)"title="(.+?)".*?"').findall(album)
+#    match = re.compile('<li><ahref="(.+?)"class="imgBg1"><.+?src="(.+?)"title="(.+?)".*?"').findall(album)
+    match = re.compile('<li><ahref="(.+?)"class="a_bar"><.+?data-lazy="(.+?)"title="(.+?)"').findall(album)
     totalItems = len(match)
     if totalItems==0:
         match1 = re.compile('"tvPictureUrl":"(.+?)","producers').findall(link)
         p_thumb=match1[0]
         match = re.compile('<ahref="(.+?)">(.+?)</a>').findall(album)
-        totalItems = len(match)
+        totalItems = len(match) 
         for p_url,p_name in match:
             match1 = re.compile('<ahref="' + p_url + '">' + p_name + '</a></span><pstyle=.*?>(.*?)</p>').findall(desc)
             if len(match1) > 0:
@@ -244,7 +246,8 @@ def seriesList(url, name, thumb):
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
     else:
         for p_url, p_thumb, p_name in match:
-            match1 = re.compile('<ahref="' + p_url + '">' + p_name + '</a></span><pstyle=.*?>(.*?)</p>').findall(desc)
+#            match1 = re.compile('<ahref="' + p_url + '">' + p_name + '</a></span><pstyle=.*?>(.*?)</p>').findall(desc)
+            match1 = re.compile('<ahref="' + p_url + '">' + p_name + '</a></dt><dd>(.*?)</dd>').findall(desc)
             if len(match1) > 0:
                 p_plot = match1[0].replace('&nbsp;','')
             else:
@@ -371,9 +374,9 @@ except:
     pass
 
 if mode == None:
-	print 'run mode = None'
+    print 'run mode = None'
 else:
-	print 'run mode = %d' % mode
+    print 'run mode = %d' % mode
 
 
 if mode == None:
@@ -392,4 +395,3 @@ elif mode == 4:
     performChannel()
 elif mode == 5:
     performChanges()
-
