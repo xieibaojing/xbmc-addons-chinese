@@ -1,6 +1,12 @@
 ######################################################
 # PPStream 网络电视
 ######################################################
+# Version 2.0.0 2012-01-27 (cmeng)
+# a. Add PPStream 网络电视 video search function
+# b. Include related video players for the site providers: 
+# c. PPS,优酷,土豆,奇艺,搜狐,新浪
+
+
 # Version 1.2.1 2012-01-14 (cmeng)
 # a. update to pps 2012 latest web layout structure
 

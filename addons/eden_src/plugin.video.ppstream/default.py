@@ -1,26 +1,15 @@
 ﻿# -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
+import ChineseKeyboard
 
 ######################################################
-# PPStream 网络电视
-######################################################
-# Version 1.2.1 2012-01-14 (cmeng)
-# a. update to pps 2012 latest web layout structure
-
-# Version 1.2.0 2012-1-8 (Taxigps)
-# a. changed for eden - not use os.getcwd()
- 
-# Version 1.1.1 2011-12-25 (cmeng)
-# a. update to pps new video link
-# b. correct error in categories selection
-# c. correct error in page selection
-
-# Version 1.1.0 2011-11-26 (cmeng)
-# a. Change new UI Similar to taxigps format
-# b. Repair broken links
-# c. Highlight selected page title
-
-# Version 1.0.2 2010 (Originator: robinttt))
+# PPStream 网络电视 by robintttt/cmeng
+# See changelog.txt for earlier history
+#
+# Version 2.0.0 2012-01-27 (cmeng)
+# a. Add PPStream 网络电视 video search function
+# b. Include related video players for the site providers: 
+# c. PPS,优酷,土豆,奇艺,搜狐,新浪
 ######################################################
 
 # Plugin constants 
@@ -28,19 +17,14 @@ __addonname__     = "PPS 网络电视"
 __addonid__       = "plugin.video.ppstream"
 __settings__      = xbmcaddon.Addon(id=__addonid__)
 __cwd__           = xbmc.translatePath( __settings__.getAddonInfo('path') )
+__addon__ = xbmcaddon.Addon(id=__addonid__)
+__addonicon__ = os.path.join( __addon__.getAddonInfo('path'), 'icon.png' )
 
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 VIDEO_LIST = [['tv','电视剧'],['movie','电影'],['fun','综艺'],['anime','动漫']]
-#ALL_LIST = [['caijing','财经'],['zonghe','综合'],['tiyu','体育'],['qiche','汽车'],['youxi','游戏'],['lvyoumeishi','旅游美食'],['news','焦点']]
 SORT_LIST = [['sum_online_sum','按观众数'],['vote_num','按评分']]
-#DATE_LIST = [['1','全部'],['2','今日'],['3','本周'],['4','本月']]
-#ORDER_LIST = [['1','最新发布'],['2','最多播放'],['3','最多评论'],['4','最多推荐']]
 COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]']
-
-#CAT_LIST=[['all','全部'],['dongzuo','动作'],['xiju','喜剧'],['kongbu','恐怖'],['zhanzheng','战争'],['kehuan','科幻'],['aiqing','爱情'],['wenyi','文艺'],['mohuan','魔幻'],['zainan','警匪'],['xuanyi','悬疑'],['donghua','动画'],['wuxia','武侠'],['xibu','西部']]
-#AREA_LIST=[['all','全部'],['cn','内地'],['hk','香港'],['tw','台湾'],['jp','日本'],['kr','韩国'],['us','美国'],['uk','英国'],['fr','法国'],['de','德国'],['other','其他']]
-#YEAR_LIST=[['all','全部'],['2011','2011'],['2010','2010'],['2009','2009'],['2008','2008'],['2007','2007'],['2006','2006'],['2005','2005'],['2004','2004'],['2003','2003'],['2002','2002'],['2001','2001'],['2000','2000']]             
-#SERIES_LIST=[['all','全部'],['ouxiang','偶像'],['jiating','家庭'],['guzhuang','古装'],['xiju','喜剧'],['jingfei','警匪'],['kehuan','科幻'],['yanqing','言情'],['junshi','军事']]
+MPLAYER_LIST = [['10','PPS'],['99','SMG'],['43','优酷'],['44','土豆'],['45','奇艺'],['46','搜狐'],['47','新浪'],['99','乐视']]
      
 ##################################################################################
 # Routine to fetech url site data using Mozilla browser
@@ -49,14 +33,14 @@ COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR F
 # - unicode with 'replace' option to avoid exception on some url
 # - translate to utf8
 ##################################################################################
-def GetHttpData(url):
+def getHttpData(url):
     req = urllib2.Request(url)
     req.add_header('User-Agent', UserAgent)
     response = urllib2.urlopen(req)
     httpdata = response.read()
     response.close()
     httpdata = re.sub('\r|\n|\t', '', httpdata)
-    match = re.compile('<meta.+?charset="(.+?)"[ ]*/>').findall(httpdata)
+    match = re.compile('<meta.+?charset=["]*(.+?)"').findall(httpdata)
     if len(match):
         charset = match[0].lower()
         if (charset != 'utf-8') and (charset != 'utf8'):
@@ -116,7 +100,11 @@ def getListUgc(listpage):
 # - movie, series & ugc require different sub-menu access methods
 ##################################################################################
 def mainMenu():
-    link = GetHttpData('http://v.pps.tv/ugc/list-c30.html')
+    li = xbmcgui.ListItem('[COLOR FFFF0000]PPS 网络电视: [/COLOR][COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
+    u=sys.argv[0]+"?mode=31"
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+    
+    link = getHttpData('http://v.pps.tv/ugc/list-c30.html')
     match0 = re.compile('<ul class="main-nav nav-list">(.+?)</ul>', re.DOTALL).search(link)
     
     # fetch the url for video channels specified in VIDEO_LIST
@@ -182,7 +170,7 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
     else: currpage = 1
     url += page
     url += '.html'
-    link = GetHttpData(url)
+    link = getHttpData(url)
     # Extract filter list for user selection - list order valid on first entry only    
     match = re.compile('<!--classification ' + name + '-->(.+?)<!--/classification-->', re.DOTALL).findall(link)
     if len(match):
@@ -303,7 +291,7 @@ def progListUgc(name, id, page, cat, year, order, datelist=[], orderlist=[]):
         currpage = 1
     url += page
     url += '.html'
-    link = GetHttpData(url)
+    link = getHttpData(url)
     match = re.compile('<!--ugc-tag-list-->(.+?)<!--/ugc-tag-list-->').findall(link)
     
     # Extract filter list for user selection
@@ -382,7 +370,7 @@ def updateListUgc(name, id, listpage, cat, year, order):
 ##################################################################################
 def progListSeries(name, id, thumb, episodeSel):
     url = 'http://v.pps.tv' + id
-    link = GetHttpData(url)
+    link = getHttpData(url)
     episodeList = re.compile('<!--episode-list-->(.+?)<!--/episode-list-->').findall(link)
     listpage = episodeList[0]
                
@@ -445,7 +433,7 @@ def updateListSeries(name, id, thumb, listpage):
 # Player using ppstream player
 ##################################################################################
 def PlaySeries(name, url, thumb):
-    link = GetHttpData(url)
+    link = getHttpData(url)
     xbmc.executebuiltin('System.ExecWait(\\"' + __cwd__ + '\\resources\\player\\pps4xbmc\\" ' + url + ')')
  
 ##################################################################################
@@ -453,9 +441,9 @@ def PlaySeries(name, url, thumb):
 # Player using ppstream player
 ##################################################################################
 def PlayVideo(name, url):
-    link = GetHttpData(url)
+    link = getHttpData(url)
     match0 = re.compile('<!--播放相关js-->.+?src="(.+?)".+?</script>').findall(link)
-    match1 = GetHttpData(match0[0])
+    match1 = getHttpData(match0[0])
 #    match = re.compile("ppspowerplayer.setencsrc\('(.+?)'\)").findall(match1)
     match = re.compile('var encsrc="(.+?)"').findall(match1)
     if len(match):  
@@ -475,7 +463,7 @@ def PlayVideo(name, url):
 def playVideoUgc(name, url, thumb): 
     match = re.compile('play_(.+?).html').findall(url)
     videolink = 'http://dp.ppstv.com/get_play_url_rate.php?sid='+match[0]+'&flash_type=1&type=0'
-    link = GetHttpData(videolink)   
+    link = getHttpData(videolink)   
     if (link):
         match = re.compile('(.+?)\?hd=').findall(link)
         playlist=xbmc.PlayList(1)
@@ -494,7 +482,7 @@ def playVideoUgc(name, url, thumb):
 ##################################################################################
 def getMovie(name, id, thumb):
     url = 'http://v.pps.tv' + id
-    link = GetHttpData(url)
+    link = getHttpData(url)
     match0 = re.compile('js-list[0-9]*?(.+?)</ul>').findall(link)
     if len(match0):
         j=0
@@ -505,10 +493,8 @@ def getMovie(name, id, thumb):
             match = re.compile('<li id(.+?)</li>').findall(match0[k])
             for i in range(0, len(match)):
                 match1 = re.compile('href="\.{0,1}?(.+?)"').search(match[i])
-#                p_url = match1.group(1).replace("^\.","")
                 p_url = match1.group(1)
                 match1 = re.compile('title="(.+?)"').search(match[i])
-#                p_name = match1.group(1)+"  ("+url+")"
                 p_name = match1.group(1)
                 j=j+1
                 url = "http://v.pps.tv" + p_url
@@ -516,6 +502,344 @@ def getMovie(name, id, thumb):
                 u = sys.argv[0] + "?mode=10&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url)
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False)
         xbmcplugin.endOfDirectory(int(sys.argv[1]))   
+
+
+##################################################################################
+# Get user input for PPS site search
+##################################################################################
+def searchPPS():
+    result=''
+#    keyboard = ChineseKeyboard.Keyboard('','请输入搜索内容') # hang input when enable
+    keyboard = xbmc.Keyboard('','请输入搜索内容')
+    keyboard.doModal()
+    if (keyboard.isConfirmed()):
+        keyword = keyboard.getText()
+
+        ### Chinese String for testing without chinesekeyboard
+        ### 夏家三千金 不能说的秘密  步步惊心 爱情公寓 三国高清版 金陵十三钗
+        #keyword = '爱情公寓'
+
+        url='http://so.pps.tv/search?q=' + keyword + '&from=1'
+        page='1'
+        ppsSearchList(keyword,url,page)
+    else: return
+        
+##################################################################################
+# Routine to search PPS site based on user given keyword for:
+# a. video episode List for each found provider
+# b. movie from each found provider
+# c. ugc for each found provider
+##################################################################################
+def ppsSearchList(name, url, page): 
+    if page:
+        currpage = int(page)
+    else:
+        currpage = 1
+    
+    p_url = url.replace(" ","%20") + '&page=' + str(currpage)
+    link = getHttpData(p_url)
+    
+    li = xbmcgui.ListItem('[COLOR FFFF0000]当前搜索: 第' + str(currpage) + '页[/COLOR][COLOR FFFFFF00] (' + name + ')[/COLOR]【[COLOR FF00FF00]' + '请输入新搜索内容' + '[/COLOR]】')
+    u = sys.argv[0] + "?mode=31&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&page=" + urllib.quote_plus(page)
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+    
+    #########################################################################
+    # Video Episode/Movie listing for each found related episode title
+    #########################################################################
+    n = 0
+    match_ml = re.compile('<li class="sr-item.+?">(.+?)<div class="sr-cell">').findall(link)
+    if len(match_ml):
+        for x in range(0, len(match_ml)): 
+            # Find the episode title & its list of the provider sites 
+            match_t = re.compile('<a data-click-stat=.+?class="keyword">(.+?)</a>').findall(match_ml[x])
+            keyword = match_t[0].replace('</em>','')
+
+            ## matchp = re.compile('<div class="mv-play-drop">(.+?)</div>').findall(match_ml[x])
+            match1 = re.compile('<li.+?data-video-type="([0-9]+)".+?title=.+?>(.+?)<em>.+?</li>').findall(match_ml[x])
+            if match1==None: continue # Proceed only if provider sites found
+            # Extract each provider and its episode list
+            match_ep = re.compile('<ul class="mv-episode(.+?)</ul').findall(match_ml[x])
+
+            # Fetch & build the episode list for each site provider 
+            for j in range(0, len(match1)): 
+                 p_name = match1[j][1]+ " - " + keyword
+                 epSite = "_site" + match1[j][0]
+                 
+                 #############################################################
+                 # Episode Listing for each found related episode title
+                 #############################################################
+                 if match_ep:
+                     # Combine all the episode listing groups based on given site provider
+                     epList = ""
+                     for k in range(0, len(match_ep)):
+                         if re.search(epSite, match_ep[k]):
+                             epList += match_ep[k] 
+                     # Construct the array for the found episode listing for fast response
+                     match_ep1 = re.compile('<a class="epis-a" href="(.+?)" target="_blank" title=.+?>([0-9]+)</a>').findall(epList)
+                     p_list = match_ep1[0][0]
+                     for k in range(1, len(match_ep1)):
+                         p_list += "," + match_ep1[k][0]
+
+                     n += 1
+                     li = xbmcgui.ListItem(str(n) + ". 电视剧: " + p_name)
+                     u = sys.argv[0] + "?mode=33&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_list)
+                     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+
+                 #############################################################
+                 # Moive Listing for each found related movie title
+                 #############################################################
+                 else:       
+                     match_mp = re.compile('<ul class="new-mv-episode(.+?)</ul').findall(match_ml[x])
+                     
+                     # Find the video link for the site provider
+                     for k in range(0, len(match_mp)):
+                         if re.search(epSite, match_mp[k])== None: continue
+                         match_mp1 = re.compile('<a class="epis-a" href="(.+?)" target="_blank".+?</a>').findall(match_mp[k])
+                         p_url = match_mp1[0]
+                         n += 1
+ 
+                         mode = fetchID(MPLAYER_LIST,match1[j][1])
+                         if mode=='': mode = '99' # player not implemented
+
+                         li = xbmcgui.ListItem(str(n) + ". 电影: " + p_name)
+                         u = sys.argv[0] + "?mode=" + mode + "&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)
+                         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+ 
+    #############################################################
+    # ugc-list for related title unpack
+    #############################################################
+    n += 1
+    matchp = re.compile('<ul class="ugc-list">(.+?)<!--/ugc-search-results-->').findall(link)
+    if len(matchp) == 0: return
+    
+    # Fetch & build ugc list for user selection, highlight user selected filter      
+    match = re.compile('<li class="ugc-item">(.+?)</ul>').findall(matchp[0])
+    if len(match) == 0: return
+    totalItems = len(match)
+
+    for i in range(0, len(match)):      
+        match1 = re.compile('<div class="t"><a href="(.+?)" target="_blank" title="(.+?)">').search(match[i])
+        p_url = match1.group(1)
+        p_name = p_list = match1.group(2)
+
+        match1 = re.compile('<span class="nm">播放：</span>([0-9]+)<a class=').search(match[i])      
+        if match1: p_list += ': ' + match1.group(1)
+          
+        match1 = re.compile('<img src=.+?lazy_src="(.+?)" class="imgm"').search(match[i])
+        p_thumb = match1.group(1)
+              
+        li = xbmcgui.ListItem(str(n + i) + ". " + p_list, iconImage="", thumbnailImage=p_thumb)
+        u = sys.argv[0] + "?mode=14&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+            
+    # Fetch and build user selectable page number 
+    matchp = re.compile('<div class="pagenav2">(.+?)</div>').findall(link)
+    if len(matchp): 
+        matchp1 = re.compile('<a.+?href=".+?">([0-9]+)</a>').findall(matchp[0])      
+        if len(matchp1):
+            plist=[]
+            for num in matchp1:
+                if num not in plist:
+                    plist.append(num)
+                    li = xbmcgui.ListItem("... 第" + num + "页")
+                    u = sys.argv[0] + "?mode=32&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&page=" + urllib.quote_plus(str(num))
+                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True) 
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    # xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    # xbmc.executebuiltin('Container.Refresh')
+
+##################################################################################
+# Routine to display episode listing
+##################################################################################
+def episodeList(name, url):
+ # url is a list of url for each episode
+    site = name.split(" - ")[0]  
+    mode = fetchID(MPLAYER_LIST,site)
+    if mode=='': mode = '99' # player not implemented
+    url_list = url.split(",")
+    for i in range(0, len(url_list)): 
+        p_url = url_list[i]
+        li = xbmcgui.ListItem(name + ": 第" + str(i+1) + "集")
+        u = sys.argv[0] + "?mode="+ mode +"&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(p_url)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+    xbmcplugin.setContent(int(sys.argv[1]), '电视剧')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+##################################################################################
+# Youku Video Player
+##################################################################################
+def PlayVideoYouku(name, url):
+    link = getHttpData("http://www.flvcd.com/parse.php?kw="+url+"&format=high")
+    match = re.compile('"(http://f.youku.com/player/getFlvPath/.+?)" target="_blank"').findall(link)
+    if len(match)>0:
+        playlist=xbmc.PlayList(1)
+        playlist.clear()
+        for i in range(0,len(match)):
+            listitem = xbmcgui.ListItem(name, thumbnailImage = __addonicon__)
+            listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
+            playlist.add(match[i], listitem)
+        xbmc.Player().play(playlist)
+    else:
+        if link.find('该视频为加密视频')>0:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '无法播放：该视频为加密视频')
+        elif link.find('解析失败，请确认视频是否被删除')>0:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '无法播放：该视频或为收费节目')
+
+##################################################################################
+# Todou Video Player
+##################################################################################
+def PlayVideoTudou(name,url):
+    thumb=""
+    #http://www.tudou.com/programs/view/WCtPhTFE5Os/
+    match = re.compile('http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html').findall(url)
+    url = 'http://v2.tudou.com/v?it='+match[0]
+    link = getHttpData(url)
+    match = re.compile('(http://.+?)</f>').findall(link)
+    if match:
+        listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
+        #listitem.setInfo(type = "Video", infoLabels = {"Title":name, "Director":director, "Plot":plot, "Year":int(year)})
+        xbmc.Player().play(match[0]+'|User-Agent='+UserAgent, listitem)
+    else:
+        dialog = xbmcgui.Dialog()
+        ok = dialog.ok(__addonname__, '抱歉! 由于版权原因, 非大陆地区 - 节目暂时不提供观看')
+
+##################################################################################
+# Qiyi Video Player
+##################################################################################
+def PlayVideoQiyi(name,url):
+    if url.find('http://cache.video.qiyi.com/v/') == -1:
+        link = getHttpData(url)
+        url = getPlayURL(link)
+    link = getHttpData(url)
+    thumb=""
+    match=re.compile('<file>http://data.video.qiyi.com/videos/([^/]+?)/(.+?)</file>').findall(link)
+    playlist=xbmc.PlayList(1)
+    playlist.clear()
+    listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
+    listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(1)+"/"+str(len(match))+" 节"})
+    if urlExists('http://qiyi.soooner.com/videos2/'+match[0][0]+'/'+match[0][1]):
+        baseurl = 'http://qiyi.soooner.com/videos2/'
+    else:
+        baseurl = 'http://qiyi.soooner.com/videos/'
+    playlist.add(baseurl+match[0][0]+'/'+match[0][1], listitem = listitem)
+    for i in range(1,len(match)):
+        listitem=xbmcgui.ListItem(name, thumbnailImage = thumb)
+        listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
+        playlist.add(baseurl+match[i][0]+'/'+match[i][1], listitem = listitem)
+    xbmc.Player().play(playlist)
+
+##################################################################################
+# Qiyi Video Player support functions
+##################################################################################
+def getPlayURL(html):
+    match1 = re.compile('pid : "(.+?)",//').findall(html)
+    if len(match1) > 0:
+        pid = match1[0]
+        match1 = re.compile('ptype : "(.+?)",//').findall(html)
+        ptype = match1[0]
+        match1 = re.compile('videoId : "(.+?)",//').findall(html)
+        videoId = match1[0]
+        url = 'http://cache.video.qiyi.com/v/' + videoId + '/' + pid + '/' + ptype + '/'
+    else:
+        url = ''
+    return url
+
+def urlExists(url):
+    try:
+        resp = urllib2.urlopen(url)
+        result = True
+        resp.close()
+    except urllib2.URLError, e:
+        result = False
+    return result
+
+##################################################################################
+# Sohu Video Player
+##################################################################################
+def PlayVideoSohu(name,url):
+    thumb=""   
+    link = getHttpData(url)
+    match1 = re.compile('var vid="(.+?)";').search(link)
+    if not match1:
+        match1 = re.compile('<a href="(http://[^/]+/[0-9]+/[^\.]+.shtml)" target="?_blank"?><img').search(link)
+        if match1:
+            PlayVideoSohu(name,match1.group(1),thumb)
+        return
+    p_vid = match1.group(1)
+    if p_vid.find(',') > 0 : p_vid = p_vid.split(',')[0]
+
+    ### Fetch video resolution supported for user selection
+    link = getHttpData('http://hot.vrs.sohu.com/vrs_flash.action?vid='+p_vid)
+    match = re.compile('"norVid":(.+?),"highVid":(.+?),"superVid":(.+?),').search(link)
+    ratelist=[]
+    if match.group(3)!='0':ratelist.append(['超清','3'])
+    if match.group(2)!='0':ratelist.append(['高清','2'])
+    if match.group(1)!='0':ratelist.append(['流畅','1'])
+
+    dialog = xbmcgui.Dialog()
+    list = [x[0] for x in ratelist]
+    if len(ratelist)==1:
+        rate=ratelist[0][1]
+    else:
+        sel = dialog.select('视频类型', list)
+        if sel == -1:
+            return
+        else:
+            rate=ratelist[sel][1]
+    
+    if match.group(int(rate))<>str(p_vid):link = getHttpData('http://hot.vrs.sohu.com/vrs_flash.action?vid='+match.group(int(rate)))
+    match = re.compile('"tvName":"(.+?)"').findall(link)
+    name = match[0]
+    match = re.compile('"clipsURL"\:\["(.+?)"\]').findall(link)
+    paths = match[0].split('","')
+    match = re.compile('"su"\:\["(.+?)"\]').findall(link)
+    newpaths = match[0].split('","')
+    playlist = xbmc.PlayList(1)
+    playlist.clear()
+    for i in range(0,len(paths)):
+        p_url = 'http://data.vod.itc.cn/?prot=2&file='+paths[i].replace('http://data.vod.itc.cn','')+'&new='+newpaths[i]
+        link = getHttpData(p_url)
+        key=link.split('|')[3]
+        url=link.split('|')[0].rstrip("/")+newpaths[i]+'?key='+key
+        title = name+" 第"+str(i+1)+"/"+str(len(paths))+"节"
+        listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
+        listitem.setInfo(type="Video",infoLabels={"Title":title})
+        playlist.add(url, listitem)
+        if i==0:
+            xbmc.Player().play(playlist)
+
+##################################################################################
+# Sina Video Player
+##################################################################################
+def PlayVideoSina(name,url):
+    link = getHttpData(url)
+    match = re.compile(' vid:\'(.+?)\',').findall(link)   
+    vid=match[0]
+    vidlist=vid.split('|')
+    #vidlist[0]=普通; vidlist[1]=清晰
+    url='http://v.iask.com/v_play.php?vid='+vidlist[1]+'&uid=0&pid=1000&tid=4&plid=4002&referrer=http%3A%2F%2Fvideo.sina.com.cn%2Fmovie%2Fdetail%2Fmhls&r=video.sina.com.cn'
+    link = getHttpData(url)
+    match = re.compile('<url><!\[CDATA\[(.+?)\]\]></url>').findall(link)
+    if match:
+        playlist=xbmc.PlayList(1)
+        playlist.clear()
+        for i in range(len(match)):
+            listitem = xbmcgui.ListItem(name, thumbnailImage = __addonicon__)
+            listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
+            playlist.add(match[i], listitem)
+        xbmc.Player().play(playlist)
+    else:
+        dialog = xbmcgui.Dialog()
+        ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请稍侯再试')
+
+##################################################################################
+# Unimplmented video player message display
+##################################################################################    
+def searchUndefined(name,url):
+    dialog = xbmcgui.Dialog()
+    ok = dialog.ok(__addonname__,'抱歉! 此视频播放还未推出\nSorry! Video player not implemented.')             
 
 ##################################################################################
 # Routine to fetch video info only (no implemented), no video for playback.
@@ -627,3 +951,28 @@ elif mode == 14:
 elif mode == 21:
     getInfo(name, id, thumb)
 
+elif mode == 31:
+    searchPPS()
+elif mode == 32:
+    ppsSearchList(name, url, page)
+elif mode == 33:
+    episodeList(name,url)
+
+elif mode == 42:
+    PlayVideoSmgbb(name,url)
+elif mode == 43:
+    PlayVideoYouku(name,url)
+elif mode == 44:
+    PlayVideoTudou(name,url)
+elif mode == 45:
+    PlayVideoQiyi(name,url)
+elif mode == 46:
+    PlayVideoSohu(name,url)
+elif mode == 47:
+    PlayVideoSina(name,url)
+elif mode == 48:
+    PlayVideoLetv(name,url)
+
+elif mode == 99:
+    searchUndefined(name, url)
+       
