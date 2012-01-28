@@ -1,0 +1,9 @@
+#####################################
+# 腾讯视频(v.qq.com) changelog
+#####################################
+## Version 1.0.4 (2012-01-28)
+- Display video access error message
+
+## Version 1.0.3 (2011)
+- 腾讯视频(v.qq.com) by wow1122om), 2011
+

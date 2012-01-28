@@ -1,7 +1,11 @@
 ﻿# -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO,ChineseKeyboard
 
+############################################################
 # 腾讯视频(v.qq.com) by wow1122(wht9000@gmail.com), 2011
+############################################################
+## Version 1.0.4 (2012-01-28)
+## - Display video access error message
 
 # Plugin constants 
 __addonname__ = "腾讯视频(v.qq.com)"
@@ -211,7 +215,13 @@ def PlayVideo(name,type,url,thumb):
             listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(vidlist))+" 节"})
             link = GetHttpData('http://vv.video.qq.com/geturl?otype=xml&platform=1&format=2&&vid='+vidlist[i])
             match = re.compile('<url>(.+?)</url>').findall(link)
-            playlist.add(match[0], listitem)
+            if match:
+              playlist.add(match[0], listitem)
+            else:
+                match =re.compile('<msg>(.+?)</msg>').findall(link)
+                msg = '节目暂时不提供观看: ' + match[0]
+                dialog = xbmcgui.Dialog()
+                ok = dialog.ok(__addonname__, msg)
         xbmc.Player().play(playlist)
     else:
         dialog = xbmcgui.Dialog()

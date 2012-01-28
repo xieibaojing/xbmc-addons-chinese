@@ -322,7 +322,7 @@
 
 <addon id="plugin.video.tencent"
     name="腾讯视频(Tecent)"
-    version="1.0.3"
+    version="1.0.4"
     provider-name="wow1122">
     <extension
         point="xbmc.python.pluginsource"
