@@ -1,6 +1,10 @@
 ############################################################
 # 搜狐视频(SoHu) by taxigps, 2011
 ############################################################
+# Version 2.1.6 (2012-01-28)
+# - Start video playback only after completion of the vidoe playlist queue
+#   Otherwise has problem on slow network
+
 # Version 2.1.5 (2012-01-28)
 # - force utf8 encode on httpdata for series video listing
 #   httpdata contains no charset=gbk in GetHttpData. utf-8 Requires for proper display

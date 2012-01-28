@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, httplib, re, string, sys, os, gzip, StringIO
-        
+       
 ############################################################
 # 搜狐视频(SoHu) by taxigps, 2011
 ############################################################
-# Version 2.1.5 (2012-01-28)
-# - force utf8 encode on httpdata for series video listing
-#   httpdata contains no charset=gbk in GetHttpData. utf-8 Requires for proper display
+# Version 2.1.6 (2012-01-28)
+# - Start video playback only after completion of the vidoe playlist queue
+#   Otherwise has problem on slow network
 
 # Version 2.1.4 (2011)
 # Modified by wow1122/wht9000@gmail.com
@@ -361,7 +361,7 @@ def PlayVideo(name,url,thumb):
         if len(ratelist)==1:
             rate=ratelist[0][1]
         else:
-            sel = dialog.select('视频率', list)
+            sel = dialog.select('视频率 (请选择低视频-流畅如网络缓慢)', list)
             if sel == -1:
                 return
             else:
@@ -391,8 +391,8 @@ def PlayVideo(name,url,thumb):
         listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":title})
         playlist.add(url, listitem)
-        if i==0:
-            xbmc.Player().play(playlist)
+    # start play only after all video queue is completed. otherwise has problem on slow network
+    xbmc.Player().play(playlist)
 
 def PlayBoKe(name,url,thumb):
     print 'PlayBoKe2 -> ' + url
