@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, httplib, re, string, sys, os, gzip, StringIO
         
+############################################################
 # 搜狐视频(SoHu) by taxigps, 2011
+############################################################
+# Version 2.1.5 (2012-01-28)
+# - force utf8 encode on httpdata for series video listing
+#   httpdata contains no charset=gbk in GetHttpData. utf-8 Requires for proper display
+
+# Version 2.1.4 (2011)
 # Modified by wow1122/wht9000@gmail.com
 # Modified by fxfboy@gmail.com
+
 # Plugin constants 
 __addonname__ = "搜狐视频(SoHu)"
 __addonid__ = "plugin.video.sohuvideo"
@@ -264,8 +272,10 @@ def seriesList(name,id,url,thumb):
             pid=match0[0].replace('"','')
             match0 = re.compile('var vid=(.+?);', re.DOTALL).findall(link)
             vid=match0[0].replace('"','')
-            obtype= '2'    
+            obtype= '2'
             link = GetHttpData("http://search.vrs.sohu.com/avs_i"+vid+"_pr"+pid+"_o"+obtype+"_n_p1000_chltv.sohu.com.json")
+            # force utf8 encode as httpdata contains no charset=gbk in GetHttpData. utf-8 Requires for proper display
+            link=link.decode('gbk','ignore').encode('utf8')
             match = re.compile('"videoName":"(.+?)",.+?"videoUrl":"(.+?)",.+?"videoBigPic":"(.+?)",', re.DOTALL).findall(link)
             totalItems = len(match)
             for p_name,p_url, p_thumb  in match:
@@ -351,7 +361,7 @@ def PlayVideo(name,url,thumb):
         if len(ratelist)==1:
             rate=ratelist[0][1]
         else:
-            sel = dialog.select('类型', list)
+            sel = dialog.select('视频率', list)
             if sel == -1:
                 return
             else:
@@ -370,7 +380,8 @@ def PlayVideo(name,url,thumb):
     playlist = xbmc.PlayList(1)
     playlist.clear()
     for i in range(0,len(paths)):
-        link = GetHttpData('http://data.vod.itc.cn/?prot=2&file='+paths[i].replace('http://data.vod.itc.cn','')+'&new='+newpaths[i])
+        p_url = 'http://data.vod.itc.cn/?prot=2&file='+paths[i].replace('http://data.vod.itc.cn','')+'&new='+newpaths[i]
+        link = GetHttpData(p_url)
         key=link.split('|')[3]
         #req = httplib.HTTPConnection("new.sohuv.dnion.com")
         #req.request("GET", newpaths[i]+'?key='+key)

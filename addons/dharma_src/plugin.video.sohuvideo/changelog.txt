@@ -1,0 +1,11 @@
+############################################################
+# 搜狐视频(SoHu) by taxigps, 2011
+############################################################
+# Version 2.1.5 (2012-01-28)
+# - force utf8 encode on httpdata for series video listing
+#   httpdata contains no charset=gbk in GetHttpData. utf-8 Requires for proper display
+
+# Version 2.1.4 (2011)
+# Modified by wow1122/wht9000@gmail.com
+# Modified by fxfboy@gmail.com
+
