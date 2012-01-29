@@ -23,7 +23,7 @@ __addonicon__ = os.path.join( __addon__.getAddonInfo('path'), 'icon.png' )
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 VIDEO_LIST = [['tv','电视剧'],['movie','电影'],['fun','综艺'],['anime','动漫']]
 SORT_LIST = [['sum_online_sum','按观众数'],['vote_num','按评分']]
-COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]']
+COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]','[COLOR FFFF00FF]]
 MPLAYER_LIST = [['10','PPS'],['99','SMG'],['43','优酷'],['44','土豆'],['45','奇艺'],['46','搜狐'],['47','新浪'],['99','乐视']]
      
 ##################################################################################

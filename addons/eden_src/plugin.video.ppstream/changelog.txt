@@ -1,6 +1,9 @@
-######################################################
+﻿######################################################
 # PPStream 网络电视
 ######################################################
+# Version 2.0.1 2012-01-29 (taxigps)
+# a. fixed error for COLOR_LIST index out of range
+
 # Version 2.0.0 2012-01-27 (cmeng)
 # a. Add PPStream 网络电视 video search function
 # b. Include related video players for the site providers: 
