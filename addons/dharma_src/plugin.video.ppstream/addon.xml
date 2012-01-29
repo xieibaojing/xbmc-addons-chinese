@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.ppstream"
     name="PPS网络电视(PPStream)"
-    version="2.0.2"
+    version="2.0.3"
     provider-name="Robinttt/cmeng">
     <extension
         point="xbmc.python.pluginsource"
@@ -11,8 +11,8 @@
     <extension point="xbmc.addon.metadata">
         <summary lang="en">PPStream video plugin</summary>
         <summary lang="zh">PPS网络电视</summary>
-        <description lang="en">PPStream video plugin[CR][CR]Note: [CR]1.Need install PPS first, download from http://dl.pps.tv/. [CR]2.Need run key setting program for external player, file path:[CR]plugin.video.ppstream\resources\player\KeymapSet.exe</description>
-        <description lang="zh">观看PPStream在线影视节目。[CR][CR]说明：[CR]1.必须安装PPS网络电视，下载地址http://dl.pps.tv/；[CR]2.第一次使用请运行插件文件夹下\resources\player\KeymapSet.exe设置遥控器快捷键。</description>
+        <description lang="en">PPStream video plugin[CR][CR]Note: [CR]1.Need install PPS first, download from http://dl.pps.tv/. [CR]2.The default key setting of the external player similar as XBMC: F8 - Mute / F9 - VolumeDown / F10 - VolumeUp / [ - ZoomIn / ] - ZoomOut / SPACE - Pause / X - Exit[CR]You can run key setting program to custom the key map for external player, file path:[CR]plugin.video.ppstream\resources\player\KeymapSet.exe[CR]3.on the non-PRC OS environment, you need to do the following settings:[CR]On Windows 7 (similar for Windows XP):[CR]Go to "Control Panel"=>"Region and Language"=>Select Tab "Administrative"[CR]Click button "Change system locale" to "Chinese (Simplified, PRC)"[CR]and restart the machine as instructed.</description>
+        <description lang="zh">观看PPStream在线影视节目。[CR][CR]说明：[CR]1.必须安装PPS网络电视，下载地址http://dl.pps.tv/；[CR]2.外挂播放器按键默认设置与XBMC相近：F8 - 静音 / F9 - 音量减 / F10 - 音量增 / [ - 画面缩小 / ] - 画面放大 / SPACE - 播放暂停 / X - 关闭程序[CR]你也可以运行插件文件夹下的设置程序调整按键：[CR]plugin.video.ppstream\resources\player\KeymapSet.exe</description>
         <platform>windx wingl</platform>
     </extension>
 </addon>
