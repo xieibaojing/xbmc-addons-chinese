@@ -4,8 +4,9 @@ import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, o
 ############################################################
 # 腾讯视频(v.qq.com) by wow1122(wht9000@gmail.com), 2011
 ############################################################
-## Version 1.0.4 (2012-01-28)
-## - Display video access error message
+# Version 1.0.5 (2012-01-29)
+# - Update xml video list access parameters for MV
+# - Cleanup progList() & change player for type > '3' 
 
 # Plugin constants 
 __addonname__ = "腾讯视频(v.qq.com)"
@@ -91,7 +92,7 @@ def progList(name,type,page,cat,area,year,order):
     else:
         currpage = 0
     url = baseurl + 'mi_mtype='+type+'&mi_type='+cat+ '&mi_area=' +area+ '&mi_year=' + year + '&mi_sort=1&mi_show_type=0&mi_pagenum=' +str(currpage) +'&mi_pagesize=30&otype=xml&mi_online=1&mi_index_type=0'
-    print url
+    if type=='4': url+='&mi_platform=1' 
     link = GetHttpData(url)
     match = re.compile('<total>(.+?)</total>', re.DOTALL).findall(link)
     alltotalItems=match[0]
@@ -101,8 +102,6 @@ def progList(name,type,page,cat,area,year,order):
         totalpages=int(alltotalItems)/30
     match = re.compile('(<movies>.+?</movies>)', re.DOTALL).findall(link)
     totalItems = len(match)
-    print '页数：'+str(totalpages)
-    print '每页个数：'+str(totalItems)
     if currpage > 1: totalItems = totalItems + 1
     if currpage < totalpages: totalItems = totalItems + 1
     if type in ['2','3','4']:
@@ -128,30 +127,36 @@ def progList(name,type,page,cat,area,year,order):
         li = xbmcgui.ListItem('类型[COLOR FFFF0000]【' + catstr + '】[/COLOR] 地区[COLOR FFFF0000]【' + areastr + '】[/COLOR] 年份[COLOR FFFF0000]【' + yearstr + '】[/COLOR] 排序[COLOR FFFF0000]【' + orderstr + '】[/COLOR]（按此选择）')
         u = sys.argv[0] + "?mode=5&name="+urllib.quote_plus(name)+"&type="+type+"&cat="+urllib.quote_plus(cat)+"&area="+urllib.quote_plus(area)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(page)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+
     for i in range(0,len(match)):
+        matchp = re.compile('<pic_url>(.+?)</pic_url>').search(match[i])
+        if matchp: p_thumb = matchp.group(1)
+        else: p_thumb = ""
+        matchp = re.compile('<title>(.+?)</title>').search(match[i])
+        p_name = matchp.group(1)
         match1 = re.compile('<cover_id>(.+?)</cover_id>').search(match[i])
-        if type=='4':
+
+        isDir=False
+        if type=='4': #音乐
             p_id = match1.group(1)
             match1 = re.compile('<actor>(.+?)</actor>').search(match[i])
             p_actor =match1.group(1)
             p_actor1=p_actor.split(';')[1]
-        else:
-            p_id = match1.group(1)[0]+'/'+match1.group(1)+'.html'
-        match1 = re.compile('<pic_url>(.+?)</pic_url>').search(match[i])
-        p_thumb = match1.group(1)
-        match1 = re.compile('<title>(.+?)</title>').search(match[i])
-        p_name = match1.group(1)
-        if type=='4':
             li = xbmcgui.ListItem(p_actor1+'-'+p_name, iconImage = '', thumbnailImage = p_thumb)
+            u = sys.argv[0]+"?mode=3&name="+urllib.quote_plus(p_actor1+'-'+p_name)+"&url="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)
         else:
             li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
-        u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&type=2&url="+urllib.quote_plus('http://v.qq.com/cover/'+p_id)+"&thumb="+urllib.quote_plus(p_thumb)
-        isDir=False
-        if type=='3':
-            u = sys.argv[0]+"?mode=2&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus('http://v.qq.com/cover/'+p_id)+"&thumb="+urllib.quote_plus(p_thumb)
-            isDir=True
-        if type=='4':
-            u = sys.argv[0]+"?mode=3&name="+urllib.quote_plus(p_actor1+'-'+p_name)+"&url="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)
+            p_id = match1.group(1)[0]+'/'+match1.group(1)+'.html'
+            p_url = 'http://v.qq.com/cover/'+ p_id
+            if type=='2': #电影
+                u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&type=2&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+            elif type=='3': #电视剧
+                isDir=True
+                u = sys.argv[0]+"?mode=2&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+            else:  # Others
+                p_id = match1.group(1) 
+                u = sys.argv[0]+"?mode=3&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)
+       
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, isDir, totalItems)
 
@@ -173,7 +178,6 @@ def progList(name,type,page,cat,area,year,order):
 def listA(name,url,thumb):
     print name
     print url
-    print thumb
     link = GetHttpData(url)
     if link.find('sv=""') > 0 :
         match = re.compile('</i><a target="_self".+?id="(.+?)"  title="(.+?)"', re.DOTALL).findall(link)
@@ -186,7 +190,6 @@ def listA(name,url,thumb):
     else:
         match = re.compile('</i><a target="_self".+?title="(.+?)".+?sv="(.+?)"', re.DOTALL).findall(link)
         totalItems=len(match)
-        print str(totalItems)
         for p_name,p_url  in match:
             li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = thumb)
             u = sys.argv[0] + "?mode=10&name="+urllib.quote_plus(p_name)+"&type=3&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(thumb)
@@ -198,7 +201,6 @@ def listA(name,url,thumb):
 def PlayVideo(name,type,url,thumb):
     print name
     print url
-    print thumb
     if type=='2':
         link = GetHttpData(url)
         match = re.compile('vid:"(.+?)"').findall(link)   
@@ -206,6 +208,7 @@ def PlayVideo(name,type,url,thumb):
         vidlist=vid.split('|')
     elif type=='3':
         vidlist=url.split('|')
+       
     print vidlist
     if len(vidlist)>0:
         playlist=xbmc.PlayList(1)
@@ -213,27 +216,32 @@ def PlayVideo(name,type,url,thumb):
         for i in range(len(vidlist)):
             listitem = xbmcgui.ListItem(name, thumbnailImage = __addonicon__)
             listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(vidlist))+" 节"})
-            link = GetHttpData('http://vv.video.qq.com/geturl?otype=xml&platform=1&format=2&&vid='+vidlist[i])
+            p_url = 'http://vv.video.qq.com/geturl?otype=xml&platform=1&format=2&&vid='+vidlist[i]
+            link = GetHttpData(p_url)
             match = re.compile('<url>(.+?)</url>').findall(link)
             if match:
               playlist.add(match[0], listitem)
             else:
                 match =re.compile('<msg>(.+?)</msg>').findall(link)
+                if match==None: match[0]=""
                 msg = '节目暂时不提供观看: ' + match[0]
                 dialog = xbmcgui.Dialog()
                 ok = dialog.ok(__addonname__, msg)
         xbmc.Player().play(playlist)
     else:
         dialog = xbmcgui.Dialog()
-        ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请稍侯再试或联系作者')
+        ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请稍侯再试.')
 
 def PlayMv(name,url,thumb):
     print name
     print url
-    print thumb
     link = GetHttpData('http://vv.video.qq.com/geturl?otype=xml&platform=1&format=2&&vid='+url)
     match = re.compile('<url>(.+?)</url>').findall(link)
-    xbmc.Player().play(match[0])
+    if match:
+        xbmc.Player().play(match[0])
+    else:
+        dialog = xbmcgui.Dialog()
+        ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请稍侯再试.')
 
 
 def SearchVideo(name,type,url,thumb):
@@ -410,6 +418,7 @@ elif mode == 2:
     listA(name,url,thumb)
 elif mode == 3:
     PlayMv(name,url,thumb)
+    
 elif mode == 5:
     performChanges(name,type,page,cat,area,year,order)
 elif mode == 6:

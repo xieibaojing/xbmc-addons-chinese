@@ -1,9 +1,13 @@
 #####################################
 # 腾讯视频(v.qq.com) changelog
 #####################################
-## Version 1.0.4 (2012-01-28)
-- Display video access error message
+# Version 1.0.5 (2012-01-29)
+  - Update xml video list access parameters for MV
+  - Cleanup progList() & change player for type > '3' 
 
-## Version 1.0.3 (2011)
-- 腾讯视频(v.qq.com) by wow1122om), 2011
+# Version 1.0.4 (2012-01-28)
+  - Display video access error message
+
+# Version 1.0.3 (2011)
+  - 腾讯视频(v.qq.com) by wow1122om), 2011
 
