@@ -511,6 +511,7 @@ def searchPPS():
     result=''
     keyboard = ChineseKeyboard.Keyboard('','请输入搜索内容')
 #    keyboard = xbmc.Keyboard('','请输入搜索内容')
+    xbmc.sleep( 1500 )
     keyboard.doModal()
     if (keyboard.isConfirmed()):
         keyword = keyboard.getText()

@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
 import ChineseKeyboard
 
@@ -509,8 +509,9 @@ def getMovie(name, id, thumb):
 ##################################################################################
 def searchPPS():
     result=''
-#    keyboard = ChineseKeyboard.Keyboard('','请输入搜索内容') # hang input when enable
-    keyboard = xbmc.Keyboard('','请输入搜索内容')
+    keyboard = ChineseKeyboard.Keyboard('','请输入搜索内容')
+#    keyboard = xbmc.Keyboard('','请输入搜索内容')
+    xbmc.sleep( 1500 )
     keyboard.doModal()
     if (keyboard.isConfirmed()):
         keyword = keyboard.getText()
