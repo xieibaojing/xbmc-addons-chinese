@@ -1,6 +1,10 @@
 ############################################################
 # 搜狐视频(SoHu) by taxigps, 2011
 ############################################################
+# Version 2.1.8 (2012-02-01)
+# - fix error for non-supported default selected video resolution
+# - change settings.xml '标清' to '流畅'
+
 # Version 2.1.7 (2012-02-01)
 # - Add dialog message for non-existence user selected video
 # - Add dialog message for non-supported video resolution selected

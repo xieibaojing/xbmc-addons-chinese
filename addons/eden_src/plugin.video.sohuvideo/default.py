@@ -4,9 +4,9 @@ import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, httplib, re, strin
 ############################################################
 # 搜狐视频(SoHu) by taxigps, 2011
 ############################################################
-# Version 2.1.7 (2012-02-01)
-# - Add dialog message for non-existence user selected video
-# - Add dialog message for non-supported video resolution selected
+# Version 2.1.8 (2012-02-01)
+# - fix error for non-supported default selected video resolution
+# - change settings.xml '标清' to '流畅'
 
 # Version 2.1.4 (2011)
 # Modified by wow1122/wht9000@gmail.com
@@ -379,8 +379,9 @@ def PlayVideo(name,url,thumb):
     match = re.compile('"tvName":"(.+?)"').findall(link)
     print match
     if not match:
+       res = ratelist[3-int(rate)][0]
        dialog = xbmcgui.Dialog()
-       ok = dialog.ok(__addonname__,'您当前选择的视频: ['+ ratelist[sel][0] +'] 暂不能播放，请选择其它视频')       
+       ok = dialog.ok(__addonname__,'您当前选择的视频: ['+ res +'] 暂不能播放，请选择其它视频')       
        return
     name = match[0]
     match = re.compile('"clipsURL"\:\["(.+?)"\]').findall(link)
