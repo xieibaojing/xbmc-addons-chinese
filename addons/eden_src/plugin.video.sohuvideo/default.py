@@ -4,9 +4,9 @@ import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, httplib, re, strin
 ############################################################
 # 搜狐视频(SoHu) by taxigps, 2011
 ############################################################
-# Version 2.1.6 (2012-01-28)
-# - Start video playback only after completion of the vidoe playlist queue
-#   Otherwise has problem on slow network
+# Version 2.1.7 (2012-02-01)
+# - Add dialog message for non-existence user selected video
+# - Add dialog message for non-supported video resolution selected
 
 # Version 2.1.4 (2011)
 # Modified by wow1122/wht9000@gmail.com
@@ -351,6 +351,10 @@ def PlayVideo(name,url,thumb):
     if p_vid.find(',') > 0 : p_vid = p_vid.split(',')[0]
     link = GetHttpData('http://hot.vrs.sohu.com/vrs_flash.action?vid='+p_vid)
     match = re.compile('"norVid":(.+?),"highVid":(.+?),"superVid":(.+?),').search(link)
+    if not match:
+       dialog = xbmcgui.Dialog()
+       ok = dialog.ok(__addonname__,'您当前选择的节目暂不能播放，请选择其它节目')   
+       return    
     ratelist=[]
     if match.group(3)!='0':ratelist.append(['超清','3'])
     if match.group(2)!='0':ratelist.append(['高清','2'])
@@ -370,8 +374,14 @@ def PlayVideo(name,url,thumb):
         rate = int(ratelist[0][1])
         if rate > level + 1:
             rate = level + 1
-    if match.group(int(rate))<>str(p_vid):link = GetHttpData('http://hot.vrs.sohu.com/vrs_flash.action?vid='+match.group(int(rate)))
+    if match.group(int(rate))<>str(p_vid):
+        link = GetHttpData('http://hot.vrs.sohu.com/vrs_flash.action?vid='+match.group(int(rate)))
     match = re.compile('"tvName":"(.+?)"').findall(link)
+    print match
+    if not match:
+       dialog = xbmcgui.Dialog()
+       ok = dialog.ok(__addonname__,'您当前选择的视频: ['+ ratelist[sel][0] +'] 暂不能播放，请选择其它视频')       
+       return
     name = match[0]
     match = re.compile('"clipsURL"\:\["(.+?)"\]').findall(link)
     paths = match[0].split('","')
