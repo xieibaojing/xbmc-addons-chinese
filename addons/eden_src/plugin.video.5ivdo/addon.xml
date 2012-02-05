@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.5ivdo"
+    name="5ivdo(5ivdo)"
+    version="1.0.0"
+    provider-name="5ivdo">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">5ivdo video plugin</summary>
+        <summary lang="zh">我爱VDO</summary>
+        <description lang="en">online video from 5ivdo.com</description>
+        <description lang="zh">在线视频聚合</description>
+        <platform>all</platform>
+    </extension>
+</addon>
