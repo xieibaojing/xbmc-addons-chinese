@@ -173,7 +173,10 @@ def properties2(query):
     set_property('Current.FanartCode'    , weathercode)
     week = DAYS[query['weatherinfo']['week'].encode('utf-8')]
     for count in [0, 1, 2, 3]:
-        weathercode = WEATHER_CODES[query['weatherinfo']['img%i' % (count + 1)].encode('utf-8')]
+        img = query['weatherinfo']['img%i' % (count + 1)].encode('utf-8')
+        if count in [1, 3] and img == '99':
+            img = query['weatherinfo']['img%i' % count].encode('utf-8')
+        weathercode = WEATHER_CODES[img]
         day = week + count
         if day > 7: day -= 7
         temp = query['weatherinfo']['temp%i' % (count + 1)].encode('utf-8').replace('℃', '').split('~')
