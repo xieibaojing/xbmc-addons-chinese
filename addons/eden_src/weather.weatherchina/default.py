@@ -229,7 +229,29 @@ if sys.argv[1].startswith('Location'):
 
 else:
     location = __addon__.getSetting('Location%sid' % sys.argv[1])
-    forecast(location)
+    if not location == '':
+        forecast(location)
+        refresh_locations()
+    else:
+        # workaround to fix incrementing values on each weather refresh when no locations are set up:
+        set_property('Current.Condition'     , '无')
+        set_property('Current.Temperature'   , '0')
+        set_property('Current.Wind'          , '0')
+        set_property('Current.WindDirection' , '无')
+        set_property('Current.Humidity'      , '0')
+        set_property('Current.FeelsLike'     , '0')
+        set_property('Current.UVIndex'       , '0')
+        set_property('Current.DewPoint'      , '0')
+        set_property('Current.OutlookIcon'   , 'na.png')
+        set_property('Current.FanartCode'    , 'na')
+        for count in range (0, 4):
+            set_property('Day%i.Title'       % count, '无')
+            set_property('Day%i.HighTemp'    % count, '0')
+            set_property('Day%i.LowTemp'     % count, '0')
+            set_property('Day%i.Outlook'     % count, '无')
+            set_property('Day%i.OutlookIcon' % count, 'na.png')
+            set_property('Day%i.FanartCode'  % count, 'na')
+        # workaround to stop xbmc from running the script in a loop when no locations are set up:
+        set_property('Locations', '1')
 
-refresh_locations()
 set_property('WeatherProvider', '中国天气网')
