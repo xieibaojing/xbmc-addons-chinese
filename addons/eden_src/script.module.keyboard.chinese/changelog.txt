@@ -1,16 +1,18 @@
 ﻿##############################################################################
 # Chinese Keyboard Addon Module Change History
+# Version 1.2.2 2012-02-11 (cmeng)
+# a. Skip Baidu http request if py is an empty string
+
 # Version 1.2.1 2012-02-11 (cmeng)
 # a. Dynamic word selection per page based on word length
 # b. Add scancode for Eden: < & > arrow buttons
-#
+
 # Version 1.2.0 2012-02-10 (cmeng)
 # a. Add cookie to http data request to avoid forcibly closed by the remote host
 # b. Common module for both Eden and Dharma (0-9 scancode-non overlapping  
 # c. Change words per page to 10 for user faster selection
 # d. Retain hzlist for user repeated word selection
 # e. Add < & > arrow for page scrolling using keyboard
-
 # Version 1.1.1(Eden) / 1.0.4(Dharma) 2012-02-06 (taxigps)
 # a. Different 0-9 scan code for Eden and Dharma
 #

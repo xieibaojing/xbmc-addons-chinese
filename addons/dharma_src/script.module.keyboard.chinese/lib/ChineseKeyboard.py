@@ -11,9 +11,8 @@ import urllib2, urllib, httplib, time
 # Chinese Keyboard Addon Module Change History
 # See changelog.txt for earlier history
 #
-# Version 1.2.1 2012-02-11 (cmeng)
-# a. Dynamic word selection per page based on word length
-# b. Add scancode for Eden: < & > arrow buttons
+# Version 1.2.2 2012-02-11 (cmeng)
+# a. Skip Baidu http request if py is an empty string
 ##############################################################################
 
 __settings__ = Addon( "script.module.keyboard.chinese" )
@@ -172,6 +171,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         self.totalpage = 1
         self.getControl(CTRL_ID_HZLIST).setLabel('')
         #if HANZI_MB.has_key(py):
+        if py=='': return
         self.words=self.getwords(py)
         self.totalpage = int(len(self.words)/self.wordperpage)+1
         num=0
