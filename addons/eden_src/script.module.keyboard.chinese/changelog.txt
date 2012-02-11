@@ -1,6 +1,8 @@
 ﻿##############################################################################
 # Chinese Keyboard Addon Module Change History
-# See changelog.txt for earlier history
+# Version 1.2.1 2012-02-11 (cmeng)
+# a. Dynamic word selection per page based on word length
+# b. Add scancode for Eden: < & > arrow buttons
 #
 # Version 1.2.0 2012-02-10 (cmeng)
 # a. Add cookie to http data request to avoid forcibly closed by the remote host

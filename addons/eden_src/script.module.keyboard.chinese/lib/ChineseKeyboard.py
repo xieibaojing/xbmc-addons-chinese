@@ -11,12 +11,9 @@ import urllib2, urllib, httplib, time
 # Chinese Keyboard Addon Module Change History
 # See changelog.txt for earlier history
 #
-# Version 1.2.0 2012-02-10 (cmeng)
-# a. Add cookie to http data request to avoid forcibly closed by the remote host
-# b. Common module for both Eden and Dharma (0-9 scancode-non overlapping  
-# c. Change words per page to 10 for user faster selection
-# d. Retain hzlist for user repeated word selection
-# e. Add < & > arrow for page scrolling using keyboard 
+# Version 1.2.1 2012-02-11 (cmeng)
+# a. Dynamic word selection per page based on word length
+# b. Add scancode for Eden: < & > arrow buttons
 ##############################################################################
 
 __settings__ = Addon( "script.module.keyboard.chinese" )
@@ -31,7 +28,7 @@ MEDIA_PATH = os.path.join( SKINS_PATH, ADDON_SKIN, "media" )
 ACTION_PARENT_DIR     = 9
 ACTION_PREVIOUS_MENU  = (10, 92)
 ACTION_CONTEXT_MENU   = 117
-WORD_PER_PAGE = 9
+WORD_PER_PAGE = [9,7,5,4,3,3,3]
 
 CTRL_ID_BACK = 8
 CTRL_ID_SPACE = 32
@@ -52,6 +49,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         self.totalpage = 1
         self.nowpage = 0
         self.words = ''
+        self.wordperpage = WORD_PER_PAGE[0]
         self.inputString = kwargs.get( "default" ) or ""
         self.heading = kwargs.get( "heading" ) or ""
         xbmcgui.WindowXMLDialog.__init__( self )
@@ -111,7 +109,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
                     self.getControl(CTRL_ID_CODE).setLabel(s)
                     self.getChineseWord(s)
                 elif controlID>=48 and controlID<=57:#0-9
-                    i = self.nowpage*WORD_PER_PAGE+(controlID-48)
+                    i = self.nowpage*self.wordperpage+(controlID-48)
                     hanzi = self.words[i]
                     self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+ hanzi)
                     self.getControl(CTRL_ID_CODE).setLabel('')
@@ -126,7 +124,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         #s2 = str(action.getButtonCode())
         #print "======="+s1+"========="+s2+"=========="
         keycode = action.getButtonCode()
-#        self.getControl(CTRL_ID_HEAD).setLabel(str(keycode))
+        #self.getControl(CTRL_ID_HEAD).setLabel(str(keycode))
         if keycode >= 61505 and keycode <= 61530: #a-z
             if self.getControl(CTRL_ID_LANG).isSelected():
                 keychar = chr(keycode - 61505 + ord('a'))
@@ -143,9 +141,9 @@ class InputWindow(xbmcgui.WindowXMLDialog):
             self.onClick( keycode-61488+48 )
         elif keycode >= 61536 and keycode <= 61545: #0-9 (Dharma)-no overlapping code with Eden
             self.onClick( keycode-61536+48 )
-        elif keycode == 192700:
+        elif keycode == 61500 or keycode == 192700: #Eden & Dharma scancode difference
             self.onClick( CTRL_ID_LEFT ) # <
-        elif keycode == 192702:
+        elif keycode == 61502 or keycode == 192702: #Eden & Dharma scancode difference
             self.onClick( CTRL_ID_RIGHT ) # >
         elif keycode == 61472:
             self.onClick( CTRL_ID_SPACE )
@@ -161,10 +159,10 @@ class InputWindow(xbmcgui.WindowXMLDialog):
             hzlist = ''
         else:
             hzlist = '< '
-        for i in range(self.nowpage*WORD_PER_PAGE, len(self.words)):
+        for i in range(self.nowpage*self.wordperpage, len(self.words)):
             hzlist = hzlist+str(num)+'.'+self.words[i]+' '
             num+=1
-            if num > WORD_PER_PAGE: break
+            if num > self.wordperpage: break
         if self.nowpage < self.totalpage-1:
             hzlist = hzlist + '>'
         self.getControl(CTRL_ID_HZLIST).setLabel(hzlist)
@@ -175,13 +173,13 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         self.getControl(CTRL_ID_HZLIST).setLabel('')
         #if HANZI_MB.has_key(py):
         self.words=self.getwords(py)
-        self.totalpage = int(len(self.words)/WORD_PER_PAGE)+1
+        self.totalpage = int(len(self.words)/self.wordperpage)+1
         num=0
         hzlist = ''
         for i in range(0, len(self.words)):
             hzlist = hzlist+str(num)+'.'+self.words[i]+' '
             num+=1
-            if num > WORD_PER_PAGE: break
+            if num > self.wordperpage: break
         if self.totalpage>1:
             hzlist = hzlist + '>'
         self.getControl(CTRL_ID_HZLIST).setLabel(hzlist)
@@ -241,9 +239,12 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         response.close()
         words = []
         match = re.compile('\["(.+?)",\d+\]').findall(httpdata)
+        wordcnt = len(match[0].split("\\"))-2
+        self.wordperpage = WORD_PER_PAGE[wordcnt]
         for word in match:
             words.append(eval('u"'+word+'"').encode('utf-8'))
         return words
+    
 
 
 class Keyboard:
