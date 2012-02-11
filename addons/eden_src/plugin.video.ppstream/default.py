@@ -2,15 +2,14 @@
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
 import ChineseKeyboard
 
-######################################################
+########################################################################
 # PPStream 网络电视 by robintttt/cmeng
 # See changelog.txt for earlier history
 #
-# Version 2.0.0 2012-01-27 (cmeng)
-# a. Add PPStream 网络电视 video search function
-# b. Include related video players for the site providers: 
-# c. PPS,优酷,土豆,奇艺,搜狐,新浪
-######################################################
+# Version 2.0.4 2012-02-11 (cmeng)
+# a. Update PlayVideoSohu to take care of missing video/resolution 
+# b. Take care for XBMC Eden Beta 3 [COLOR\] script problem
+########################################################################
 
 # Plugin constants 
 __addonname__     = "PPS 网络电视"
@@ -100,7 +99,8 @@ def getListUgc(listpage):
 # - movie, series & ugc require different sub-menu access methods
 ##################################################################################
 def mainMenu():
-    li = xbmcgui.ListItem('[COLOR FFFF0000]PPS 网络电视: [/COLOR][COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
+    es = "*"
+    li = xbmcgui.ListItem('[COLOR FFFF0000]PPS 网络电视:[/COLOR]'+es+'[COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
     u=sys.argv[0]+"?mode=31"
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     
@@ -539,8 +539,8 @@ def ppsSearchList(name, url, page):
     
     p_url = url.replace(" ","%20") + '&page=' + str(currpage)
     link = getHttpData(p_url)
-    
-    li = xbmcgui.ListItem('[COLOR FFFF0000]当前搜索: 第' + str(currpage) + '页[/COLOR][COLOR FFFFFF00] (' + name + ')[/COLOR]【[COLOR FF00FF00]' + '请输入新搜索内容' + '[/COLOR]】')
+    es = "*"
+    li = xbmcgui.ListItem('[COLOR FFFF0000]当前搜索: 第' + str(currpage) + '页[/COLOR]'+es+'[COLOR FFFFFF00] (' + name + ')[/COLOR]【[COLOR FF00FF00]' + '请输入新搜索内容' + '[/COLOR]】')
     u = sys.argv[0] + "?mode=31&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&page=" + urllib.quote_plus(page)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     
@@ -774,6 +774,10 @@ def PlayVideoSohu(name,url):
     ### Fetch video resolution supported for user selection
     link = getHttpData('http://hot.vrs.sohu.com/vrs_flash.action?vid='+p_vid)
     match = re.compile('"norVid":(.+?),"highVid":(.+?),"superVid":(.+?),').search(link)
+    if not match:
+       dialog = xbmcgui.Dialog()
+       ok = dialog.ok(__addonname__,'您当前选择的节目暂不能播放，请选择其它节目')   
+       return
     ratelist=[]
     if match.group(3)!='0':ratelist.append(['超清','3'])
     if match.group(2)!='0':ratelist.append(['高清','2'])
@@ -784,14 +788,20 @@ def PlayVideoSohu(name,url):
     if len(ratelist)==1:
         rate=ratelist[0][1]
     else:
-        sel = dialog.select('视频类型', list)
+        sel = dialog.select('视频率 (请选择低视频-流畅如网络缓慢)', list)
         if sel == -1:
             return
         else:
             rate=ratelist[sel][1]
     
-    if match.group(int(rate))<>str(p_vid):link = getHttpData('http://hot.vrs.sohu.com/vrs_flash.action?vid='+match.group(int(rate)))
+    if match.group(int(rate))<>str(p_vid):
+        link = getHttpData('http://hot.vrs.sohu.com/vrs_flash.action?vid='+match.group(int(rate)))
     match = re.compile('"tvName":"(.+?)"').findall(link)
+    if not match:
+       res = ratelist[3-int(rate)][0]
+       dialog = xbmcgui.Dialog()
+       ok = dialog.ok(__addonname__,'您当前选择的视频: ['+ res +'] 暂不能播放，请选择其它视频')       
+       return
     name = match[0]
     match = re.compile('"clipsURL"\:\["(.+?)"\]').findall(link)
     paths = match[0].split('","')
@@ -808,8 +818,8 @@ def PlayVideoSohu(name,url):
         listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":title})
         playlist.add(url, listitem)
-        if i==0:
-            xbmc.Player().play(playlist)
+    # start play only after all video queue is completed. otherwise has problem on slow network
+    xbmc.Player().play(playlist)
 
 ##################################################################################
 # Sina Video Player
