@@ -99,8 +99,7 @@ def getListUgc(listpage):
 # - movie, series & ugc require different sub-menu access methods
 ##################################################################################
 def mainMenu():
-    es = "*"
-    li = xbmcgui.ListItem('[COLOR FFFF0000]PPS 网络电视:[/COLOR]'+es+'[COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
+    li = xbmcgui.ListItem('[COLOR FFFF0000]PPS 网络电视:[/COLOR][COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
     u=sys.argv[0]+"?mode=31"
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     
@@ -131,6 +130,7 @@ def mainMenu():
         li = xbmcgui.ListItem(str(i) + '. ' + name)
         u = sys.argv[0] + "?mode=11&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&cat=" + urllib.quote_plus(cat) + "&year=" + urllib.quote_plus('全部') + "&order=" + urllib.quote_plus('最新发布')
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))  
 
 ##################################################################################
@@ -539,8 +539,7 @@ def ppsSearchList(name, url, page):
     
     p_url = url.replace(" ","%20") + '&page=' + str(currpage)
     link = getHttpData(p_url)
-    es = "*"
-    li = xbmcgui.ListItem('[COLOR FFFF0000]当前搜索: 第' + str(currpage) + '页[/COLOR]'+es+'[COLOR FFFFFF00] (' + name + ')[/COLOR]【[COLOR FF00FF00]' + '请输入新搜索内容' + '[/COLOR]】')
+    li = xbmcgui.ListItem('[COLOR FFFF0000]当前搜索: 第' + str(currpage) + '页[/COLOR][COLOR FFFFFF00] (' + name + ')[/COLOR]【[COLOR FF00FF00]' + '请输入新搜索内容' + '[/COLOR]】')
     u = sys.argv[0] + "?mode=31&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&page=" + urllib.quote_plus(page)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     
@@ -645,8 +644,8 @@ def ppsSearchList(name, url, page):
                     li = xbmcgui.ListItem("... 第" + num + "页")
                     u = sys.argv[0] + "?mode=32&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&page=" + urllib.quote_plus(str(num))
                     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True) 
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-    # xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     # xbmc.executebuiltin('Container.Refresh')
 
 ##################################################################################
@@ -663,7 +662,7 @@ def episodeList(name, url):
         li = xbmcgui.ListItem(name + ": 第" + str(i+1) + "集")
         u = sys.argv[0] + "?mode="+ mode +"&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(p_url)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
-    xbmcplugin.setContent(int(sys.argv[1]), '电视剧')
+    xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 ##################################################################################
