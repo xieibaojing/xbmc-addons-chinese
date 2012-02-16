@@ -221,6 +221,7 @@ def	rootList():
 			addDir(u, '搜索"[COLOR FFFF0000]' + keyword + '[/COLOR]"', '')
 		u=sys.argv[0] + "?mode=1"
 		addItem(u, "清除历史记录", '')
+	xbmcplugin.setContent(int(sys.argv[1]), 'movies')
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def searchSite(history):
@@ -229,18 +230,17 @@ def searchSite(history):
 		for name,id,pluginId in CHANNEL_LIST:
 			u=sys.argv[0]+"?mode="+id+"&plugin="+pluginId+'&keyword='+history
 			addDir(u, '从【[COLOR FF00FF00]' + name + '[/COLOR]】搜索"[COLOR FFFF0000]' + history + '[/COLOR]"', getPluginIcon(pluginId))
-		xbmcplugin.endOfDirectory(int(sys.argv[1]))
 	else:
 		keyword = getKeyword()
 		if len(keyword)>0:
 			for name,id,pluginId in CHANNEL_LIST:
 				u=sys.argv[0]+"?mode="+id+"&plugin="+pluginId+'&keyword='+keyword
 				addDir(u, '从【[COLOR FF00FF00]' + name + '[/COLOR]】搜索"[COLOR FFFF0000]' + keyword + '[/COLOR]"', getPluginIcon(pluginId))
-			xbmcplugin.endOfDirectory(int(sys.argv[1]))
 		else:
-			xbmcplugin.endOfDirectory(int(sys.argv[1]))
 			setKeyword('')
 			popupSearch()
+	xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def	clearHistory():
 	setKeyword('')
