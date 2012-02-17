@@ -252,6 +252,7 @@ def	clearHistory():
 	xbmc.executebuiltin('Container.Refresh')
 
 def	popupSearch():
+	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 	keyboard = ChineseKeyboard.Keyboard('','请输入搜索内容')
 	keyboard.doModal()
 	if (keyboard.isConfirmed()):
