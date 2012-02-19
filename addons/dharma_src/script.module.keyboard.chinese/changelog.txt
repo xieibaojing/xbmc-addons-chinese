@@ -1,5 +1,9 @@
 ﻿##############################################################################
 # Chinese Keyboard Addon Module Change History
+# Version 1.2.4 2012-02-19 (cmeng)
+# a. Remove repeated last word selection from previous page 
+# b. Need to round up self.totalpage count
+
 # Version 1.2.3 2012-02-19 (cmeng)
 # a. Limit hzlist to 7 items for double word to take care certain ttf size
 

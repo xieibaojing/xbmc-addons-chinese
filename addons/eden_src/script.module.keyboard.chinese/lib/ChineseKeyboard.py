@@ -10,8 +10,9 @@ import urllib2, urllib, httplib, time
 # Chinese Keyboard Addon Module Change History
 # See changelog.txt for earlier history
 #
-# Version 1.2.3 2012-02-19 (cmeng)
-# a. Limit hzlist to 7 items for double-word to take care certain ttf size
+# Version 1.2.4 2012-02-19 (cmeng)
+# a. Remove repeated last word selection from previous page 
+# b. Need to round up self.totalpage count
 ##############################################################################
 
 __settings__ = Addon( "script.module.keyboard.chinese" )
@@ -157,7 +158,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
             hzlist = ''
         else:
             hzlist = '< '
-        for i in range(self.nowpage*self.wordperpage, len(self.words)):
+        for i in range(self.nowpage*(self.wordperpage+1), len(self.words)):
             hzlist = hzlist+str(num)+'.'+self.words[i]+' '
             num+=1
             if num > self.wordperpage: break
@@ -172,7 +173,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         #if HANZI_MB.has_key(py):
         if py=='': return
         self.words=self.getwords(py)
-        self.totalpage = int(len(self.words)/self.wordperpage)+1
+        self.totalpage = int((len(self.words)+self.wordperpage)/(self.wordperpage+1)) #totalpage need to round up
         num=0
         hzlist = ''
         for i in range(0, len(self.words)):
@@ -242,8 +243,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         self.wordperpage = WORD_PER_PAGE[wordcnt]
         for word in match:
             words.append(eval('u"'+word+'"').encode('utf-8'))
-        return words
-    
+        return words    
 
 
 class Keyboard:
