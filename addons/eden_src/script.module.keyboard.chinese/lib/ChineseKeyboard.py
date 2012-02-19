@@ -4,15 +4,14 @@ from traceback import print_exc
 
 import xbmc, xbmcgui
 from xbmcaddon import Addon
-
 import urllib2, urllib, httplib, time
 
 ##############################################################################
 # Chinese Keyboard Addon Module Change History
 # See changelog.txt for earlier history
 #
-# Version 1.2.2 2012-02-11 (cmeng)
-# a. Skip Baidu http request if py is an empty string
+# Version 1.2.3 2012-02-19 (cmeng)
+# a. Limit hzlist to 7 items for double-word to take care certain ttf size
 ##############################################################################
 
 __settings__ = Addon( "script.module.keyboard.chinese" )
@@ -27,7 +26,7 @@ MEDIA_PATH = os.path.join( SKINS_PATH, ADDON_SKIN, "media" )
 ACTION_PARENT_DIR     = 9
 ACTION_PREVIOUS_MENU  = (10, 92)
 ACTION_CONTEXT_MENU   = 117
-WORD_PER_PAGE = [9,7,5,4,3,3,3]
+WORD_PER_PAGE = [9,6,5,4,3,3,3]
 
 CTRL_ID_BACK = 8
 CTRL_ID_SPACE = 32
@@ -136,9 +135,9 @@ class InputWindow(xbmcgui.WindowXMLDialog):
                 else:
                     keychar = chr(keycode - 61505 + ord('a'))
                 self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+keychar)
-        elif keycode >= 61488 and keycode <= 61497: #0-9 (Eden)-no overlapping code with Dharma
+        elif keycode >= 61488 and keycode <= 61497: #0-9(Eden)-no overlapping code with Dharma
             self.onClick( keycode-61488+48 )
-        elif keycode >= 61536 and keycode <= 61545: #0-9 (Dharma)-no overlapping code with Eden
+        elif keycode >= 61536 and keycode <= 61545: #0-9(Dharma)-no overlapping code with Eden
             self.onClick( keycode-61536+48 )
         elif keycode == 61500 or keycode == 192700: #Eden & Dharma scancode difference
             self.onClick( CTRL_ID_LEFT ) # <
