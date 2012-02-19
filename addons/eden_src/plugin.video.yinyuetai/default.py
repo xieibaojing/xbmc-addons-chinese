@@ -1,25 +1,18 @@
 # -*- coding: utf-8 -*-
 import urllib,urllib2,re,os,xbmcplugin,xbmcgui,xbmc
+import xbmcaddon
 
 ######################################################
 # 音悦台MV
 ######################################################
-# Version 1.3.1 2011-12-22 (CM Eng)
-# a. add support for video queue list
-# b. repair AllMV submenu broken link
-
-# Version 1.3.0 2011-12-11 (CM Eng)
-# a. Change coding to utf-8 for non-chinese Windows OS
-# b. Add & clean up ctl list
-# c. Repair broken links
-# d. Highlight selected page title
-
-# Version 1.2.0  2011-2-24 (Originator: Skyemperor))
+# Version 1.4.1 2012-02-19 (cmeng)
+# a. xbmcaddon.Addon() needs 1 parameter for Dharma
+# b. remove extra " in Artist name listing
+# c. addLink: name cannot contain "/" e.g. 12/02/25
 ######################################################
 
-import xbmcaddon
-# Script constants 
-__settings__      = xbmcaddon.Addon()
+__addonid__       = "plugin.video.yinyuetai"
+__settings__      = xbmcaddon.Addon(id=__addonid__)
 __icon__          = xbmc.translatePath( __settings__.getAddonInfo('icon') )
 __profile__       = xbmc.translatePath( __settings__.getAddonInfo('profile') )
 
@@ -212,7 +205,7 @@ def get_artistpage(url,name,mode,handle):
             match1 = re.compile('<div class="info">.+?<a href="(.+?)"').search(match[i])
             p_url2 = match1.group(1)
 
-            match1 = re.compile('class="song" title="(.+?)>').search(match[i])
+            match1 = re.compile('class="song" title="(.+?)">').search(match[i])
             title = match1.group(1)
                     
             addDir(title,r_url,handle,get_Thumb(p_img),i+1)
@@ -352,6 +345,7 @@ def get_params():
 
 def addLink(name,artist,url,pic,total,sn):
 #    u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&artist="+urllib.quote_plus(artist)
+    name=re.sub('/','-',name) #cannot contains "/" e.g. 12/02/18
     ok=True
     li=xbmcgui.ListItem(str(sn)+'. '+name+' 【'+artist+'】',iconImage=pic, thumbnailImage=pic)
     li.setInfo( type="Video", infoLabels={ "Title": name,"Artist": artist } )
