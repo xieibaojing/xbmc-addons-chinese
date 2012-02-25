@@ -4,11 +4,11 @@ import ChineseKeyboard
 
 ########################################################################
 # PPStream 网络电视 by robintttt/cmeng
-# See changelog.txt for earlier history
-#
-# Version 2.0.4 2012-02-11 (cmeng)
-# a. Update PlayVideoSohu to take care of missing video/resolution 
-# b. Take care for XBMC Eden Beta 3 [COLOR\] script problem
+# Version 2.0.6 2012-02-25 (cmeng)
+# a. Include Episode Chapter & Section information in the video playlist
+# b. Add Letv video player - under development
+
+# See changelog.txt for previous history
 ########################################################################
 
 # Plugin constants 
@@ -23,7 +23,7 @@ UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2
 VIDEO_LIST = [['tv','电视剧'],['movie','电影'],['fun','综艺'],['anime','动漫']]
 SORT_LIST = [['sum_online_sum','按观众数'],['vote_num','按评分']]
 COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]','[COLOR FFFF00FF]']
-MPLAYER_LIST = [['10','PPS'],['99','SMG'],['43','优酷'],['44','土豆'],['45','奇艺'],['46','搜狐'],['47','新浪'],['99','乐视']]
+MPLAYER_LIST = [['10','PPS'],['99','SMG'],['43','优酷'],['44','土豆'],['45','奇艺'],['46','搜狐'],['47','新浪'],['48','乐视']]
      
 ##################################################################################
 # Routine to fetech url site data using Mozilla browser
@@ -74,7 +74,7 @@ def getList(listpage):
     match0 = re.compile('<dt>按年份</dt>(.+?)</ul>', re.DOTALL).search(listpage)
     yearlist = re.compile('<a href="/.+?/.+?/(.+?),.+?title="(.+?)">.+?</a></li>').findall(match0.group(1))
 
-# tuple to list coversion not necessary    
+# tuple to list conversion not necessary    
 #    catlist = [[x[0],x[1]] for x in catlist]
 #    arealist = [[x[0],x[1]] for x in arealist]
 #    yearlist = [[x[0],x[1]] for x in yearlist]
@@ -659,8 +659,9 @@ def episodeList(name, url):
     url_list = url.split(",")
     for i in range(0, len(url_list)): 
         p_url = url_list[i]
-        li = xbmcgui.ListItem(name + ": 第" + str(i+1) + "集")
-        u = sys.argv[0] + "?mode="+ mode +"&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(p_url)
+        p_name = name + ": 第" + str(i+1) + "集"
+        li = xbmcgui.ListItem(p_name)
+        u = sys.argv[0] + "?mode="+ mode +"&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
@@ -675,7 +676,8 @@ def PlayVideoYouku(name, url):
         playlist=xbmc.PlayList(1)
         playlist.clear()
         for i in range(0,len(match)):
-            listitem = xbmcgui.ListItem(name, thumbnailImage = __addonicon__)
+            p_name = name+" 第"+str(i+1)+"节"
+            listitem = xbmcgui.ListItem(p_name, thumbnailImage = __addonicon__)
             listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
             playlist.add(match[i], listitem)
         xbmc.Player().play(playlist)
@@ -717,15 +719,13 @@ def PlayVideoQiyi(name,url):
     match=re.compile('<file>http://data.video.qiyi.com/videos/([^/]+?)/(.+?)</file>').findall(link)
     playlist=xbmc.PlayList(1)
     playlist.clear()
-    listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
-    listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(1)+"/"+str(len(match))+" 节"})
     if urlExists('http://qiyi.soooner.com/videos2/'+match[0][0]+'/'+match[0][1]):
         baseurl = 'http://qiyi.soooner.com/videos2/'
     else:
         baseurl = 'http://qiyi.soooner.com/videos/'
-    playlist.add(baseurl+match[0][0]+'/'+match[0][1], listitem = listitem)
-    for i in range(1,len(match)):
-        listitem=xbmcgui.ListItem(name, thumbnailImage = thumb)
+    for i in range(0,len(match)):
+        p_name = name+" 第"+str(i+1)+"节"
+        listitem=xbmcgui.ListItem(p_name, thumbnailImage = thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
         playlist.add(baseurl+match[i][0]+'/'+match[i][1], listitem = listitem)
     xbmc.Player().play(playlist)
@@ -836,13 +836,46 @@ def PlayVideoSina(name,url):
         playlist=xbmc.PlayList(1)
         playlist.clear()
         for i in range(len(match)):
-            listitem = xbmcgui.ListItem(name, thumbnailImage = __addonicon__)
+            p_name = name+" 第"+str(i+1)+"节"
+            listitem = xbmcgui.ListItem(p_name, thumbnailImage = __addonicon__)
             listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
             playlist.add(match[i], listitem)
         xbmc.Player().play(playlist)
     else:
         dialog = xbmcgui.Dialog()
         ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请稍侯再试')
+
+##################################################################################
+# LETV Video Player - Under Development
+# Add all the video resolution items & links in playlist for auto/user selection
+# a. Press space bar, then scroll to the required item
+# b. Press Enter play
+# c. Press Stop to end playlist
+##################################################################################
+def PlayVideoLetv(name,url):
+    VIDEORES=["高清","标清","流畅"]  
+    playlist=xbmc.PlayList(1)
+    playlist.clear()
+
+    link = getHttpData(url)
+    matchv = re.compile('{v:\["(.+?)","(.+?)"\],p:""}').findall(link)
+    for j in reversed(range(len(matchv[0]))):
+        vid = matchv[0][j][24:56]  # seem to change over time
+        url = 'http://g3.letv.cn/vod/v1/' + vid + '?format=1&b=843&expect=3&host=www_letv_com'
+        print url
+        link = getHttpData(url)
+        link = link.replace("\/", "/")
+        match = re.compile('{.+?"location": "(.+?)" }').findall(link)
+        if match:
+            for i in range(len(match)):
+                p_name = name+' "'+VIDEORES[i]+'"' 
+                listitem = xbmcgui.ListItem(p_name, thumbnailImage = __addonicon__)
+                listitem.setInfo(type="Video",infoLabels={"Title":p_name})
+                playlist.add(match[i], listitem)
+        else:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请稍侯再试')  
+    xbmc.Player().play(playlist)
 
 ##################################################################################
 # Unimplmented video player message display
