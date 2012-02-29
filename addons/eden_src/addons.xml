@@ -350,7 +350,7 @@
     </extension>
 </addon>
 
-<addon id="weather.weatherchina" name="Weather China" version="0.0.3" provider-name="Taxigps">
+<addon id="weather.weatherchina" name="Weather China" version="0.0.4" provider-name="Taxigps">
 	<requires>
 		<import addon="xbmc.python" version="2.0"/>
 		<import addon="script.module.simplejson" version="2.0.10"/>

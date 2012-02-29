@@ -16,7 +16,7 @@
 # *  http://www.gnu.org/copyleft/gpl.html
 # *
 
-import os, sys, urllib2, socket, simplejson
+import os, sys, urllib2, socket, simplejson, re
 import xbmcgui, xbmcaddon
 
 __addon__      = xbmcaddon.Addon()
@@ -85,6 +85,7 @@ WEATHER_CODES = { '0' : '32',
                   '31' : '23',
                   '99' : 'na'}
 
+GEOIP_URL       = 'http://61.4.185.48:81/g/'
 LOCATION_URL    = 'http://m.weather.com.cn/data5/city%s.xml'
 WEATHER_URL     = 'http://www.weather.com.cn/data/sk/%s.html'
 WEATHER_DAY_URL = 'http://m.weather.com.cn/data/%s.html'
@@ -147,6 +148,24 @@ def location(string):
         loc.append(location)
         locid.append(locationid)
     return loc, locid
+
+def geoip():
+    try:
+        req = urllib2.urlopen(GEOIP_URL)
+        ret_string = req.read()
+        req.close()
+    except:
+        ret_string = ''
+    match = re.compile('var id=([0-9]+);').search(ret_string)
+    if match:
+        locationid = match.group(1)
+        data = fetch(WEATHER_URL % (locationid))
+        if data != '':
+            __addon__.setSetting('Location1', data['weatherinfo']['city'].encode('utf-8'))
+            __addon__.setSetting('Location1id', locationid)
+    else:
+        locationid = ''
+    return locationid
 
 def forecast(city):
     data = fetch(WEATHER_URL % (city))
@@ -229,9 +248,12 @@ if sys.argv[1].startswith('Location'):
 
 else:
     location = __addon__.getSetting('Location%sid' % sys.argv[1])
+    if (location == '') and (sys.argv[1] != '1'):
+        location = __addon__.getSetting('Location1id')
+    if location == '':
+        location = geoip()
     if not location == '':
         forecast(location)
-        refresh_locations()
     else:
         # workaround to fix incrementing values on each weather refresh when no locations are set up:
         set_property('Current.Condition'     , '无')
@@ -254,4 +276,5 @@ else:
         # workaround to stop xbmc from running the script in a loop when no locations are set up:
         set_property('Locations', '1')
 
+refresh_locations()
 set_property('WeatherProvider', '中国天气网')
