@@ -1,6 +1,11 @@
 ﻿########################################################################
 # PPStream 网络电视
 ########################################################################
+# PPStream 网络电视 by robintttt/cmeng
+# Version 2.0.7 2012-03-01 (cmeng)
+# a. Enhance Letv player video link algorithm - under development
+# b. Change IsFolder=False for video playback item lists
+
 # Version 2.0.6 2012-02-25 (cmeng)
 # a. Include Episode Chapter & Section information in the video playlist
 # b. Add Letv video player - under development

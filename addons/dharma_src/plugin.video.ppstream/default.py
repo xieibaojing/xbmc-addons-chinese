@@ -4,9 +4,9 @@ import ChineseKeyboard
 
 ########################################################################
 # PPStream 网络电视 by robintttt/cmeng
-# Version 2.0.6 2012-02-25 (cmeng)
-# a. Include Episode Chapter & Section information in the video playlist
-# b. Add Letv video player - under development
+# Version 2.0.7 2012-03-01 (cmeng)
+# a. Enhance Letv player video link algorithm - under development
+# b. Change IsFolder=False for video playback item lists
 
 # See changelog.txt for previous history
 ########################################################################
@@ -603,7 +603,7 @@ def ppsSearchList(name, url, page):
 
                          li = xbmcgui.ListItem(str(n) + ". 电影: " + p_name)
                          u = sys.argv[0] + "?mode=" + mode + "&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)
-                         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+                         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False)
  
     #############################################################
     # ugc-list for related title unpack
@@ -662,7 +662,7 @@ def episodeList(name, url):
         p_name = name + ": 第" + str(i+1) + "集"
         li = xbmcgui.ListItem(p_name)
         u = sys.argv[0] + "?mode="+ mode +"&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False)
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -856,13 +856,19 @@ def PlayVideoLetv(name,url):
     VIDEORES=["高清","标清","流畅"]  
     playlist=xbmc.PlayList(1)
     playlist.clear()
-
+    
     link = getHttpData(url)
     matchv = re.compile('{v:\["(.+?)","(.+?)"\],p:""}').findall(link)
     for j in reversed(range(len(matchv[0]))):
-        vid = matchv[0][j][24:56]  # seem to change over time
+        #algorithm to generate the video link code
+        vid = matchv[0][j][24:56]  # extract 32-Bytes VID code
+        if matchv[0][j][56:60] == "dj9i":
+            vid += "dg=="
+        elif matchv[0][j][56:60] == "bHY/":
+            vid += "bHY="
+        elif matchv[0][j][52:56] == "bHY/":
+            vid = vid[:-1] + "="
         url = 'http://g3.letv.cn/vod/v1/' + vid + '?format=1&b=843&expect=3&host=www_letv_com'
-        print url
         link = getHttpData(url)
         link = link.replace("\/", "/")
         match = re.compile('{.+?"location": "(.+?)" }').findall(link)
