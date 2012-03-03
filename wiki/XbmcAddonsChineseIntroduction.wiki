@@ -3,24 +3,18 @@
 
 = Introduction =
 This project is an open source Addon scripts, plugins, and skins for XBMC Media Center. Specially for Chinese Laguage speaking people.
-
+{{{
  * Project Site: http://code.google.com/p/xbmc-addons-chinese/
  * Forum Discuss in chinese: http://bbs.htpc1.com/forum-225-1.html
  * Forum Discuss in english: http://xbmc.org/forum/showthread.php?t=64250
-
+}}}
 In order to use these plugin you will need the latest stable Dharma or Eden of XBMC. Certain plugins are supported on 9.11 camelot.
 
 Note: We have changed the repository structure due to a recent new release of XBMC Eden. You must uninstall the older version of "Chinese Add-on Repository", and reinstall the downloaded zip file that is for your xbmc version.
-
+{{{
  * Install file for Dharma: repository.googlecode.xbmc-addons-chinese-dharma.zip
  * Install file for Eden: repository.googlecode.xbmc-addons-chinese-eden.zip
-
-This project is an open source Addon scripts, plugins, and skins for XBMC Media Center. Specially for Chinese Laguage speaking people.
-
- * Project Site: http://code.google.com/p/xbmc-addons-chinese/
- * Forum Discuss in chinese: http://bbs.htpc1.com/forum-225-1.html
- * Forum Discuss in english: http://xbmc.org/forum/showthread.php?t=64250 
-
+}}}
 = Features =
 
 == Eden only (added 2012.2.4) ==
@@ -72,7 +66,7 @@ This project is an open source Addon scripts, plugins, and skins for XBMC Media 
  * BaiduRadio - Baidu online radio (Chinese)
 
 === program plugins ===
- * MyStocks - Chinese stock market (Chinese)
+ * MyStocks -  Chinese stock market (Chinese)
  * RSSreader - rss reader for sina.com, sohu.com, ifeng.com (Chinese)
 
 === scripts ===
