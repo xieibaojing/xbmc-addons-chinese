@@ -1,0 +1,152 @@
+#summary xbmc-addons-chinese Repository
+#labels Phase-Deploy
+
+= Introduction =
+In order to use these plugin you will need the latest stable Dharma or Eden of XBMC. Older versions may not work.
+
+Note: We have changed the repository structure due to a recent new release of XBMC Eden. You must uninstall the older version of "Chinese Add-on Repository", and reinstall the downloaded zip file that is for your xbmc version.
+
+ *Install file for Dharma: repository.googlecode.xbmc-addons-chinese-dharma.zip
+ *Install file for Eden: repository.googlecode.xbmc-addons-chinese-eden.zip
+
+This project is an open source Addon scripts, plugins, and skins for XBMC Media Center. Specially for Chinese Laguage speaking people.
+
+ *Project Site: http://code.google.com/p/xbmc-addons-chinese/
+ *Forum Discuss in chinese: http://bbs.htpc1.com/forum-225-1.html
+ *Forum Discuss in english: http://xbmc.org/forum/showthread.php?t=64250 
+
+= Features =
+
+== Added 2012.2.4 (only support Eden) ==
+ *weather.weatherchina - weather message from www.weather.com.cn
+
+== for xbmc newer than 10.05 dharma ==
+=== video plugins ===
+  *plugin.video.netitv - Online tv and movies from www.netitv.com, support by China Telecom (Chinese)
+ *plugin.video.tv365 - Online live tv from www.tv365w.com (Chinese)
+ *plugin.video.youku - Online tv and movies from www.youku.com (Chinese)
+ *plugin.video.ppstream - PPS online tv and movies (Chinese)
+ *plugin.video.qvod - Online video from www.tom365.com,  www.qvodzy.com.cn, www.ttfdy.com (Chinese)
+ *plugin.video.cntv - Chinese Net TV online video (Chinese)
+ *plugin.video.cntv-live - Chinese Net TV live tv (Chinese)
+ *plugin.video.sohuvideo - Online video from tv.sohu.com (Chinese)
+ *plugin.video.somovie - Search and play movie/video in supported video plugin (Chinese)
+ *plugin.video.yinyuetai - MV from www.yinyuetai.com (Chinese)
+ *plugin.video.qiyi - Online video from www.qiyi.com (Chinese)
+ *plugin.video.openv - Online video from www.openv.com (Chinese)
+ *plugin.video.tudou - Online video from www.tudou.com (Chinese)
+ *plugin.video.tencent - Online video from v.qq.com (Chinese)
+ *plugin.video.ku6 - Online video from www.juchang.com (Chinese)
+ *plugin.video.wzipad - Online video from www.wzipad.com (Chinese)
+ *plugin.video.sina - Online video from video.sina.com.cn (Chinese)
+
+=== music plugins ===
+ *plugin.audio.kuwobox - kuwobox online music (Chinese)
+ *plugin.audio.baiduradio - Baidu online radio (Chinese)
+ *plugin.audio.top100 - online audio from www.top100.cn (Chinese)
+
+=== program plugins ===
+ *plugin.program.mystocks - Chinese stock market (Chinese)
+ *plugin.program.utorrent - uTorrent Control Plugin (multi-language)
+
+=== scripts ===
+ *script.shootersub - get movie subtitle from shooter.cn (Chinese)
+ *script.lrclyrics - lrc lyrics script (multi-language) need xbmc newer than r34592, otherwise will crash #summary xbmc-addons-chinese Repository
+
+= Introduction =
+This project is an open source Addon scripts, plugins, and skins for XBMC Media Center. Specially for Chinese Laguage speaking people.
+
+ * Project Site: http://code.google.com/p/xbmc-addons-chinese/
+ * Forum Discuss in chinese: http://bbs.htpc1.com/forum-225-1.html
+ * Forum Discuss in english: http://xbmc.org/forum/showthread.php?t=64250
+
+In order to use these plugin you will need the latest stable Dharma or Eden of XBMC. Older versions may not work.
+
+Note: We have changed the repository structure due to a recent new release of XBMC Eden. You must uninstall the older version of "Chinese Add-on Repository", and reinstall the downloaded zip file that is for your xbmc version.
+
+ * Install file for Dharma: repository.googlecode.xbmc-addons-chinese-dharma.zip
+ * Install file for Eden: repository.googlecode.xbmc-addons-chinese-eden.zip
+
+This project is an open source Addon scripts, plugins, and skins for XBMC Media Center. Specially for Chinese Laguage speaking people.
+
+ * Project Site: http://code.google.com/p/xbmc-addons-chinese/
+ * Forum Discuss in chinese: http://bbs.htpc1.com/forum-225-1.html
+ * Forum Discuss in english: http://xbmc.org/forum/showthread.php?t=64250 
+
+= Features =
+
+== Eden only (added 2012.2.4) ==
+ * weather.weatherchina - weather message from www.weather.com.cn
+
+== xbmc newer than 10.05 dharma ==
+=== video plugins ===
+  * plugin.video.netitv - Online tv and movies from www.netitv.com, support by China Telecom (Chinese)
+ * plugin.video.tv365 - Online live tv from www.tv365w.com (Chinese)
+ * plugin.video.youku - Online tv and movies from www.youku.com (Chinese)
+ * plugin.video.ppstream - PPS online tv and movies (Chinese)
+ * plugin.video.qvod - Online video from www.tom365.com,  www.qvodzy.com.cn, www.ttfdy.com (Chinese)
+ * plugin.video.cntv - Chinese Net TV online video (Chinese)
+ * plugin.video.cntv-live - Chinese Net TV live tv (Chinese)
+ * plugin.video.sohuvideo - Online video from tv.sohu.com (Chinese)
+ * plugin.video.somovie - Search and play movie/video in supported video plugin (Chinese)
+ * plugin.video.yinyuetai - MV from www.yinyuetai.com (Chinese)
+ * plugin.video.qiyi - Online video from www.qiyi.com (Chinese)
+ * plugin.video.openv - Online video from www.openv.com (Chinese)
+ * plugin.video.tudou - Online video from www.tudou.com (Chinese)
+ * plugin.video.tencent - Online video from v.qq.com (Chinese)
+ * plugin.video.ku6 - Online video from www.juchang.com (Chinese)
+ * plugin.video.wzipad - Online video from www.wzipad.com (Chinese)
+ * plugin.video.sina - Online video from video.sina.com.cn (Chinese)
+
+=== music plugins ===
+ * plugin.audio.kuwobox - kuwobox online music (Chinese)
+ * plugin.audio.baiduradio - Baidu online radio (Chinese)
+ * plugin.audio.top100 - online audio from www.top100.cn (Chinese)
+
+=== program plugins ===
+ * plugin.program.mystocks - Chinese stock market (Chinese)
+ * plugin.program.utorrent - uTorrent Control Plugin (multi-language)
+
+=== scripts ===
+ * script.shootersub - get movie subtitle from shooter.cn (Chinese)
+ * script.lrclyrics - lrc lyrics script (multi-language) need xbmc newer than r34592, otherwise will crash xbmc!!
+
+== xbmc older than 9.11 camelot ==
+=== video plugins ===
+ * NETITV - internat tv and movies from CHINA TELECOM (Chinese)
+ * OpenV - internat tv and movies from http://hd.openv.com/ (Chinese)
+ * TV365 - internat live tv (Chinese)
+ * SohuVideo - internat tv and movies from tv.sohu.com (Chinese)
+ * CNTV - Chinese Net TV (Chinese)
+
+=== music plugins ===
+ * KuwoBox - kuwobox online music (Chinese)
+ * BaiduRadio - Baidu online radio (Chinese)
+
+=== program plugins ===
+ * MyStocks - Chinese stock market (Chinese)
+ * RSSreader - rss reader for sina.com, sohu.com, ifeng.com (Chinese)
+
+=== scripts ===
+ * LRC Lyrics - lrc lyrics script (multi-language)
+ * shooterSub - get movie subtitle from shooter.cn (Chinese) 
+
+= How To Installing the plugin =
+
+The easiest way to install the plugin is to get it from the XBMC add-on repository. Alternatively you can download the plugin manually and install it from a zip file here. 
+
+For Linux, Mac OSX and Windows¶
+
+Unpack the zip to a folder named plugin.video.youtube. This folder should be copied to your XBMC addons folder. 
+•On linux it is found in $HOME/.xbmc/addons/ 
+•On Mac it is found in /$User/Library/Application Support/XBMC/addons/ 
+•On Windows 7 and Vista it is found in \media\windows\Users\<UserName>\AppData\Roaming\XBMC\addons\ 
+
+
+
+= Reporting a bug =
+If you are having problems with the plugin or just have a query please do read the documentation and do a search on the XBMC plugin forum thread before posting. 
+
+If you believe you have found a bug or would like to request a feature then create a new issue. 
+
+Please make sure you post a Debug Log with debug enabled (can be found under plugin settings) with your report. 
