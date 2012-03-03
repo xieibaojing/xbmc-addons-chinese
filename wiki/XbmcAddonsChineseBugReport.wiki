@@ -1,3 +1,5 @@
+#labels Phase-Deploy
+# How to report xbmc-addons-chinese bug with xbmc.log file
 = How to report xbmc-addons-chinese bug with xbmc.log file =
 
 Typically users will report errors with descriptions that lack many important details. While we take all user reported errors seriously, it is sometime difficult to help if problem description is not clear or without a proper debug-log. This guide will take you through the steps to create such a log. 
