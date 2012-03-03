@@ -5,8 +5,8 @@
 This project is an open source Addon scripts, plugins, and skins for XBMC Media Center. Specially for Chinese Laguage speaking people.
 {{{
  * Project Site: http://code.google.com/p/xbmc-addons-chinese/
- * Forum Discuss in chinese: http://bbs.htpc1.com/forum-225-1.html
- * Forum Discuss in english: http://xbmc.org/forum/showthread.php?t=64250
+ * Forum Discuss in Chinese: http://bbs.htpc1.com/forum-225-1.html
+ * Forum Discuss in English: http://xbmc.org/forum/showthread.php?t=64250
 }}}
 In order to use these plugin you will need the latest stable Dharma or Eden of XBMC. Certain plugins are supported on 9.11 camelot.
 
@@ -15,6 +15,13 @@ Note: We have changed the repository structure due to a recent new release of XB
  * Install file for Dharma: repository.googlecode.xbmc-addons-chinese-dharma.zip
  * Install file for Eden: repository.googlecode.xbmc-addons-chinese-eden.zip
 }}}
+
+Some of the Add-ons use Chinese Keyboard for text entry; you will also need to install the Chinese-Keyboard module from the zip file below:
+{{{
+ * Install file for Dharma: script.module.keyboard.chinese-1.0.4-dharma.zip
+ * Install file for Eden: script.module.keyboard.chinese-1.1.1-eden.zip
+}}}
+
 = Features =
 
 == Eden only (added 2012.2.4) ==
@@ -77,14 +84,14 @@ Note: We have changed the repository structure due to a recent new release of XB
 
 To install the plugin, you need to download the latest repository zip file appropriately for your XBMC version from the following site.
 {{{
-http://code.google.com/p/xbmc-addons-chinese/downloads/list
+ * http://code.google.com/p/xbmc-addons-chinese/downloads/list
 }}}
 
 == For Linux, Mac OSX and Windows ===
  * Launch XBMC
  * Navigate to System | Settings | Add-ons 
 
-If you have an old xbmc-addons-chinese installtion, you must uninstall it following the steps below:
+If you have an old xbmc-addons-chinese installation, you must uninstall it following the steps below:
 
 {{{
  * Get Add-ons
@@ -104,6 +111,7 @@ If you have an old xbmc-addons-chinese installtion, you must uninstall it follow
 = Reporting a bug =
 If you are having problems with the plugin or just have a query please do read the documentation and do a search on the XBMC plugin forum thread before posting. 
 
-If you believe you have found a bug or would like to request a feature then create a new issue. 
-
-Please make sure you post a Debug Log with debug enabled (can be found under plugin settings) with your report. 
+If you believe you have found a bug or would like to request a feature then create a new issue in the link below.
+{{{
+ * http://code.google.com/p/xbmc-addons-chinese/issues/list
+}}}
