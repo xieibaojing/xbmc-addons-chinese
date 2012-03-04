@@ -205,7 +205,7 @@
 
 <addon id="plugin.video.sohuvideo"
     name="搜狐视频(SoHu)"
-    version="2.1.8"
+    version="2.1.9"
     provider-name="Taxigps">
     <extension
         point="xbmc.python.pluginsource"

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, httplib, re, string, sys, os, gzip, StringIO
+import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, urlparse, httplib, re, string, sys, os, gzip, StringIO
        
 ############################################################
 # 搜狐视频(SoHu) by taxigps, 2011
@@ -377,7 +377,6 @@ def PlayVideo(name,url,thumb):
     if match.group(int(rate))<>str(p_vid):
         link = GetHttpData('http://hot.vrs.sohu.com/vrs_flash.action?vid='+match.group(int(rate)))
     match = re.compile('"tvName":"(.+?)"').findall(link)
-    print match
     if not match:
        res = ratelist[3-int(rate)][0]
        dialog = xbmcgui.Dialog()
@@ -387,6 +386,11 @@ def PlayVideo(name,url,thumb):
     match = re.compile('"clipsURL"\:\["(.+?)"\]').findall(link)
     paths = match[0].split('","')
     match = re.compile('"su"\:\["(.+?)"\]').findall(link)
+    if not match:
+       res = ratelist[3-int(rate)][0]
+       dialog = xbmcgui.Dialog()
+       ok = dialog.ok(__addonname__,'您当前选择的视频: ['+ res +'] 暂不能播放，请选择其它视频')       
+       return
     newpaths = match[0].split('","')
     playlist = xbmc.PlayList(1)
     playlist.clear()
@@ -394,13 +398,16 @@ def PlayVideo(name,url,thumb):
         p_url = 'http://data.vod.itc.cn/?prot=2&file='+paths[i].replace('http://data.vod.itc.cn','')+'&new='+newpaths[i]
         link = GetHttpData(p_url)
         key=link.split('|')[3]
-        #req = httplib.HTTPConnection("new.sohuv.dnion.com")
-        #req.request("GET", newpaths[i]+'?key='+key)
-        #r1 = req.getresponse()
         url=link.split('|')[0].rstrip("/")+newpaths[i]+'?key='+key
         title = name+" 第"+str(i+1)+"/"+str(len(paths))+"节"
         listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":title})
+        parsedurl = urlparse.urlparse(url)
+        httpConn = httplib.HTTPConnection(parsedurl[1])
+        httpConn.request('GET', parsedurl[2])
+        response = httpConn.getresponse()
+        url=response.getheader('Location')
+        httpConn.close()
         playlist.add(url, listitem)
     # start play only after all video queue is completed. otherwise has problem on slow network
     xbmc.Player().play(playlist)
