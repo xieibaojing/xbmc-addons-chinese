@@ -29,7 +29,7 @@ def GetHttpData(url):
     if len(match)>0:
         charset = match[0].lower()
         if (charset != 'utf-8') and (charset != 'utf8'):
-            httpdata = unicode(httpdata, charset).encode('utf8')
+            httpdata = httpdata.decode(charset, 'ignore').encode('utf8', 'ignore')
     return httpdata
 
 def searchDict(dlist,idx):
