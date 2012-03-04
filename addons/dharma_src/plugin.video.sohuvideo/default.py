@@ -340,6 +340,7 @@ def seriesList(name,id,url,thumb):
 def PlayVideo(name,url,thumb):
     print 'PlayVideo -> '+url
     level = int(__addon__.getSetting('resolution'))
+    site = int(__addon__.getSetting('videosite'))
     link = GetHttpData(url)
     match1 = re.compile('var vid="(.+?)";').search(link)
     if not match1:
@@ -402,9 +403,13 @@ def PlayVideo(name,url,thumb):
         title = name+" 第"+str(i+1)+"/"+str(len(paths))+"节"
         listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":title})
-        parsedurl = urlparse.urlparse(url)
-        httpConn = httplib.HTTPConnection(parsedurl[1])
-        httpConn.request('GET', parsedurl[2])
+        if site == 0:
+            parsedurl = urlparse.urlparse(url)
+            httpConn = httplib.HTTPConnection(parsedurl[1])
+            httpConn.request('GET', parsedurl[2])
+        else:
+            httpConn = httplib.HTTPConnection("new.sohuv.dnion.com")
+            httpConn.request('GET', newpaths[i]+'?key='+key)
         response = httpConn.getresponse()
         url=response.getheader('Location')
         httpConn.close()
