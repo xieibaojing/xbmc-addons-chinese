@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.tv365"
+    name="TV365"
+    version="1.1.0"
+    provider-name="Robinttt">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>TV365 video plugin</summary>
+        <summary lang="zh">TV365网络电视直播插件</summary>
+        <description>TV365 video plugin</description>
+        <description lang="zh">TV365网络电视直播插件，内置播放器对于mms类型的流媒体支持度比较好，其他类型如rtsp等可能无法播放。</description>
+        <platform>all</platform>
+    </extension>
+</addon>

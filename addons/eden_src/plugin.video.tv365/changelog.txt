@@ -1,0 +1,9 @@
+######################################################
+# TV365网络电视直播插件 - http://www.tv365w.com/ 
+######################################################
+# Version 1.1.0 2012-03-05 (cmeng)
+# a. Convert code to utf-8 for non-Chinese OS  
+# b. Make plugin compatible for Eden & Dharma
+
+# Version 1.0.0  2010 (originator: Robinttt)
+######################################################
