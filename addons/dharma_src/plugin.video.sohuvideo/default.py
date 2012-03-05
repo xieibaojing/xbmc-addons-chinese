@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, urlparse, httplib, re, string, sys, os, gzip, StringIO
+import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, urlparse, httplib, re, string, sys, os, gzip, StringIO, simplejson
        
 ############################################################
 # 搜狐视频(SoHu) by taxigps, 2011
@@ -22,6 +22,8 @@ CHANNEL_LIST = [['电影','1'], ['电视剧','2'], ['综艺','7'], ['纪录片',
 ORDER_LIST = [['0','相关程度'], ['3','最新发布'], ['4','评分最高'], ['1','总播放最多'],['5','日播放最多'], ['7','周播放最多']]
 ORDER_LIST1 = [['0','相关程度'], ['3','最新发布'], ['1','总播放最多']]
 ORDER_LIST2 = [['0','相关程度'], ['3','最新发布'], ['1','总播放最多'],['5','日播放最多'], ['7','周播放最多']]
+
+LIVEID_URL = 'http://live.tv.sohu.com/live/player_json.jhtml?lid=%s&af=1&bw=531&type=1&g=8'
 
 def GetHttpData(url):
     req = urllib2.Request(url)
@@ -46,6 +48,10 @@ def searchDict(dlist,idx):
     return ''
 
 def rootList():
+    name='电视直播'
+    li=xbmcgui.ListItem(name)
+    u=sys.argv[0]+"?mode=10&name="+urllib.quote_plus(name)
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
     for name, id in CHANNEL_LIST:
         li=xbmcgui.ListItem(name)
         u=sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus("")+"&area="+urllib.quote_plus("")+"&year="+urllib.quote_plus("-1")+"&order="+urllib.quote_plus("0")+"&page="+urllib.quote_plus("1")+"&p5="+urllib.quote_plus("")+"&p6="+urllib.quote_plus("")+"&p11="+urllib.quote_plus("")
@@ -538,6 +544,31 @@ def performChanges(name,id,listpage,cat,area,year,order,p5,p6,p11):
     if change:
         progList(name,id,'1',cat,area,year,p5,p6,p11,order)
 
+def LiveChannel(name):
+    url = 'http://live.tv.sohu.com'
+    link = GetHttpData(url)
+    match = re.compile('var data1 = ({.+?});').findall(link)
+    if match:
+        parsed_json = simplejson.loads(match[0])
+        totalItems = len(parsed_json['data'])
+        for item in parsed_json['data']:
+            p_name = item['name'].encode('utf-8')
+            p_thumb = item['bigPic'].encode('utf-8')
+            id = str(item['tvId'])
+
+            li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
+            u = sys.argv[0] + "?mode=11&name=" + urllib.quote_plus(p_name) + "&id=" + urllib.quote_plus(id)+ "&thumb=" + urllib.quote_plus(p_thumb)
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+def LivePlay(name,id,thumb):
+    link = GetHttpData(LIVEID_URL % (id))
+    parsed_json = simplejson.loads(link)
+    url = 'http://' + parsed_json['data']['clipsURL'][0].encode('utf-8')
+    li = xbmcgui.ListItem(name,iconImage='',thumbnailImage=thumb)
+    xbmc.Player().play(url, li)
+
 def get_params():
     param = []
     paramstring = sys.argv[2]
@@ -640,3 +671,7 @@ elif mode == 4:
     performChanges(name,id,listpage,cat,area,year,order,p5,p6,p11)
 elif mode == 5:
     PlayBoKe(name,url,thumb)
+elif mode == 10:
+    LiveChannel(name)
+elif mode == 11:
+    LivePlay(name,id,thumb)
