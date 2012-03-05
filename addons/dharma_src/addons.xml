@@ -379,7 +379,7 @@
 
 <addon id="plugin.video.tv365"
     name="TV365"
-    version="1.0.0"
+    version="1.1.0"
     provider-name="Robinttt">
     <extension
         point="xbmc.python.pluginsource"
