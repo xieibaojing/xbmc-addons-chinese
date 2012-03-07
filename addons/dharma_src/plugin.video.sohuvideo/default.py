@@ -32,13 +32,15 @@ def GetHttpData(url):
     httpdata = response.read()
     if response.headers.get('content-encoding', None) == 'gzip':
         httpdata = gzip.GzipFile(fileobj=StringIO.StringIO(httpdata)).read()
+    charset = response.headers.getparam('charset')
     response.close()
     match = re.compile('<meta http-equiv=["]?[Cc]ontent-[Tt]ype["]? content="text/html;[\s]?charset=(.+?)"').findall(httpdata)
     if len(match)>0:
-        charset = match[0].lower()
+        charset = match[0]
+    if charset:
+        charset = charset.lower()
         if (charset != 'utf-8') and (charset != 'utf8'):
-            httpdata=httpdata.decode(charset, 'ignore').encode('utf8')
-            #httpdata = unicode(httpdata, charset).encode('utf8')
+            httpdata = httpdata.decode(charset, 'ignore').encode('utf8', 'ignore')
     return httpdata
    
 def searchDict(dlist,idx):
@@ -280,8 +282,6 @@ def seriesList(name,id,url,thumb):
             vid=match0[0].replace('"','')
             obtype= '2'
             link = GetHttpData("http://search.vrs.sohu.com/avs_i"+vid+"_pr"+pid+"_o"+obtype+"_n_p1000_chltv.sohu.com.json")
-            # force utf8 encode as httpdata contains no charset=gbk in GetHttpData. utf-8 Requires for proper display
-            link=link.decode('gbk','ignore').encode('utf8')
             match = re.compile('"videoName":"(.+?)",.+?"videoUrl":"(.+?)",.+?"videoBigPic":"(.+?)",', re.DOTALL).findall(link)
             totalItems = len(match)
             for p_name,p_url, p_thumb  in match:
