@@ -164,7 +164,7 @@ def seriesList(name,url,thumb):
     link = GetHttpData(url)
     link= re.sub("\r|\n|\t","",link)
     match0 = re.compile('<div id="playItems"(.+?)<div class="page_nav"').search(link)
-    match = re.compile('<div class="pic"><a target="new" title="(.+?)" href="\s*http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html\s*"></a><img .+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
+    match = re.compile('<div class="pic"><a target="new" title="(.+?)"\s*href="\s*http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html\s*"></a><img .+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
     if match:
         totalItems = len(match)
         for p_name, p_iid, alt, src in match:
