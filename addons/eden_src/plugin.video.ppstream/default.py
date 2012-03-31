@@ -4,9 +4,8 @@ import ChineseKeyboard
 
 ########################################################################
 # PPStream 网络电视 by robintttt/cmeng
-# Version 2.0.7 2012-03-01 (cmeng)
-# a. Enhance Letv player video link algorithm - under development
-# b. Change IsFolder=False for video playback item lists
+# Version 2.0.8 2012-03-31 (cmeng)
+# a. To take care main web page <tag> structure change 
 
 # See changelog.txt for previous history
 ########################################################################
@@ -105,9 +104,9 @@ def mainMenu():
     
     link = getHttpData('http://v.pps.tv/ugc/list-c30.html')
     match0 = re.compile('<ul class="main-nav nav-list">(.+?)</ul>', re.DOTALL).search(link)
-    
+
     # fetch the url for video channels specified in VIDEO_LIST
-    match = re.compile('<li class.+?<a.+?href="(.+?)"><.+?>(.+?)</span></a></li>').findall(match0.group(1))
+    match = re.compile('<li class.+?><a.+?href="(.+?)"><.+?>(.+?)</span></a>').findall(match0.group(1))
     totalItems = len(match)
     i = 0
     for path, name in match:
