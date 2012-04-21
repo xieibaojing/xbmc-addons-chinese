@@ -281,6 +281,24 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.tv189"
+    name="天翼视讯(TV189)"
+    version="1.0.0"
+    provider-name="Taxigps">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">TV189 Video plugin</summary>
+        <summary lang="zh">天翼视讯视频插件</summary>
+        <description lang="en"> TV189.com is a professional online video service provider founded by Esurfing Media Co.,Ltd. TV189.com focuses on high-definition video content. All content on TV189.com is legal and strictly abides by copyright laws and regulations helping promote the healthy development of the video industry in China. Currently, TV189.com has a wide selection of video content, which covers movies, TV series, variety shows, documentaries, games and other popular programs. TV189.com brings together nearly 100 live TV cable channels and several leading content companies, and covers nearly 80% of the total video content in China.</description>
+        <description lang="zh">TV189.COM是中国电信股份有限公司视讯运营中心（以下简称“视讯运营中心”）推出的网络视频播放平台，是国内首家专注于提供超清（1080P）网络视频服务的大型专业网站。影视内容丰富多元，涵盖电影、电视剧、综艺、娱乐、纪实、游戏、原创等热门领域，还聚集了近百家卫视直播频道和数家国内知名网络视频合作方内容。覆盖了国内近80%的视频内容。</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
 <addon id="plugin.video.tv365"
     name="TV365"
     version="1.1.0"

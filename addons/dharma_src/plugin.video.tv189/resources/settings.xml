@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf8" standalone="yes"?>
+<settings>
+	<setting id="resolution" type="enum" label="点播视频清晰度" values="每次询问|超清|高清|流畅" default="0"/>
+	<setting id="bitsrate" type="enum" label="直播视频码率" values="每次询问|高清|流畅" default="0"/>
+</settings>
