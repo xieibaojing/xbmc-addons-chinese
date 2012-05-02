@@ -41,11 +41,11 @@ def searchDict(dlist,idx):
     return ''
 
 def getcatList(listpage, listtype):
-    match = re.compile('<h4>'+listtype+'</h4>(.+?)</ul>', re.DOTALL).findall(listpage)
-    catlist = re.compile('tkey="[^"]+" tvalue="([^"]+)"><a href=[^>]+><span>(.+?)</span>', re.DOTALL).findall(match[0])
+    match = re.compile('<dt>'+listtype+'</dt>(.+?)</dl>', re.DOTALL).findall(listpage)
+    catlist = re.compile('tkey="[^"]+" tvalue="([^"]+)"><a href=[^>]+>(.+?)</a>', re.DOTALL).findall(match[0])
     if not catlist:
-        catlist = re.compile('tvalue="([^"]+)" tkey="[^"]+"><a href=[^>]+><span>(.+?)</span>', re.DOTALL).findall(match[0])
-    return catlist
+        catlist = re.compile('tvalue="([^"]+)" tkey="[^"]+"><a href=[^>]+>(.+?)</a>', re.DOTALL).findall(match[0])
+    return [[x[0],x[1].replace("<span>", "").replace("</span>", "")]for x in catlist]
 
 def rootList():
     name = '电视直播'
@@ -60,23 +60,23 @@ def rootList():
 
 def progList(name,id,page,cat,area,year,order,res,group):
     if group == '0':
-        url = 'http://'+id+'.tv189.com/l/'+cat+'_'+year+'_0_0_'+area+'_'+res+'_'+order+'_0/'+page+'.htm'
+        url = 'http://qnk.tv189.com/l/'+id+'/'+cat+'_'+year+'_0_0_'+area+'_'+res+'_'+order+'_0/'+page+'.htm'
     else:
-        if id == 'zy': url = 'http://zy.tv189.com/g/'+group+'_0_0/'+page+'.htm'
-        elif id == 'real': url = 'http://'+id+'.tv189.com/l/'+cat+'_'+group+'_0_0_0_'+res+'_'+order+'_0/'+page+'.htm'
+        if id == 'zy': url = 'http://qnk.tv189.com/g/zy/'+group+'_0_0/'+page+'.htm'
+        elif id == 'real': url = 'http://qnk.tv189.com/l/real/'+cat+'_'+group+'_0_0_0_'+res+'_'+order+'_0/'+page+'.htm'
     currpage = int(page)
     link = GetHttpData(url)
-    match = re.compile('<a href="/l/[^/]+/([0-9]+).htm">尾页</a>', re.DOTALL).findall(link)
+    match = re.compile('<a href="/l/.*/([0-9]+).htm">尾页</a>', re.DOTALL).findall(link)
     if len(match):
         totalpages = int(match[0])
     else:
         totalpages = 1
-    match = re.compile('检索</h2>(.+?)<div class="foot">', re.DOTALL).findall(link)
+    match = re.compile('检索</h3>(.+?)<!--jiansuo end-->', re.DOTALL).findall(link)
     if match:
         listpage = match[0]
     else:
         listpage = ''
-    match = re.compile('<dl><dt><span class="img">(.+?)</dl>', re.DOTALL).findall(link)
+    match = re.compile('<li class="poster-item clearfix">(.+?)</li>', re.DOTALL).findall(link)
     totalItems = len(match) + 1
     if currpage > 1: totalItems = totalItems + 1
     if currpage < totalpages: totalItems = totalItems + 1
@@ -118,55 +118,50 @@ def progList(name,id,page,cat,area,year,order,res,group):
     for i in range(0,len(match)):
         match1 = re.compile('tpic="(.+?)"').search(match[i])
         p_thumb = match1.group(1)
-        match1 = re.compile('<a href="/v/([0-9]+).htm"  target="video">([^<]+)</a>').search(match[i])
+        match1 = re.compile('<a href="/v/'+id+'/([0-9]+).htm"  target="video">([^<]+)</a>').search(match[i])
         p_id = match1.group(1)
         p_name = match1.group(2)
-        match1 = re.compile('<a href="javascript:cellection\([^\)]+\)">([^<]+)</a>').search(match[i])
-        p_info = match1.group(1).replace("&nbsp;", "")
-        if p_info:
-            p_name1 = p_name + '（' + p_info + '）'
-        else:
-            p_name1 = p_name
         if id in ('tv'):
             mode = 2
-            match1 = re.compile('[^\d]*(\d+)').search(p_info)
-            p_num = match1.group(1)
+            p_num = '1'
             isdir = True
         else:
             mode = 3
             p_num = '1'
             isdir = False
-        match1 = re.compile('<s>([^<]+)</s>').search(match[i])
+        match1 = re.compile('<dd class="score"><span [^>]+>(\d+)<i>(.\d+)</i></span>').search(match[i])
         if match1:
-            p_rating = float(match1.group(1))
+            p_rating = float(match1.group(1)+match1.group(2))
         else:
             p_rating = 0
-        match1 = re.compile('<p>导演：(.+?)</p>').search(match[i])
+        match1 = re.compile('导演：(.+?)</dd>').search(match[i])
         if match1:
-            p_director = ' / '.join(re.compile('<a href="[^"]+">([^<]*)</a>').findall(match1.group(1)))
+            p_director = ' / '.join(re.compile('<a href="[^>]+>([^<]*)</a>').findall(match1.group(1)))
         else:
             p_director = ''
-        match1 = re.compile('<p>主演：(.+?)</p>').search(match[i])
+        match1 = re.compile('主演：(.+?)</dd>').search(match[i])
         if match1:
-            p_cast = re.compile('<a href="[^"]+">([^<]*)</a>').findall(match1.group(1))
+            p_cast = re.compile('<a href="[^>]+>([^<]*)</a>').findall(match1.group(1))
         else:
             p_cast = ''
-        match1 = re.compile('<p>标签：(.+?)</p>').search(match[i])
+        match1 = re.compile('标签：(.+?)</dd>').search(match[i])
         if match1:
-            p_genre = ' / '.join(re.compile('<a href="[^"]+">([^<]*)</a>').findall(match1.group(1)))
+            p_genre = ' / '.join(re.compile('<a href="[^>]+>([^<]*)</a>').findall(match1.group(1)))
         else:
             p_genre = ''
-        match1 = re.compile('<p>年份：(.+?)</p>').search(match[i])
+        match1 = re.compile('年份：(.+?)</dd>').search(match[i])
         if match1:
-            p_year = int(re.compile('<a href="[^"]+">([^<]*)</a>').findall(match1.group(1))[0])
+            match2 = re.compile('<a href="[^>]+>([^<]*)</a>').findall(match1.group(1))
+            if match2: p_year = int(match2[0])
+            else: p_year = 0
         else:
             p_year = 0
-        match1 = re.compile('>详细>></a></p><p id=[^>]*>(.+?)<a href=').search(match[i])
+        match1 = re.compile('>详细>>.+?&nbsp;(.+?)<a href=').search(match[i])
         if match1:
             p_plot = match1.group(1).replace("&nbsp;", " ").replace("</br>", "\n")
         else:
             p_plot = ''
-        li = xbmcgui.ListItem(str(i + 1) + '.' + p_name1, iconImage = '', thumbnailImage = p_thumb)
+        li = xbmcgui.ListItem(str(i + 1) + '.' + p_name, iconImage = '', thumbnailImage = p_thumb)
         u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(p_name)+"&id="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)+"&num="+urllib.quote_plus(p_num)
         li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Rating":p_rating})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, isdir, totalItems)
@@ -183,7 +178,13 @@ def progList(name,id,page,cat,area,year,order,res,group):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def seriesList(name,id,thumb,num):
-    totalItems = int(num)
+    url = 'http://qnk.tv189.com/v/tv/'+id+'.htm'
+    link = GetHttpData(url)
+    match = re.compile('<div class="tv_list">\s*<h2>共(\d+)集全</h2>', re.DOTALL).findall(link)
+    if match:
+        totalItems = int(match[0])
+    else:
+        totalItems = 1
     for i in range(1,totalItems+1):
         p_name = name+' 第'+str(i)+'集'
         li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = thumb)
@@ -201,7 +202,6 @@ def PlayVideo(name,id,thumb,num):
        dialog = xbmcgui.Dialog()
        ok = dialog.ok(__addonname__,'您当前选择的节目暂不能播放，请选择其它节目')   
        return
-    print match
     ratelist = []
     for i in range(0,len(match)):
         if match[i][0] == '450P': ratelist.append([3, '标清', i])    # 清晰度设置值, 清晰度, match索引
@@ -246,7 +246,6 @@ def performChanges(name,id,listpage,cat,area,year,order,res,group):
                 change = True       
     if id in ('zy','real'):
         grouplist = getcatList(listpage, '按节目')
-        print grouplist
         if len(grouplist)>0:
             list = [x[1] for x in grouplist]
             sel = dialog.select('节目', list)
