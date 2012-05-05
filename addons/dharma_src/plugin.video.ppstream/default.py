@@ -32,6 +32,7 @@ MPLAYER_LIST = [['10','PPS'],['99','SMG'],['43','优酷'],['44','土豆'],['45',
 # - translate to utf8
 ##################################################################################
 def getHttpData(url):
+    print "getHttpData: " + url
     req = urllib2.Request(url)
     req.add_header('User-Agent', UserAgent)
     response = urllib2.urlopen(req)
@@ -142,18 +143,18 @@ def mainMenu():
 def progListMovie(name, id, page, cat, area, year, order, listpage):
     # fetch user specified url filter ID's  
     catID = areaID = yearID = ''
-    if re.search(cat,'全部'): catstr = ''
+    if re.search('全部',cat): catstr = ''
     else:
         catlist, arealist, yearlist = getList(listpage)
         catstr = fetchID(catlist, cat) + ','
         if catstr != None: catID = 'genre,'
         
-    if re.search(area,'全部'): areastr = ''
+    if re.search('全部',area): areastr = ''
     else:
         areastr = fetchID(arealist, area) + ','
         if areastr != None: areaID = 'area,'
 
-    if re.search(year,'全部'): yearstr = ''
+    if re.search('全部',year): yearstr = ''
     else:
         yearstr = fetchID(yearlist, year) + ','
         if yearstr != None: yearID = 'year,'

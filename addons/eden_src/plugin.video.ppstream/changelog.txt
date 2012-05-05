@@ -2,6 +2,9 @@
 # PPStream 网络电视
 ########################################################################
 # PPStream 网络电视 by robintttt/cmeng
+# Version 2.0.9 2012-05-05 (cmeng)
+# a. Correct filter generation error 
+
 # Version 2.0.8 2012-03-31 (cmeng)
 # a. To take care main web page <tag> structure change 
 
