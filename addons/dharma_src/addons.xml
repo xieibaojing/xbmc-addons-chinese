@@ -247,7 +247,7 @@
 
 <addon id="plugin.video.qiyi"
     name="奇艺视频(QIYI)"
-    version="1.0.3"
+    version="2.0.0"
     provider-name="taxigps">
     <extension
         point="xbmc.python.pluginsource"
