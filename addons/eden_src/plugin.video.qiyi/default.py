@@ -251,9 +251,9 @@ def seriesList(name,url,thumb):
     desc = ''
     for url1 in match2:
         desc = desc + GetHttpData('http://www.iqiyi.com' + url1)
-    match = re.compile('<li><a href="([^"]+)" class="a_bar">.+?data-lazy="([^"]+)" title="([^"]+)"', re.DOTALL).findall(album)
+    match = re.compile('<li><a href="([^"]+)" class="[^"]+">.+?data-lazy="([^"]+)" title="([^"]+)"', re.DOTALL).findall(album)
     if not match:
-        match = re.compile('<li><a href="([^"]+)" class="a_bar">.+?src="([^"]+)" title="([^"]+)"', re.DOTALL).findall(album)
+        match = re.compile('<li><a href="([^"]+)" class="[^"]+">.+?src="([^"]+)" title="([^"]+)"', re.DOTALL).findall(album)
     totalItems = len(match)
     for i in range(0,len(match)):
         p_url = match[i][0]
