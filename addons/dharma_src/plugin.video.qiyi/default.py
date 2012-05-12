@@ -12,7 +12,7 @@ __addon__     = xbmcaddon.Addon(id=__addonid__)
 __cwd__       = xbmc.translatePath(__addon__.getAddonInfo('path'))
 __icon__      = os.path.join( __cwd__, 'icon.png' )
 
-CHANNEL_LIST = [['电影','1'], ['电视剧','2'], ['纪录片','3'], ['动漫','4'], ['音乐','5'], ['综艺','6'], ['娱乐','7'], ['旅游','9']]
+CHANNEL_LIST = [['电影','1'], ['电视剧','2'], ['纪录片','3'], ['动漫','4'], ['音乐','5'], ['综艺','6'], ['娱乐','7'], ['旅游','9'], ['片花','10'], ['时尚','13']]
 ORDER_LIST = [['2','最新更新'], ['3','最近热播'], ['6 ','最新上映'], ['4','最受好评']]
 PAYTYPE_LIST = [['','全部影片'], ['0','免费影片'], ['1','会员免费'], ['2','付费点播']]
 
@@ -56,22 +56,26 @@ def searchDict(dlist,idx):
 
 def getcatList(listpage, id):
     if id == '5':   # 音乐
-        match = re.compile('<label>按流派：</label>(.*?)</ul>', re.DOTALL).findall(listpage)
+        match = re.compile('<label>\s*按流派：\s*</label>(.*?)</ul>', re.DOTALL).findall(listpage)
+    elif id == '13':   # 时尚
+        match = re.compile('<label>\s*按行业：\s*</label>(.*?)</ul>', re.DOTALL).findall(listpage)
     else:
-        match = re.compile('<label>按类型：</label>(.*?)</ul>', re.DOTALL).findall(listpage)
-    if id == '3' or id == '9':   # 纪录片&旅游
+        match = re.compile('<label>\s*按类型：\s*</label>(.*?)</ul>', re.DOTALL).findall(listpage)
+    if id in ('3','9'):   # 纪录片&旅游
         catlist = re.compile('href="http://list.iqiyi.com/www/' + id + '/(\d*)-[^>]+>(.*?)</a>').findall(match[0])
-    elif id == '5':   # 音乐
+    elif id in ('5','10'):   # 音乐&片花
         catlist = re.compile('href="http://list.iqiyi.com/www/' + id + '/\d*-\d*-\d*-(\d*)-[^>]+>(.*?)</a>').findall(match[0])
+    elif id == '13':  # 时尚
+        catlist = re.compile('href="http://list.iqiyi.com/www/' + id + '/\d*-\d*-\d*-\d*-(\d*)-[^>]+>(.*?)</a>').findall(match[0])
     else:
         catlist = re.compile('href="http://list.iqiyi.com/www/' + id + '/\d*-(\d*)-[^>]+>(.*?)</a>').findall(match[0])
     return catlist
 
 def getareaList(listpage, id):
-    match = re.compile('<label>按地区：</label>(.*?)</ul>', re.DOTALL).findall(listpage)
+    match = re.compile('<label>\s*按地区：\s*</label>(.*?)</ul>', re.DOTALL).findall(listpage)
     if id == '7':   # 娱乐
         arealist = re.compile('href="http://list.iqiyi.com/www/' + id + '/\d*-\d*-(\d*)-[^>]+>(.*?)</a>').findall(match[0])
-    elif id == '9':   # 旅游
+    elif id in ('9','10'):   # 旅游&片花
         arealist = re.compile('href="http://list.iqiyi.com/www/' + id + '/\d*-(\d*)-[^>]+>(.*?)</a>').findall(match[0])
     else:
         arealist = re.compile('href="http://list.iqiyi.com/www/' + id + '/(\d*)-[^>]+>(.*?)</a>').findall(match[0])
@@ -89,21 +93,34 @@ def rootList():
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
+#         id   c1   c2   c3   c4   c5     c11  c12   c13
+# 电影     1 area  cat                paytype year order
+# 电视剧   2 area  cat                paytype year order
+# 纪录片   3  cat                     paytype      order
+# 动漫     4 area  cat  ver  age      paytype      order
+# 音乐     5 area lang       cat  grp paytype      order
+# 综艺     6 area  cat                paytype      order
+# 娱乐     7       cat area           paytype      order
+# 旅游     9  cat area                paytype      order
+# 片花    10      area       cat      paytype      order
+# 时尚    13                      cat paytype      order
 def progList(name,id,page,cat,area,year,order,paytype):
     c1 = ''
     c2 = ''
     c3 = ''
     c4 = ''
-    if id == '7':     # 娱乐
+    if id == '7':          # 娱乐
         c3 = area
-    elif id == '9':   # 旅游
+    elif id in ('9','10'): # 旅游&片花
         c2 = area
-    elif id != '3':   # 非纪录片
+    elif id != '3':        # 非纪录片
         c1 = area
-    if id == '3' or id == '9':   # 纪录片&旅游
+    if id in ('3','9'):    # 纪录片&旅游
         c1 = cat
-    elif id == '5':   # 音乐
+    elif id in ('5','10'): # 音乐&片花
         c4 = cat
+    elif id == '13':       # 时尚
+        c5 = cat
     else:
         c2 = cat
     url = 'http://list.iqiyi.com/www/' + id + '/' + c1 + '-' + c2 + '-' + c3 + '-' + c4 + '-------' + paytype + '-' + year + '-' + order + '-1-' + page + '----.html'
@@ -119,11 +136,9 @@ def progList(name,id,page,cat,area,year,order,paytype):
         listpage = match[0]
     else:
         listpage = ''
-    match0 = re.compile('<!--列表部分_START-->(.+?)<!--列表部分_END-->', re.DOTALL).findall(link)
-    if id in ['5','7','9']:
-        match = re.compile('<li\s*>(.+?)</li>', re.DOTALL).findall(match0[0])
-    else:
-        match = re.compile('<li\s*class="j-listanim">(.*?)</li>', re.DOTALL).findall(match0[0])
+    match = re.compile('<!--列表部分_START-->(.+?)<!--列表部分_END-->', re.DOTALL).findall(link)
+    if match:
+        match = re.compile('<li[^>]+>(.+?)</li>', re.DOTALL).findall(match[0])
     totalItems = len(match) + 1
     if currpage > 1: totalItems = totalItems + 1
     if currpage < totalpages: totalItems = totalItems + 1
@@ -134,7 +149,7 @@ def progList(name,id,page,cat,area,year,order,paytype):
         catlist = getcatList(listpage, id)
         catstr = searchDict(catlist, cat)
     selstr = '[COLOR FFFF0000]' + catstr + '[/COLOR]'
-    if id != '3':
+    if not (id in ('3','13')):
         if area == '':
             areastr = '全部地区'
         else:
@@ -318,7 +333,7 @@ def performChanges(name,id,listpage,cat,area,year,order,paytype):
         if sel != -1:
             cat = catlist[sel][0]
             change = True
-    if id != '3':
+    if not (id in ('3','13')):
         arealist = getareaList(listpage, id)
         if len(arealist)>0:
             list = [x[1] for x in arealist]
