@@ -17,17 +17,22 @@ RES_LIST = ['normal', 'high', 'super']
 
 def GetHttpData(url):
     req = urllib2.Request(url)
-    req.add_header('User-Agent', UserAgent)
-    response = urllib2.urlopen(req)
-    httpdata = response.read()
-    if response.headers.get('content-encoding', None) == 'gzip':
-        httpdata = gzip.GzipFile(fileobj=StringIO.StringIO(httpdata)).read()
-    response.close()
-    match = re.compile('<meta http-equiv="[Cc]ontent-[Tt]ype" content="text/html; charset=(.+?)"').findall(httpdata)
-    if len(match)<=0:
-        match = re.compile('meta charset="(.+?)"').findall(httpdata)
+    req.add_header('User-Agent', 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)')
+    try:
+        response = urllib2.urlopen(req)
+        httpdata = response.read()
+        if response.headers.get('content-encoding', None) == 'gzip':
+            httpdata = gzip.GzipFile(fileobj=StringIO.StringIO(httpdata)).read()
+        charset = response.headers.getparam('charset')
+        response.close()
+    except:
+        print 'GetHttpData Error: %s' % url
+        return ''
+    match = re.compile('<meta http-equiv=["]?[Cc]ontent-[Tt]ype["]? content="text/html;[\s]?charset=(.+?)"').findall(httpdata)
     if len(match)>0:
-        charset = match[0].lower()
+        charset = match[0]
+    if charset:
+        charset = charset.lower()
         if (charset != 'utf-8') and (charset != 'utf8'):
             httpdata = httpdata.decode(charset, 'ignore').encode('utf8', 'ignore')
     return httpdata
@@ -106,7 +111,10 @@ def progList(name,id,page,cat,area,year,order):
         listpage = match[0]
     else:
         listpage = ''
-    match = re.compile('<ul class="p">(.+?)</ul>', re.DOTALL).findall(link)
+    if id == 'c_95':
+        match = re.compile('<ul class="p">(.+?)</ul>', re.DOTALL).findall(link)
+    else:
+        match = re.compile('<ul class="p pv">(.+?)</ul>', re.DOTALL).findall(link)
     totalItems = len(match) + 1
     if currpage > 1: totalItems = totalItems + 1
     if currpage < totalpages: totalItems = totalItems + 1
@@ -147,7 +155,6 @@ def progList(name,id,page,cat,area,year,order):
             p_res = 0
         if match[i].find('<li class="p_ischarge">')>0:
             p_name1 += '[付费节目]'
-        print id
         if id in ('c_96','c_95'):
             mode = 2
             isdir = False
@@ -173,7 +180,7 @@ def progList(name,id,page,cat,area,year,order):
 def getMovie(name,id,thumb,res):
     if len(id)==21:
         link = GetHttpData('http://www.youku.com/show_page/id_' + id + '.html')
-        match = re.compile('<div class="showbanner">.+?href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
+        match = re.compile('<a class="btnShow btnplayposi" href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
         if match:
             PlayVideo(name, match.group(1), thumb, res)
     else:
