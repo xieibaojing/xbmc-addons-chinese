@@ -181,8 +181,17 @@ def getMovie(name,id,thumb,res):
     if len(id)==21:
         link = GetHttpData('http://www.youku.com/show_page/id_' + id + '.html')
         match = re.compile('<a class="btnShow btnplayposi" href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
+        if not match:
+            match = re.compile('<div class="btnplay">.*?href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
         if match:
+            # 播放正片
             PlayVideo(name, match.group(1), thumb, res)
+        else:
+            # 解析预告片
+            match = re.compile('class="btnShow btnplaytrailer".*?data="\{videoId:(\d+),', re.DOTALL).search(link)
+            if match:
+                url = 'http://v.youku.com/v_show/id_' + match.group(1)
+                PlayVideo(name, url, thumb, res)
     else:
         PlayVideo(name, 'http://v.youku.com/v_show/id_'+id+'.html', thumb, res)
 
