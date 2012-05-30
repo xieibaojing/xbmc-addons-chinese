@@ -6,6 +6,7 @@
 #首发于http://bbs.htpc1.com
 #20110129 修改适应google搜索的变化
 #20110712 fxfboy@gmail.com 大幅修改，只保留了原来的插件id，使用百度输入法，需要安装基于百度输入法的中文输入法插件
+#20120529 htpcyh2@gmail.com  更新搜狐\奇异
 
 # Plugin constants 
 __addonname__     = "搜索电影"
@@ -13,7 +14,14 @@ __addonid__       = "plugin.video.somovie"
 __addon__         = xbmcaddon.Addon(id=__addonid__)
 __profile__       = xbmc.translatePath( __addon__.getAddonInfo('profile') )
 
-CHANNEL_LIST = [['搜狐高清','11','plugin.video.sohuvideo'], ['优酷视频','12','plugin.video.youku'], ['奇艺视频','13','plugin.video.qiyi'], ['腾讯视频','14','plugin.video.tencent'], ['新浪视频','15','plugin.video.sina'], ['天翼高清','16','plugin.video.netitv'], ['土豆视频','17','plugin.video.tudou'], ['音悦台MV','18','plugin.video.yinyuetai']]
+CHANNEL_LIST = [['搜狐高清','11','plugin.video.sohuvideo'],
+                ['优酷视频','12','plugin.video.youku'],
+                ['奇艺视频','13','plugin.video.qiyi'],
+                ['腾讯视频','14','plugin.video.tencent'],
+                ['新浪视频','15','plugin.video.sina'],
+                ['天翼高清','16','plugin.video.netitv'],
+                ['土豆视频','17','plugin.video.tudou'],
+                ['音悦台MV','18','plugin.video.yinyuetai']]
 
 class SmartRedirectHandler(urllib2.HTTPRedirectHandler):
 	def	http_error_301(self,req,fp,code,msg,headers):
@@ -263,28 +271,30 @@ def	popupSearch():
 
 def	searchSohu(keyword, page,plugin):
 	print 'searchSohu('+keyword+')'
-	if page:
-		currpage = page
-	else:
-		currpage = 1
-	if page:
-		url = 'http://so.tv.sohu.com/mts?&wd='+urllib.quote_plus(keyword.decode('utf-8').encode('gb2312'))+'&chl=&fee=0&tvType=-2&whole=1&blog=1&p=' + str(page)
-	else:
-		url = 'http://so.tv.sohu.com/mts?wd=' + urllib.quote_plus(keyword.decode('utf-8').encode('gb2312'))
+	url = 'http://so.tv.sohu.com/mts?box=1&wd=' + urllib.quote_plus(keyword.decode('utf-8').encode('gbk'))
 	print url
+	
 	html = getHttpData(url)
 	html = re.sub("\r|\n|\t","",html)
-	match = re.compile('<h1>.+?<span>(\d+?)</span>.+?</h1>').search(html)
+
+	match = re.compile('<h1>.*<strong>(.+?)</strong>.*</h1>').findall(html)
 	if match:
-		totalItems = int(match.group(1))
+		totalItems = int(match[0])
 	else:
-		totalItems = 0;
+		totalItems = 0
 	totalpages = getTotalPages(totalItems, 20)
+	#####
+        match = re.compile('<span>上一页</span><span class="current">(.+?)</span>').findall(html)
+        if match:
+		currpage = int(match[0])
+	else:
+		currpage = 1
+	#####
 	if totalItems == 0:
 		addItem('', '抱歉，没有找到[COLOR FFFF0000]'+keyword+'[/COLOR]的相关视频', getPluginIcon(plugin))
 	else:
 		addItem('', '第'+str(currpage)+'/'+str(totalpages)+'页,【搜狐站内搜索"[COLOR FFFF0000]'+keyword+'[/COLOR]",共找到'+str(totalItems)+'个视频】', getPluginIcon(plugin))
-		match=re.compile('<div class="list_pack">(.+?)</div></div>').findall(html)
+		match=re.compile('<div class="list_pack clear">(.+?)</div></div>').findall(html)
 		for item in match:
 			v_link = re.compile('<a class="img" (.+?)></a>').findall(item)[0]
 			p_url = re.compile('href="(.+?)"').findall(v_link)[0]
@@ -433,45 +443,46 @@ def	searchYouku(keyword, page,plugin):
 
 def	searchQiyi(keyword, page,plugin):
 	print 'searchQiyi('+keyword+')'
-	word = urllib.quote_plus(keyword).replace('%','_')
-	if page:
-		currpage = page
+	#word = urllib.quote_plus(keyword).replace('%','_')
+	word = urllib.quote(keyword)
+        url='http://so.iqiyi.com/so/q_' + word + '_f_2'	
+	print url
+	#####
+	html = getHttpData(url)
+	html = re.sub("\r|\n|\t","",html)
+	match = re.compile('<a href="#">全部<span class="sear_N">(.+?)</span></a>').findall(html)
+        if match:
+                tempstr = str(match[0])
+                tempstr = tempstr.strip('(')
+                tempstr = tempstr.strip(')')
+		totalItems = int(tempstr)
+	else:
+		totalItems = 0
+	totalpages = getTotalPages(totalItems, 20)
+        #####
+	match = re.compile('<span class="curPage">(.+?)</span>').findall(html)
+        if match:
+		currpage = int(match[0])
 	else:
 		currpage = 1
-
-	if page:
-		url='http://search.video.qiyi.com/search/' + word + '/' + str(currpage) + '/1/_20/10/www'
-	else:
-		url='http://search.video.qiyi.com/search/' + word + '/0/1/_20/10/www/'
-	print url
-	html = getHttpData(url)
-	match = re.compile('<script type="text/javascript">frameElement.callback\((.+?)\);</script></head>').search(html)
-	jsondata = match.group(1)
-	match = re.compile('"sumCounts":(\d+),').search(jsondata)
-	if match:
-		totalItems = int(match.group(1))
-	else:
-		totalItems = 0;
-	totalpages = getTotalPages(totalItems, 10)
+        #####
 	if totalItems == 0:
 		addItem('', '抱歉，没有找到[COLOR FFFF0000]'+keyword+'[/COLOR]的相关视频', getPluginIcon(plugin))
 	else:
-		addItem('', '第'+str(currpage)+'/'+str(totalpages)+'页,【奇艺站内搜索"[COLOR FFFF0000]'+keyword+'[/COLOR]",共找到'+str(totalItems)+'个视频】', getPluginIcon(plugin))
-		match = re.compile('"list":\[(.+?)\]').search(jsondata)
-		items = re.compile('{(.+?)}').findall(match.group(1))
+		addItem('', '第'+str(currpage)+'/'+str(totalpages)+'页,【爱奇艺站内搜索"[COLOR FFFF0000]'+keyword+'[/COLOR]",共找到'+str(totalItems)+'个视频】', getPluginIcon(plugin))
+		match = re.compile('<div class="List">(.+?)</div>').search(html)
+		items = re.compile('<li>(.+?)</li>').findall(match.group(1))
 		for item in items:
-			p_name = re.compile('"VrsVideoTv.tvName":"(.+?)",').findall(item)[0]
-			p_name = p_name.replace('\/', '/')
-			p_name = stripHtml(decodeHtml(p_name))
-			p_url = re.compile('TvApplication.purl":"(.+?)",').findall(item)[0]
-			p_thumb = re.compile('"vrsVideoTv.TvBigPic":"(.+?)",').findall(item)[0]
-			p_type = re.compile('"category":"(.+?)",').findall(item)[0]
+			p_name = re.compile('title="(.+?)"').findall(item)[0]
+			p_url = re.compile('<a href="(.+?)"').findall(item)[0]
+			p_thumb = re.compile('<img src="(.+?)"').findall(item)[0]
+			p_type = re.compile('<span class="sea_type">(.+?)</span>').findall(item)[0]
 			li=xbmcgui.ListItem(p_name,p_name,p_thumb,p_thumb)
 			if p_type=='电视剧':
-				u='plugin://'+plugin+'/?mode=3&name='+urllib.quote_plus(p_name)+'&url='+urllib.quote_plus(p_url)+'&thumb='+urllib.quote_plus(p_thumb)
+				u='plugin://'+plugin+'/?mode=2&name='+urllib.quote_plus(p_name)+'&url='+urllib.quote_plus(p_url)+'&thumb='+urllib.quote_plus(p_thumb)
 				addDir(u, '['+p_type+']'+p_name, p_thumb)
 			else:
-				u='plugin://'+plugin+'/?mode=2&name='+urllib.quote_plus(p_name)+'&url='+urllib.quote_plus(p_url)+'&thumb='+urllib.quote_plus(p_thumb)
+				u='plugin://'+plugin+'/?mode=3&name='+urllib.quote_plus(p_name)+'&url='+urllib.quote_plus(p_url)+'&thumb='+urllib.quote_plus(p_thumb)
 				addItem(u, '['+p_type+']'+p_name, p_thumb)
 		if currpage > 1:
 			u = sys.argv[0]+'?mode=13&plugin='+plugin+'&page='+str(currpage-1)+'&keyword='+keyword
