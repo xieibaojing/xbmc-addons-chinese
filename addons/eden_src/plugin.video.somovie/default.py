@@ -7,6 +7,7 @@
 #20110129 修改适应google搜索的变化
 #20110712 fxfboy@gmail.com 大幅修改，只保留了原来的插件id，使用百度输入法，需要安装基于百度输入法的中文输入法插件
 #20120529 htpcyh2@gmail.com  更新搜狐\奇异
+#20120531 htpcyh2@gmail.com  更新搜狐\新郎\音乐台
 
 # Plugin constants 
 __addonname__     = "搜索电影"
@@ -17,12 +18,13 @@ __profile__       = xbmc.translatePath( __addon__.getAddonInfo('profile') )
 CHANNEL_LIST = [['搜狐高清','11','plugin.video.sohuvideo'],
                 ['优酷视频','12','plugin.video.youku'],
                 ['奇艺视频','13','plugin.video.qiyi'],
-                ['腾讯视频','14','plugin.video.tencent'],
+                #['腾讯视频','14','plugin.video.tencent'],
                 ['新浪视频','15','plugin.video.sina'],
-                ['天翼高清','16','plugin.video.netitv'],
-                ['土豆视频','17','plugin.video.tudou'],
+                #['天翼高清','16','plugin.video.netitv'],
+                #['土豆视频','17','plugin.video.tudou'],
                 ['音悦台MV','18','plugin.video.yinyuetai']]
 
+######################################################################################################
 class SmartRedirectHandler(urllib2.HTTPRedirectHandler):
 	def	http_error_301(self,req,fp,code,msg,headers):
 		result=urllib2.HTTPRedirectHandler.http_error_301(self,req,fp,code,msg,headers)
@@ -268,11 +270,21 @@ def	popupSearch():
 		__addon__.setSetting(id="keyword", value=keyword)
 		saveHistory(keyword)
 		xbmc.executebuiltin('Container.Refresh')
-
+##################################################################################################################
 def	searchSohu(keyword, page,plugin):
 	print 'searchSohu('+keyword+')'
-	url = 'http://so.tv.sohu.com/mts?box=1&wd=' + urllib.quote_plus(keyword.decode('utf-8').encode('gbk'))
+	#########
+	if page:
+		currpage = page
+	else:
+		currpage = 1
+	if page:
+		url='http://so.tv.sohu.com/mts?&wd='+ urllib.quote_plus(keyword.decode('utf-8').encode('gbk')) +'&p=' +str(page)
+	else:
+		url = 'http://so.tv.sohu.com/mts?box=1&wd=' + urllib.quote_plus(keyword.decode('utf-8').encode('gbk'))
 	print url
+	
+	#########
 	
 	html = getHttpData(url)
 	html = re.sub("\r|\n|\t","",html)
@@ -284,12 +296,7 @@ def	searchSohu(keyword, page,plugin):
 		totalItems = 0
 	totalpages = getTotalPages(totalItems, 20)
 	#####
-        match = re.compile('<span>上一页</span><span class="current">(.+?)</span>').findall(html)
-        if match:
-		currpage = int(match[0])
-	else:
-		currpage = 1
-	#####
+
 	if totalItems == 0:
 		addItem('', '抱歉，没有找到[COLOR FFFF0000]'+keyword+'[/COLOR]的相关视频', getPluginIcon(plugin))
 	else:
@@ -443,11 +450,18 @@ def	searchYouku(keyword, page,plugin):
 
 def	searchQiyi(keyword, page,plugin):
 	print 'searchQiyi('+keyword+')'
-	#word = urllib.quote_plus(keyword).replace('%','_')
-	word = urllib.quote(keyword)
-        url='http://so.iqiyi.com/so/q_' + word + '_f_2'	
+	########
+	if page:
+		currpage = page
+	else:
+		currpage = 1
+	if page:
+		url='http://so.iqiyi.com/so/q_' + urllib.quote(keyword) +'_sort__page_'+ str(currpage)+'_ctg_'
+	else:
+		url='http://so.iqiyi.com/so/q_' + urllib.quote(keyword) + '_f_2'
 	print url
-	#####
+	
+	########
 	html = getHttpData(url)
 	html = re.sub("\r|\n|\t","",html)
 	match = re.compile('<a href="#">全部<span class="sear_N">(.+?)</span></a>').findall(html)
@@ -459,12 +473,6 @@ def	searchQiyi(keyword, page,plugin):
 	else:
 		totalItems = 0
 	totalpages = getTotalPages(totalItems, 20)
-        #####
-	match = re.compile('<span class="curPage">(.+?)</span>').findall(html)
-        if match:
-		currpage = int(match[0])
-	else:
-		currpage = 1
         #####
 	if totalItems == 0:
 		addItem('', '抱歉，没有找到[COLOR FFFF0000]'+keyword+'[/COLOR]的相关视频', getPluginIcon(plugin))
@@ -482,7 +490,7 @@ def	searchQiyi(keyword, page,plugin):
 				u='plugin://'+plugin+'/?mode=2&name='+urllib.quote_plus(p_name)+'&url='+urllib.quote_plus(p_url)+'&thumb='+urllib.quote_plus(p_thumb)
 				addDir(u, '['+p_type+']'+p_name, p_thumb)
 			else:
-				u='plugin://'+plugin+'/?mode=3&name='+urllib.quote_plus(p_name)+'&url='+urllib.quote_plus(p_url)+'&thumb='+urllib.quote_plus(p_thumb)
+				u='plugin://'+plugin+'/?mode=3&name='+urllib.quote_plus(p_name)+'&url='+urllib.quote_plus(p_url)+'&thumb='+urllib.quote_plus(p_thumb)	
 				addItem(u, '['+p_type+']'+p_name, p_thumb)
 		if currpage > 1:
 			u = sys.argv[0]+'?mode=13&plugin='+plugin+'&page='+str(currpage-1)+'&keyword='+keyword
@@ -600,8 +608,8 @@ def	searchSina(keyword, page, plugin):
 				p_name = p_link.group(1)
 				p_name = stripHtml(decodeHtml(p_name))
 				p_url = p_link.group(2)
+
 			else:
-				print 'Fail Item : ' + item
 				continue
 			p_thumb = re.compile('<img class="pic" src="(.+?)" [^>]*>').search(item)
 			if p_thumb:
@@ -618,7 +626,7 @@ def	searchSina(keyword, page, plugin):
 				u='plugin://'+plugin+'/?mode=2&name='+urllib.quote_plus(p_name)+'&url='+urllib.quote_plus(p_url)+'&thumb='+urllib.quote_plus(p_thumb)
 				addDir(u, p_type+p_name, p_thumb)
 			else:
-				u='plugin://'+plugin+'/?mode=10&name='+urllib.quote_plus(p_name)+'&url='+urllib.quote_plus(p_url)+'&thumb='+urllib.quote_plus(p_thumb)
+				u=sys.argv[0]+'?mode=6&vname='+p_name +'&vurl='+p_url +'&vimage='+p_thumb
 				addItem(u, p_type+p_name, p_thumb)
 		if currpage > 1:
 			u = sys.argv[0]+'?mode=15&plugin='+plugin+'&page='+str(currpage-1)+'&keyword='+keyword
@@ -629,28 +637,90 @@ def	searchSina(keyword, page, plugin):
 	xbmcplugin.setContent(int(sys.argv[1]), 'movies')
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def searchYinyuetai(keyword, page, plugin):
-	print 'searchYinyuetai('+keyword+')'
+def searchTuodou(keyword, page, plugin):
+	print 'searchTuodou('+keyword+')'
 	clearTempThumb()
+	########
 	if page:
 		currpage = page
 	else:
 		currpage = 1
 
 	if page:
-		url='http://www.yinyuetai.com/search/mv?keyword=' + urllib.quote_plus(keyword) + '&page=' + str(currpage)
+		url='http://so.tudou.com/nisearch/' + urllib.quote_plus(keyword) + '/cid__time__sort_score_display_album_high_0_page_' + str(currpage)
 	else:
-		url='http://www.yinyuetai.com/search/mv?keyword=' + urllib.quote_plus(keyword)
+		url='http://so.tudou.com/nisearch/' + urllib.quote_plus(keyword) + '/?f=hint'
 	print url
+	########
+	html = getHttpData(url)
+	html = html.decode('gbk', 'ignore').encode('utf-8')#gbk code#
+	html = re.sub("\r|\n|\t","",html)
+	html = re.sub('>[\s]*<', '><', html)
+	match = re.compile('找到.*相关视频 <strong>(.+?)</strong> 个').findall(html)
+        if match:
+		totalItems = int(match[0])
+	else:
+		totalItems = 0
+	totalpages = getTotalPages(totalItems, 24)
+	########
+	if totalItems == 0:
+		addItem('', '抱歉，没有找到[COLOR FFFF0000]'+keyword+'[/COLOR]的相关视频', getPluginIcon(plugin))
+	else:
+		addItem('', '第'+str(currpage)+'/'+str(totalpages)+'页,【音悦台站内搜索"[COLOR FFFF0000]'+keyword+'[/COLOR]",共找到'+str(totalItems)+'个MV】', getPluginIcon(plugin))
+		h_html = re.compile('<div class="search_result">(.+?)class="page_nav" id="page_nav">').search(html)
+		if h_html:
+			html = h_html.group(1)
+		items = re.compile('<div class="pack pack_video_card(.+?)</span></li></ul></div></div>').findall(html)
+		for item in items:
+			p_link = re.compile('<div class="thumb thumb_mv"><a .+? href="(.+?)" [^>]*><img alt="(.+?)" src="(.+?)"/>.+?</a></div>').search(item)
+			p_link = re.compile('href="(.+?)"><img.*alt="(.+?)" src="(.+?)"').search(item)
+			if p_link:
+                        #href="http://www.tudou.com/programs/view/F0Za0Ddfzbg/"><img width="132" height="99" class="pack_clipImg" alt="李健深情演绎《传奇》" src="http://i4.tdimg.com/140/565/163/p.jpg"
+                                p_url   = p_link.group(1)
+                                p_name  = p_link.group(2)
+				p_name  = stripHtml(decodeHtml(p_name))
+				p_thumb = p_link.group(3)
+				p_thumb = createTempThumb(p_thumb)
+			else:
+				print 'Fail Item : ' + item
+				continue
+
+			#u='plugin://'+plugin+'/?mode=3&name='+urllib.quote_plus(p_name)+'&url='+urllib.quote_plus(p_url)+'&thumb='+urllib.quote_plus(p_thumb)
+                        u=sys.argv[0]+'?mode=6&vname='+p_name +'&vurl='+p_url +'&vimage='+p_thumb
+			addItem(u, p_name, p_thumb)
+		if currpage > 1:
+			u = sys.argv[0]+'?mode=17&plugin='+plugin+'&page='+str(currpage-1)+'&keyword='+keyword
+			addDir(u, '上一页', '')
+		if currpage < totalpages:
+			u = sys.argv[0]+'?mode=17&plugin='+plugin+'&page='+str(currpage+1)+'&keyword='+keyword
+			addDir(u, '下一页', '')
+	xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 	
+
+def searchYinyuetai(keyword, page, plugin):
+	print 'searchYinyuetai('+keyword+')'
+	clearTempThumb()
+	########
+	if page:
+		currpage = page
+	else:
+		currpage = 1
+
+	if page:
+		url='http://www.yinyuetai.com/search?searchType=mv&keyword=' + urllib.quote_plus(keyword) + '&page=' + str(currpage)
+	else:
+		url='http://www.yinyuetai.com/search?searchType=mv&keyword=' + urllib.quote_plus(keyword)
+	print url
+	########
 	html = getHttpData(url)
 	html = re.sub("\r|\n|\t","",html)
 	html = re.sub('>[\s]*<', '><', html)
-	match = re.compile('<div id="search_result_category"><span><a [^>]*>MV</a><em>\((.+?)\)</em>').search(html)
-	if match:
-		totalItems = int(match.group(1))
+	match = re.compile('<em class="orange">(.+?)</em>').findall(html)
+        if match:
+		totalItems = int(match[0])
 	else:
-		totalItems=0
+		totalItems = 0
 	totalpages = getTotalPages(totalItems, 20)
 	if totalItems == 0:
 		addItem('', '抱歉，没有找到[COLOR FFFF0000]'+keyword+'[/COLOR]的相关视频', getPluginIcon(plugin))
@@ -679,8 +749,9 @@ def searchYinyuetai(keyword, page, plugin):
 				p_artist = ''
 			if len(p_artist)>0:
 				p_name = p_name + ' - ' + p_artist 
-			u='plugin://'+plugin+'/?mode=255&name='+urllib.quote_plus(p_name)+'&url='+urllib.quote_plus(p_url)+'&artist='+urllib.quote_plus(p_artist)
-			print 'p_thumb='+p_thumb
+			u=sys.argv[0]+'?mode=6&vname='+p_name +'&vurl='+p_url +'&vimage='+p_thumb
+			
+			#print 'p_thumb='+p_thumb
 			addItem(u, p_name, p_thumb)
 		if currpage > 1:
 			u = sys.argv[0]+'?mode=18&plugin='+plugin+'&page='+str(currpage-1)+'&keyword='+keyword
@@ -690,10 +761,32 @@ def searchYinyuetai(keyword, page, plugin):
 			addDir(u, '下一页', '')
 	xbmcplugin.setContent(int(sys.argv[1]), 'movies')
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
-	
+
+###################################################################################################	
 def	searchUndefined():
 	addItem('', '抱歉，对此站点的搜索还未推出，敬请期待...', '')
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+
+def playVideo(name,url, image):    
+    link = getHttpData('http://www.flvcd.com/parse.php?kw='+url+'&format=high')
+    match = re.compile(' <a href="(.+?)" target="_blank" class="link"').findall(link)
+
+    if len(match)>0:
+        playlist=xbmc.PlayList(1)
+        playlist.clear()
+        for i in range(0,len(match)):
+            listitem = xbmcgui.ListItem(name, thumbnailImage = image)
+            listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
+            playlist.add(match[i], listitem)
+        xbmc.Player().play(playlist)
+    else:
+        if link.find('该视频为加密视频')>0:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '无法播放：该视频为加密视频')
+        elif link.find('解析失败，请确认视频是否被删除')>0:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '无法播放：该视频或为收费节目')
 
 def	addDir(u,name,img):
 	li=xbmcgui.ListItem(name, img, img)
@@ -741,6 +834,10 @@ a1=None
 a2=None
 st=None
 history=None
+vname=''
+vurl=''
+vimage=''
+
 
 try:
 	mode=int(params["mode"])
@@ -782,6 +879,22 @@ try:
 except:
 	pass
 
+try:
+	vurl=params["vurl"]
+except:
+	pass
+
+try:
+	vname=params["vname"]
+except:
+	pass
+
+try:
+	vimage=params["vimage"]
+except:
+	pass
+
+
 if mode==None:
 	rootList()
 elif mode==0:
@@ -790,6 +903,9 @@ elif mode==1:
 	clearHistory()
 elif mode==2:
 	performChanges(keyword,page,plugin,a1,a2)
+elif mode==6:
+	playVideo(vname,vurl,vimage)
+	
 elif mode==11:
 	saveHistory(keyword)
 	searchSohu(keyword,page,plugin)
@@ -805,6 +921,9 @@ elif mode==14:
 elif mode==15:
 	saveHistory(keyword)
 	searchSina(keyword,page,plugin)
+elif mode==17:
+	saveHistory(keyword)
+	searchTuodou(keyword, page, plugin)    
 elif mode==18:
 	saveHistory(keyword)
 	searchYinyuetai(keyword,page,plugin)
