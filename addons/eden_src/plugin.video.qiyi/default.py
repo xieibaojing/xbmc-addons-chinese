@@ -273,11 +273,16 @@ def seriesList(name,url,thumb):
 
 def PlayVideo(name,url,thumb):
     link = GetHttpData(url)
-    match1 = re.compile('pid : "(\d+)",//.*?ptype : "(\d+)",//.*?videoId : "([^"]+)",//', re.DOTALL).findall(link)
-    if len(match1) > 0:
-        pid = match1[0][0]
-        ptype = match1[0][1]
-        videoId = match1[0][2]
+    match1 = re.compile('<script type="text/javascript">\s*var info\s*=(.*?)</script>', re.DOTALL).findall(link)
+    if match1:
+        print match1
+        match1 = re.compile('"?pid"?:"(\d+)".*?"?ptype"?:"(\d+)".*?"?videoId"?:"([^"]+)"', re.DOTALL).findall(match1[0].replace(' ', ''))
+        if len(match1) > 0:
+            pid = match1[0][0]
+            ptype = match1[0][1]
+            videoId = match1[0][2]
+        else:
+            return
     else:
         return
     url = 'http://cache.video.qiyi.com/v/' + videoId + '/' + pid + '/' + ptype + '/'
