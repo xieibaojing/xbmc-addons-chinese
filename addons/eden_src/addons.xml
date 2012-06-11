@@ -267,7 +267,7 @@
 
 <addon id="plugin.video.tudou"
     name="土豆视频(Tudou)"
-    version="1.0.8"
+    version="1.0.9"
     provider-name="taxigps">
     <extension
         point="xbmc.python.pluginsource"

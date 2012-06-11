@@ -38,9 +38,9 @@ def getList(listpage):
     match0 = re.compile('<h3>类型:</h3><ul>(.+?)</ul>').search(listpage)
     catlist = re.compile('<li[^>]*><a href=".+?/c[0-9]+t([\-0-9]+)[^"]+">(.+?)</a></li>').findall(match0.group(1))
     match0 = re.compile('<h3>国家地区:</h3><ul>(.+?)</ul>').search(listpage)
-    arealist = re.compile('<li[^>]*><a href=".+?/c[0-9]+t[\-0-9]+a([\-0-9]+)[^"]+">(.+?)</a></li>').findall(match0.group(1))
+    arealist = re.compile('<li[^>]*><a href=".+?/c[0-9]+t[\-0-9]+v[\-0-9]+z[\-0-9]+a([\-0-9]+)y[^"]+">(.+?)</a></li>').findall(match0.group(1))
     match0 = re.compile('<h3>年份:</h3><ul>(.+?)</ul>').search(listpage)
-    yearlist = re.compile('<li[^>]*><a href=".+?/c[0-9]+t[\-0-9]+a[\-0-9]+y([\-0-9]+)[^"]+">(.+?)</a></li>').findall(match0.group(1))
+    yearlist = re.compile('<li[^>]*><a href=".+?/c[0-9]+t[\-0-9]+v[\-0-9]+z[\-0-9]+a[\-0-9]+y([\-0-9]+)[^"]+">(.+?)</a></li>').findall(match0.group(1))
     return catlist,arealist,yearlist
 
 def rootList():
@@ -101,7 +101,6 @@ def progList(name,baseurl,page,cat,area,year,order):
             p_url = match1.group(1)
             p_thumb = match1.group(2)
             mode = 3
-            #print p_url
         else:
             p_url = match1.group(1)
             p_thumb = match1.group(2)
@@ -164,10 +163,18 @@ def seriesList(name,url,thumb):
     link = GetHttpData(url)
     link= re.sub("\r|\n|\t","",link)
     match0 = re.compile('<div id="playItems"(.+?)<div class="page_nav"').search(link)
-    match = re.compile('<div class="pic"><a target="new" title="(.+?)"\s*href="\s*http://www.tudou.com/playlist/p/a[0-9]+i([0-9]+).html\s*"></a><img .+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
+    match = re.compile('<div class="pic"><a target="new" title="(.+?)"\s*href="\s*(http://www.tudou.com/playlist/p/a[0-9]+)(i[0-9]+)?.html\s*"></a><img .+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
     if match:
+        iids = map( lambda x: re.sub( '^i', '' , x[2] ), match )
+        album_url = match[0][1] + '.html'
+        album_data = GetHttpData( album_url )
+        episodes = re.compile('iid:\s*[0-9]+').findall(album_data)
+        episodes = map( lambda x: re.sub('^iid:\s*', '', x), episodes )
+        iids_missing = sorted(list(set(episodes) - set(iids)))
         totalItems = len(match)
-        for p_name, p_iid, alt, src in match:
+        for p_name, album, p_iid, alt, src in match:
+            p_iid = re.sub( '^i', '', p_iid )
+            if p_iid in (None, ''): p_iid = iids_missing.pop(0)
             if alt[0:5]=='http:':
                 p_thumb = alt
             else:
@@ -186,7 +193,6 @@ def seriesList(name,url,thumb):
         totalItems = len(match)
         for p_name, p_iid, p_thumb in match:
             p_id=searchDict(jjlist,p_iid)
-            print 'p_id===='+p_id+','+p_iid
             li = xbmcgui.ListItem(name+'：'+p_name, iconImage = '', thumbnailImage = p_thumb)
             u = sys.argv[0] + "?mode=5&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_id)+ "&thumb=" + urllib.quote_plus(p_thumb)
             #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
