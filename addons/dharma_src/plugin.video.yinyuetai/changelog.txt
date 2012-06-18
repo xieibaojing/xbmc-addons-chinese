@@ -1,6 +1,10 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.4.2 2012-06-18 (cmeng)
+# a. img url link given as full path
+#    => update def get_Thumb(icon):
+#
 # Version 1.4.1 2012-02-19 (cmeng)
 # a. xbmcaddon.Addon() needs 1 parameter for Dharma
 # b. remove extra " in Artist name listing
