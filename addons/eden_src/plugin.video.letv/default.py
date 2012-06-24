@@ -6,9 +6,11 @@ import ChineseKeyboard
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.0.0 2012-06-20
-# a. First Release 
-
+# Version 1.0.0 2012-06-24
+# a. Add in 明星 category selection
+# b. Update video link decode algorithm
+# c. Correct update video list error
+#
 # See changelog.txt for previous history
 ########################################################################
 
@@ -86,7 +88,7 @@ def getList(listpage):
 
 ##################################################################################
 # Routine to fetch and build video filter list for star
-# - 字母 (Alphabet)
+# - 按字母 (Alphabet)
 # - 按地区 (Countries/Areas)
 # - 按职业 (Profession)
 # 
@@ -128,7 +130,7 @@ def getListVariety(listpage):
 # Routine to fetch & build PPS 网络电视 main menu
 # - video list as per [VIDEO_LIST]
 # - ugc list
-# - movie, series & ugc require different sub-menu access methods
+# - movie, series, star & ugc require different sub-menu access methods
 ##################################################################################
 def mainMenu():
 #    li = xbmcgui.ListItem('[COLOR FFFF0000]0. LeTV 乐视网搜索:[/COLOR][COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
@@ -153,9 +155,8 @@ def mainMenu():
         i = i + 1
         li = xbmcgui.ListItem(str(i) + '. ' + name)
         if name == '明星':
-            link = getHttpData('http://so.letv.com/starlist/i-1_w-1_a-1_g-1_p.html')
-            listpage = re.compile('<div class="list_r">(.+?)<p class="foldbox on" id="tagCtr">').findall(link)[0]
-            u = sys.argv[0] + "?mode=50&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id)+ "&page=1"  + "&alphabet=全部" + "&area=全部" + "&prof=全部" + "&gender=全部" + "&listpage=" + urllib.quote_plus(listpage)
+            url = 'http://so.letv.com/starlist/i-1_w-1_a-1_g-1_p.html'
+            u = sys.argv[0] + "?mode=21&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url)+ "&page=1"  + "&alphabet=全部" + "&area=全部" + "&prof=全部" + "&gender=全部"
         else:
             u = sys.argv[0] + "?mode=1&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id)+ "&page=1"  + "&cat=全部" + "&area=全部" + "&year=全部" + "&order=最新更新" + "&listpage=" + urllib.quote_plus(listpage)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
@@ -181,8 +182,11 @@ def mainMenu():
 def progListMovie(name, id, page, cat, area, year, order, listpage):
     # fetch user specified parameters  
     catlist, arealist, yearlist = getList(listpage)
+    if re.search('全部',cat): cat = '全部'
     fltrCat  = fetchID(catlist, cat)
+    if re.search('全部',area): area = '全部'
     fltrArea = fetchID(arealist, area)
+    if re.search('全部',year): year = '全部'
     fltrYear = fetchID(yearlist, year)
     fltrAge  = '_f-1'
     fltrVer  = '_at-1'
@@ -203,8 +207,6 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
     # [ugc:] http://www.letv.com/vchannel/new_ch3_d1_p1.html
     # new_ch = ugc type (; new_ch3:娱乐 ; new_ch9:音乐 ...)
     # d1_p1 = fixed 
-    # --------------------------             
-    # [明星:] http://so.letv.com/starlist/i_w_a_g_p.html
         
     # construct url based on user selected filter ID's
     if name == '动漫':
@@ -220,9 +222,7 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
     link = getHttpData(url)
     # Extract filter list for user selection - list order valid on first entry only    
     match = re.compile('<div class="list_r">(.+?)<p class="foldbox on" id="tagCtr">').findall(link)[0]
-    if len(match):
-        #if listpage==None:
-        listpage = match
+    if len(match): listpage = match
 
     match = re.compile('<dl class="m_dl">(.+?)</dl>', re.DOTALL).findall(link)                  
     totalItems = len(match)
@@ -277,8 +277,9 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
 ##################################################################################
 # Routine to update video list as per user selected filters
 # - 按类型  (Categories)
-# - 按国家/地区 (Countries/Areas)
+# - 按地区 (Areas)
 # - 按年份 (Year)
+# - 排序方式 (Selection Order)
 ##################################################################################
 def updateListMovie(name, id, page, cat, area, year, order, listpage):
     change = False
@@ -315,6 +316,7 @@ def updateListMovie(name, id, page, cat, area, year, order, listpage):
 
 ##################################################################################
 # Routine to fetch and build the video series selection menu
+# - for 电视剧  & 动漫
 # - selected page & filters (user selectable)
 # - Video series list
 # - user selectable pages
@@ -330,17 +332,13 @@ def progListSeries(name, url, thumb):
     match = re.compile('<div.+?data-tabct="j-tab[1-2]+_child".+?statectn="n_list[1-2]+">(.+?)</div>').findall(link)
     # special handling for '动漫'
     matchp = re.compile('<dl class="w96">(.+?)</dl>').findall(match[0])
-    print "matchp", matchp
     if len(matchp): # not the right one, so re-fetch             
         match = re.compile('<div class="list active" data-tabct="j-tab1_child">(.+?)</div>').findall(link)
     
-    print "match",  match,
     for j in range(0, len(match)):
         matchp = re.compile('<dl class="w120">(.+?)</dl>').findall(match[j])              
         totalItems = len(matchp)
-        print len(match), totalItems
         for i in range(0, len(matchp)):
-            print "matchp[i]:", matchp[i]
             match1 = re.compile('<img.+?src="(.+?)"').search(matchp[i])
             p_img = match1.group(1)
             match1 = re.compile('<p class="p1">.+?href="(.+?)"[\s]*title="(.+?)">(.+?)</a></p>').search(matchp[i])
@@ -372,14 +370,14 @@ def updateListSeries(name, id, thumb, listpage):
 
 ##################################################################################
 # Routine to fetch and build the video series selection menu
+# - for 综艺 only
 # - selected page & filters (user selectable)
 # - Video series list
 # - user selectable pages
 ##################################################################################
 def progListVariety(name, url, page, year, month):
     link = getHttpData(url)
-    match = re.compile('<div class="listPic active">(.+?)<div class="d-l"></div>').findall(link)[0]
-    if len(match): listpage = match
+    listpage = re.compile('<div class="listPic active">(.+?)<div class="d-l"></div>').findall(link)[0]
     datelist = getListVariety(listpage)
    
     if year is None: year = datelist[0][0]
@@ -407,7 +405,6 @@ def progListVariety(name, url, page, year, month):
     link = getHttpData(p_url)
     if re.search(month,'全部'): month = '全部月份'
 
-    # Extract filter list for user selection - list order valid on first entry only  
     match = re.compile('{"description".+?"name":"(.+?)".+?"viewpic":"(.+?)".+?"url":"(.+?)"').findall(link)
     totalItems = len(match)
 
@@ -447,8 +444,7 @@ def progListVariety(name, url, page, year, month):
     
 ##################################################################################
 # Routine to update video list as per user selected filters
-# - 按类型  (Categories)
-# - 按国家/地区 (Countries/Areas)
+# - for 综艺
 # - 按年份 (Year)
 ##################################################################################
 def updateListVariety(name, url, page, year, month, listpage):
@@ -456,7 +452,7 @@ def updateListVariety(name, url, page, year, month, listpage):
     dialog = xbmcgui.Dialog()
     datelist = getListVariety(listpage)
     list = []
-    #list = [x[0] for x in datelist if x[0] not in list]
+    # extract unique year list
     for x in datelist:
         if x[0] not in list: list.append(x[0])
     sel = dialog.select('年份', list)
@@ -475,63 +471,68 @@ def updateListVariety(name, url, page, year, month, listpage):
 
 ##################################################################################
 # Routine to display Singer list for selection
-# 
+# - for 明星
+# - selected page & filters
+# - Video series list
+# - user selectable pages 
 ##################################################################################
-def progListStar(name, id, page, alphabet, area, prof, gender, listpage):
-    # fetch user specified parameters  
+def progListStar(name, url, page, alphabet, area, prof, gender):
+    link = getHttpData(url)
+    # Extract filter list for user selection - list order valid on first entry only
+    listpage = re.compile('<div class="list_r">(.+?)<p class="foldbox on" id="tagCtr">').findall(link)[0]
+
+    # fetch user specified parameters
     alphabetlist, arealist, proflist = getListStar(listpage)
+    if re.search('全部',alphabet): alphabet = '全部'
     fltrAlphabet = fetchID(alphabetlist, alphabet)
-    fltrProf = fetchID(proflist, prof)
+    if re.search('全部',area): area = '全部'
     fltrArea = fetchID(arealist, area)
+    if re.search('全部',prof): prof = '全部'
+    fltrProf = fetchID(proflist, prof)
+    if re.search('全部',gender): gender = '全部'
     fltrGender = fetchID(GENDER_LIST, gender) 
   
     # Video site parameters definitions:
-    # [明星:] http://so.letv.com/starlist/i_w_a_g_p.html
-    # i = alphabet (a~z) 
+    # [明星:] http://so.letv.com/starlist/i-1_w-1_a-1_g-1_p1.html
+    # i = alphabet (a~z; i-1:all) 
     # w = profession category (w-1:all; w1~8:演员;导演;主持人;歌手;编剧;摄像;制片人;讲师)
     # a = area (a-1:all; a1:中国大陆 ...)
     # g = gender (g-1:all; g1:男; g2:女)
-    # p = page    
-        
+    # p = page number
+            
     # construct url based on user selected filter ID's
     url = 'http://so.letv.com/starlist/' + fltrAlphabet + fltrProf + fltrArea + fltrGender + '_p'
     if page: currpage = int(page)
     else: currpage = 1
     url += page + '.html'
 
-    link = getHttpData(url)
-    # Extract filter list for user selection - list order valid on first entry only    
-    match = re.compile('<div class="list_r">(.+?)<p class="foldbox on" id="tagCtr">').findall(link)[0]
-    if len(match):
-        listpage = match
-
-    match = re.compile('<dl class="StarDL">(.+?)</dl>', re.DOTALL).findall(link)                  
-    totalItems = len(match)
     if re.search(alphabet,'全部'): alphabet = '全部字母'
-    else: alphabet = '字母:' + alphabet
     if re.search(area,'全部'): area = '全部地区'
     if re.search(prof,'全部'): prof = '全部职业'
     if re.search(gender,'全部'): gender = '全部性别'
 
+    link = getHttpData(url)
+    match = re.compile('<dl class="StarDL">(.+?)</dl>', re.DOTALL).findall(link)                  
+    totalItems = len(match)
+
     # Fetch & build video titles list for user selection, highlight user selected filter  
     li = xbmcgui.ListItem(name + '（第' + str(currpage) + '页）【[COLOR FFFF0000]' + alphabet + '[/COLOR]/[COLOR FF00FF00]' + area + '[/COLOR]/[COLOR FFFFFF00]' + prof + '[/COLOR]/[COLOR FF00FFFF]' + gender + '[/COLOR]】（按此选择）')
-    u = sys.argv[0] + "?mode=22&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&alphabet=" + urllib.quote_plus(alphabet) + "&area=" + urllib.quote_plus(area) + "&prof=" + urllib.quote_plus(prof) + "&gender=" + gender + "&listpage=" + urllib.quote_plus(listpage)
+    u = sys.argv[0] + "?mode=22&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&alphabet=" + urllib.quote_plus(alphabet) + "&area=" + urllib.quote_plus(area) + "&prof=" + urllib.quote_plus(prof) + "&gender=" + gender + "&listpage=" + urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
     for i in range(0, len(match)):
         match1 = re.compile('<img src="(.+?)"').search(match[i])
         p_thumb = match1.group(1)
-        match1 = re.compile('<dd class="tit"><a href="(.+?)".+?>(.+?)').search(match[i])
+        match1 = re.compile('<dd class="tit"><a href="(.+?)".+?>(.+?)</a>').search(match[i])
         p_url = match1.group(1)
         p_name = p_list = match1.group(2)    
         match1 = re.compile('<dd>(职业：.+?)</dd>').search(match[i])
         p_prof = match1.group(1)
-        
-#        match1 = re.compile('<a href=.+?title=.+?target=.+?>(《.+?》)</a>').search(match[i])
-#        p_title=''
-#        if match1:
-#            p_title = match1[0] #+ match1[1]
-#        p_list = p_list + ' [' + p_prof +'] ' + p_title
+ 
+        p_title=''
+        match1 = re.compile('<a href=.+?title=.+?target=.+?>(《.+?》)</a>').findall(match[i])
+        for title in match1: p_title += title
+        p_list += ' ~ [' + p_prof +'] ' + p_title
  
         li = xbmcgui.ListItem(str(i + 1) + '. ' + p_list, iconImage='', thumbnailImage=p_thumb)
         u = sys.argv[0] + "?mode=23" + "&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
@@ -547,7 +548,7 @@ def progListStar(name, id, page, alphabet, area, prof, gender, listpage):
                 if num not in plist:
                     plist.append(num)
                     li = xbmcgui.ListItem("... 第" + num + "页")
-                    u = sys.argv[0] + "?mode=21&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&alphabet=" + urllib.quote_plus(alphabet) + "&area=" + urllib.quote_plus(area) + "&prof=" + urllib.quote_plus(prof) + "&gender=" + gender + "&page=" + urllib.quote_plus(str(num))+ "&listpage=" + urllib.quote_plus(listpage)
+                    u = sys.argv[0] + "?mode=21&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&page=" + num + "&alphabet=" + alphabet + "&area=" + area + "&prof=" + prof + "&gender=" + gender
                     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)        
 
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
@@ -555,11 +556,13 @@ def progListStar(name, id, page, alphabet, area, prof, gender, listpage):
     
 ##################################################################################
 # Routine to update video list as per user selected filters
-# - 按类型  (Categories)
-# - 按国家/地区 (Countries/Areas)
-# - 按年份 (Year)
+# - for 明星
+# - 按字母  (Categories)
+# - 按地区 (Areas)
+# - 按职业 (Professional)
+# - 按性别 (Gender)
 ##################################################################################
-def updateListStar(name, id, page, alphabet, area, prof, gender, listpage):
+def updateListStar(name, url, page, alphabet, area, prof, gender, listpage):
     change = False
     dialog = xbmcgui.Dialog()
     alphabetlist, arealist, proflist = getListStar(listpage)
@@ -585,11 +588,49 @@ def updateListStar(name, id, page, alphabet, area, prof, gender, listpage):
         gender = GENDER_LIST[sel][1]
         change = True
         
-    if change: progListStar(name, id, '1', alphabet, area, prof, gender, listpage)
-    else: return(name, id, '1', alphabet, area, prof, gender, listpage)        
+    if change: progListStar(name, url, '1', alphabet, area, prof, gender)
+    else: return(name, url, '1', alphabet, area, prof, gender)        
           
 ##################################################################################
+# Routine to extract video series selection menu for user playback
+# - for 明星
+##################################################################################
+def progListStarVideo(name, url, thumb):
+    link = getHttpData(url)
+    
+    li = xbmcgui.ListItem('【[COLOR FFFFFF00][' + name + '][/COLOR] | [COLOR FF00FFFF] [选择: ' + name + '][/COLOR]】', iconImage='', thumbnailImage=thumb)
+    u = sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url)+"&thumb="+urllib.quote_plus(thumb) 
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+   
+    matchp = []
+    # fetch and build the video series list
+    match = re.compile('<div class="video">.+?<div class="list">(.+?)</div>').findall(link)
+    matchv = re.compile('<dl class="w96">(.+?)</dl>').findall(match[0])
+    matchp.append(matchv)
+       
+    match = re.compile('<div class="newMusic">.+?<div class="list">(.+?)</div>').findall(link)
+    for j in range(0, len(match)):
+        matchm = re.compile('<dl class="w140">(.+?)</dl>').findall(match[j])              
+        matchp.append(matchm)    
+    
+    for j in range(0, len(matchp)):
+        totalItems = len(matchp[j])
+        for i in range(0, len(matchp[j])):
+            match1 = re.compile('<dt><a target="_blank" href="(.+?)"[\s]*title="(.+?)"><img.+?src="(.+?)"').search(matchp[j][i])
+            p_url = match1.group(1)
+            p_name = p_name = match1.group(2)
+            p_img = match1.group(3)
+            p_list = str(j) + str(i+1) + ': ' + p_name
+                 
+            li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_img)
+            u = sys.argv[0] + "?mode=10&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+    xbmcplugin.setContent(int(sys.argv[1]), name)
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+       
+##################################################################################
 # Routine to fetch and build the ugc selection menu
+# - for categories not in VIDEO_LIST
 # - selected page & filters (user selectable)
 # - ugc items list
 # - user selectable pages
@@ -636,7 +677,7 @@ def progListUgc(name, url):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
   
 #################################################################################
-# Get user input for PPS site search
+# Get user input for LeTV site search
 ##################################################################################
 def searchLetv():
     result=''
@@ -657,7 +698,7 @@ def searchLetv():
     else: return
         
 ##################################################################################
-# Routine to search PPS site based on user given keyword for:
+# Routine to search LeTV site based on user given keyword for:
 # a. video episode List for each found provider
 # b. movie from each found provider
 # c. ugc for each found provider
@@ -808,39 +849,27 @@ def PlayVideoLetv(name,url):
     VIDEORES=["高清","标清","流畅"]  
     playlist=xbmc.PlayList(1)
     playlist.clear()
-    
     link = getHttpData(url)
-#    matchv = re.compile('{v:\["(.+?)","(.*?)"\],p:""}').findall(link)
     match = re.compile('{v:(.+?),p:""}').findall(link)[0]
     matchv = re.compile('"(.+?)"').findall(match)
-    print matchv,
     if matchv:
        for j in range(len(matchv)):
             if matchv[j] == "": continue
             #algorithm to generate the video link code
-            vid = matchv[j][24:176]  # extract 152-Bytes VID code
-            if matchv[j][176:180] == "dj9i":
-                vid += "dg=="
-            elif matchv[j][176:180] == "bHY/":
-                vid += "bHY="
-            elif matchv[j][172:176] == "dj9i":
-                vid = vid[:-4] + "dg=="
-            elif matchv[j][172:176] == "bHY/":
-                vid = vid[:-4] + "bHY="
-            elif matchv[j][172:176] == "Zmx2":
-                vid = vid  # do nothing
+            vid = matchv[j][24:]  # extract max VID code size
+            vidcode = re.split('dj9i', vid)
+            if vidcode:                 
+                vid = vidcode[0] + "dg=="
             else:
-               vid = matchv[j][24:56]  # extract 32-Bytes VID code
-               if matchv[j][56:60] == "dj9i":
-                    vid += "dg=="
-               elif matchv[j][56:60] == "bHY/":
-                    vid += "bHY="
-               elif matchv[j][52:56] == "bHY/":
-                    vid = vid[:-1] + "="
-    
-            # url = 'http://g3.letv.cn/vod/v1/' + vid + '?format=1&b=843&expect=3&host=www_letv_com'
+                vidcode = re.split('bHY/', vid)
+                if vidcode:                 
+                    vid = vidcode[0] + "bHY="
+                else:
+                    vidcode = re.split('Zmx2', vid)
+                    if vidcode:                 
+                        vid = vidcode[0] + "Zmx2"
+
             url = 'http://g3.letv.cn/vod/v1/' + vid + '?format=1&b=388&expect=3&host=www_letv_com&tag=letv&sign=free'
-            print "url:", url,
             link = getHttpData(url)
             link = link.replace("\/", "/")
             match = re.compile('{.+?"location": "(.+?)" }').findall(link)
@@ -992,11 +1021,11 @@ elif mode == 12:
     updateListVariety(name, url, page, year, month, listpage)
    
 elif mode == 21:
-    progListStar(name, id, page, alphabet, area, prof, gender, listpage)
+    progListStar(name, url, page, alphabet, area, prof, gender)
 elif mode == 22:
-    updateListStar(name, id, page, alphabet, area, prof, gender, listpage)
+    updateListStar(name, url, page, alphabet, area, prof, gender, listpage)
 elif mode == 23:
-    updateListStar2(name, id, page, alphabet, area, prof, gender, listpage)
+    progListStarVideo(name, url, thumb)
 
 elif mode == 31:
     searchLetv()
