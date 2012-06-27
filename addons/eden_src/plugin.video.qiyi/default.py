@@ -143,6 +143,7 @@ def progList(name,id,page,cat,area,year,order,paytype):
     if currpage > 1: totalItems = totalItems + 1
     if currpage < totalpages: totalItems = totalItems + 1
 
+    
     if cat == '':
         catstr = '全部类型'
     else:
@@ -169,10 +170,10 @@ def progList(name,id,page,cat,area,year,order,paytype):
     u = sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus(cat)+"&area="+urllib.quote_plus(area)+"&year="+urllib.quote_plus(year)+"&order="+order+"&paytype="+urllib.quote_plus(paytype)+"&page="+urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     for i in range(0,len(match)):
-        match1 = re.compile('<a class="imgBg1" href="([^"]+)"> <img width="\d+"\s*height="\d+" title="[^"]+"\s*alt="([^"]+)" src="([^"]+)" />').search(match[i])
-        p_url = match1.group(1)
-        p_name = match1.group(2)
-        p_thumb = match1.group(3)
+        p_url  = re.compile('class="imgBg1" href="(.+?)"').findall(match[i])[0]
+        p_name = re.compile('alt="(.+?)"').findall(match[i])[0]
+        p_thumb = re.compile('src="(.+?)"').findall(match[i])[0]
+        
         match1 = re.compile('<span class="imgBg1C">(共\d+集全)</span>').search(match[i])
         if not match1:
             match1 = re.compile('<span class="imgBg1C">(更新至第\d+集)</span>').search(match[i])
