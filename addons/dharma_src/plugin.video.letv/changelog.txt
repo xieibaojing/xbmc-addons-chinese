@@ -1,6 +1,12 @@
 ﻿########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
+# Version 1.1.0 2012-06-27
+# a. Add in LeTV search function
+# b. Refine video link decode algorithm
+# c. Add in cookie handler
+# d. Add in HTTP error handler
+#
 # Version 1.0.0 2012-06-24
 # a. Add in 明星 category selection
 # b. Update video link decode algorithm
