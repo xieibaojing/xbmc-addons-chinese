@@ -7,12 +7,11 @@ import ChineseKeyboard
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.1.0 2012-06-27
-# a. Add in LeTV search function
-# b. Refine video link decode algorithm
-# c. Add in cookie handler
-# d. Add in HTTP error code handler
-#
+# Version 1.2.0 2012-06-28
+# a. Add Setting for user default video resolution selection
+# b. Update HD/SD video link decode algorithm
+# c. Refine special handling for '动漫' video listing
+# 
 # See changelog.txt for previous history
 ########################################################################
 
@@ -27,7 +26,7 @@ cookieFile = __profile__ + 'cookies.letv'
 
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 VIDEO_LIST = [['list/c1','电影'],['list/c2','电视剧'],['list/c3','动漫'],['list/c11','综艺'],['starlist/i','明星']]
-VIDEO_RES = [["高清",'hd'],["标清",'sd'],["未注","null"]]
+VIDEO_RES = [["标清",'sd'],["高清",'hd'],["普通",''],["未注","null"]]
 SORT_LIST = [['_o1','最新更新'],['_o3','最热播放'],['_o7','最新上映'],['_o2','最高评分']]
 GENDER_LIST = [['_g-1','全部'],['_g1','男'],['_g2','女']]
 COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]','[COLOR FFFF00FF]']
@@ -55,16 +54,13 @@ def getHttpData(url):
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
     req = urllib2.Request(url)
     req.add_header('User-Agent', UserAgent)
-    # response = urllib2.urlopen(req)
     try:
         response = opener.open(req)
     except urllib2.HTTPError, e:
         #print e.code
         httpdata = e.read()
     except urllib2.URLError, e:
-        #print 'We failed to reach a server.'
-        #print 'Reason: ', e.reason
-        httpdata = e.reason
+        httpdata = "IO Timeout Error"
     else:
         httpdata = response.read()
         response.close()
@@ -164,10 +160,6 @@ def mainMenu():
     li = xbmcgui.ListItem('[COLOR F0F0F0F0]0. LeTV 乐视网搜索:[/COLOR][COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
     u=sys.argv[0]+"?mode=31"
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
-
-#    li = xbmcgui.ListItem('[COLOR FF00FF00]【LeTV 乐视网】[/COLOR]')
-#    u=sys.argv[0]+"?mode="
-#    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     
     link = getHttpData('http://so.letv.com/list/c1_t-1_a-1_y-1_f_at_o1_p.html')
     listpage = re.compile('<div class="list_r">(.+?)<p class="foldbox on" id="tagCtr">').findall(link)[0]
@@ -284,8 +276,10 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
             p_res = match1.group(1)
             p_res = fetchID(VIDEO_RES, p_res)
             p_list += ' [' +  p_res + ']'
+        if re.search('yuanxian', p_url):    
+            p_list += ' [收费]'
         match1 = re.compile('<dd>评价：<span class="sorce2"><i>([.0-9]+)</i>').search(match[i])
-        if match1: p_list += '  [评价: ' +  match1.group(1) + ']'
+        if match1: p_list += ' [评价: ' +  match1.group(1) + ']'
   
         li = xbmcgui.ListItem(str(i + 1) + '. ' + p_list, iconImage='', thumbnailImage=p_thumb)
         u = sys.argv[0] + "?mode=" + mode + "&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
@@ -358,15 +352,19 @@ def progListSeries(name, url, thumb):
     link = getHttpData(url)
     
     li = xbmcgui.ListItem('【[COLOR FFFFFF00][' + name + '][/COLOR] | [COLOR FF00FFFF] [选择: ' + name + '][/COLOR]】', iconImage='', thumbnailImage=thumb)
+#    li = xbmcgui.ListItem('[COLOR FF00FFF]【选择: ' + name + '】[/COLOR]', iconImage='', thumbnailImage=thumb)
     u = sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url)+"&thumb="+urllib.quote_plus(thumb) 
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
    
     # fetch and build the video series list
-    match = re.compile('<div.+?data-tabct="j-tab[1-2]+_child".+?statectn="n_list[1-2]+">(.+?)</div>').findall(link)
+    match = re.compile('<div.+?data-tabct="j-tab[1-9]+_child".+?statectn="n_list[1-9]+">(.+?)</div>').findall(link)
     # special handling for '动漫'
-    matchp = re.compile('<dl class="w96">(.+?)</dl>').findall(match[0])
-    if len(matchp): # not the right one, so re-fetch             
-        match = re.compile('<div class="list active" data-tabct="j-tab1_child">(.+?)</div>').findall(link)
+    if match is None:
+        match = re.compile('<div.+?data-tabct="j-tab[1-9]+_child"(.+?)</div>').findall(link)
+    else:
+        matchp = re.compile('<dl class="w96">(.+?)</dl>').findall(match[0])
+        if len(matchp): # not the right one, so re-fetch             
+            match = re.compile('<div.+?data-tabct="j-tab[1-9]+_child"(.+?)</div>').findall(link)
     
     for j in range(0, len(match)):
         matchp = re.compile('<dl class="w120">(.+?)</dl>').findall(match[j])              
@@ -379,6 +377,7 @@ def progListSeries(name, url, thumb):
             p_name = p_name = match1.group(2)
             sn = match1.group(3)
             p_list = sn + ': ' + p_name
+            
             li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_img)
             u = sys.argv[0] + "?mode=10&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
@@ -430,7 +429,7 @@ def progListVariety(name, url, page, year, month):
     # &b=1: page #  
     # &s=20: item per page
     # &o=-1
-    # &_=1340358261096:Cookie-Hm_lvt_....
+    # &_=1340358261096:ts_sessiontime + xxxx
     
     # construct url based on user selected filter ID's
     p_url = 'http://hot.vrs.letv.com/vlist?callback=LETV.App.Detail.List.paintList' + fltrYear + '&f=1&p=1' + fltrMonth + fltrPid +  fltrPage + '&s=20&o=-1&_=1340358261096'
@@ -808,17 +807,23 @@ def letvSearchList(name, url, page):
 # User may press <SPACE> bar to select video resolution for playback
 ##################################################################################
 def PlayVideoLetv(name,url):
-    VIDEORES=["高清","标清","流畅"]
     VIDEO_CODE=[['bHY=','bHY/'],['dg==','dj9i'],['dg==','dTgm'],['Zmx2','Zmx2']]
+    videoRes = int(__addon__.getSetting('video_resolution'))
     link = getHttpData(url)
+
     match = re.compile('{v:(.+?),p:""}').findall(link)
+    # link[0]:"标清-SD" ; link[1]:"高清-HD"
     if match:
         matchv = re.compile('"(.+?)"').findall(match[0])
         #print "matchv", matchv
         if matchv:
             playlist=xbmc.PlayList(1)
             playlist.clear()
-            for j in range(len(matchv)):
+            if videoRes == 1: # Play selected HD and fallback to SD if HD failed
+                vlist = reversed(range(len(matchv)))
+            else: # Play selected SD and HD as next item in playlist
+                vlist = range(len(matchv))
+            for j in vlist:
                 if matchv[j] == "": continue
                 #algorithm to generate the video link code
                 vidx = matchv[j].find('MT')
@@ -838,22 +843,25 @@ def PlayVideoLetv(name,url):
                 match = re.compile('{.+?"location": "(.+?)" }').findall(link)
                 if match:
                     for i in range(len(match)):
-                        p_name = name +' ['+ VIDEORES[i] +']' 
+                        p_name = name +' ['+ VIDEO_RES[j][0] +']' 
                         listitem = xbmcgui.ListItem(p_name, thumbnailImage = __addonicon__)
                         listitem.setInfo(type="Video",infoLabels={"Title":p_name})
                         playlist.add(match[i], listitem)
-                    # break # proceed if only first video link access failed
+                        break # skip the rest if any (1 of 3) video links access successful
                 else:
                     dialog = xbmcgui.Dialog()
                     ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请选择其它视频')  
             xbmc.Player().play(playlist)
         else:
             dialog = xbmcgui.Dialog()
-            ok = dialog.ok(__addonname__, '无法播放：需付款费，请选择其它视频')  
+            ok = dialog.ok(__addonname__, '无法播放：需收费，请选择其它视频')  
     else:
-       dialog = xbmcgui.Dialog()
-       #ok = dialog.ok(__addonname__, '无法播放：需付款费，请选择其它视频')  
-       ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请选择其它视频')  
+        dialog = xbmcgui.Dialog()
+        match = re.compile('<dd class="ddBtn1">.+?title="(.+?)" class="btn01">').findall(link)
+        if match and match[0] == "点播购买":
+            ok = dialog.ok(__addonname__, '无法播放：需收费，请选择其它视频')
+        else:
+            ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请选择其它视频')
  
 ##################################################################################    
 # Routine to extra parameters from xbmc
