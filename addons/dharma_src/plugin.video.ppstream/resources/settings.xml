@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf8" standalone="yes"?>
+<settings>
+	<setting id="http_proxy" type="text" label="Proxy (http://122.72.33.138:80)" values="" default=""/>
+</settings>

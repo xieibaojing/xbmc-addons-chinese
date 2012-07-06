@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
+import xbmc, xbmcgui, xbmcplugin, xbmcaddon
+import urllib2, urllib, httplib, time
+import os, sys, re, string, gzip, StringIO
 import ChineseKeyboard
 
 ########################################################################
 # PPStream 网络电视 by robintttt/cmeng
-# Version 2.0.8 2012-03-31 (cmeng)
-# a. To take care main web page <tag> structure change 
+# Version 2.1.0 2012-07-06 (cmeng)
+# a. Add support for Proxy Setting
+# b. Update LeTV Player  
+# c. Reuse COLOR_LIST items
 
 # See changelog.txt for previous history
 ########################################################################
@@ -23,6 +27,7 @@ VIDEO_LIST = [['tv','电视剧'],['movie','电影'],['fun','综艺'],['anime','�
 SORT_LIST = [['sum_online_sum','按观众数'],['vote_num','按评分']]
 COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]','[COLOR FFFF00FF]']
 MPLAYER_LIST = [['10','PPS'],['99','SMG'],['43','优酷'],['44','土豆'],['45','奇艺'],['46','搜狐'],['47','新浪'],['48','乐视']]
+VIDEO_RES = [["标清",'sd'],["高清",'hd'],["普通",''],["未注","null"]]
      
 ##################################################################################
 # Routine to fetech url site data using Mozilla browser
@@ -33,11 +38,35 @@ MPLAYER_LIST = [['10','PPS'],['99','SMG'],['43','优酷'],['44','土豆'],['45',
 ##################################################################################
 def getHttpData(url):
     print "getHttpData: " + url
+    proxy = __addon__.getSetting('http_proxy')
+    type = 'http'
+    if proxy <> '':
+        ptype = re.split(':', proxy)
+        if len(ptype)<3:
+            # full path requires by Python 2.4
+            proxy = type + '://' + proxy 
+        else: type = ptype[0]
+        httpProxy = {type: proxy}
+    else:
+        httpProxy = {}
+    proxy_support = urllib2.ProxyHandler(httpProxy)
+    #proxy_auth_handler = urllib2.ProxyBasicAuthHandler()
+    #proxy_auth_handler.add_password('realm', 'host', 'username', 'password')
+    opener = urllib2.build_opener(proxy_support)
+    #urllib2.install_opener(opener)
+    
     req = urllib2.Request(url)
     req.add_header('User-Agent', UserAgent)
-    response = urllib2.urlopen(req)
-    httpdata = response.read()
-    response.close()
+    try:
+        response = opener.open(req)
+    except urllib2.HTTPError, e:
+        httpdata = e.read()
+    except urllib2.URLError, e:
+        httpdata = "IO Timeout Error"
+    else:
+        httpdata = response.read()
+        response.close()
+
     httpdata = re.sub('\r|\n|\t', '', httpdata)
     match = re.compile('<meta.+?charset=["]*(.+?)"').findall(httpdata)
     if len(match):
@@ -99,9 +128,11 @@ def getListUgc(listpage):
 # - movie, series & ugc require different sub-menu access methods
 ##################################################################################
 def mainMenu():
-    li = xbmcgui.ListItem('[COLOR FFFF0000]PPS 网络电视:[/COLOR][COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
+    #li = xbmcgui.ListItem('[COLOR FFFF0000]PPS 网络电视:[/COLOR][COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
+    li = xbmcgui.ListItem('[COLOR F0F0F0F0]0. PPS 网络电视搜索:[/COLOR][COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
     u=sys.argv[0]+"?mode=31"
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+
     
     link = getHttpData('http://v.pps.tv/ugc/list-c30.html')
     match0 = re.compile('<ul class="main-nav nav-list">(.+?)</ul>', re.DOTALL).search(link)
@@ -383,7 +414,7 @@ def progListSeries(name, id, thumb, episodeSel):
         for i in range(0, len(episodeSet)):
             if episodeSet[i]==episodeSel: 
                 epsel = i
-            eList = eList + COLOR_LIST[i] + episodeSet[i] + '[/COLOR]|'
+            eList = eList + COLOR_LIST[i%5] + episodeSet[i] + '[/COLOR]|'
         episodeSel=episodeSet[epsel]
         
     li = xbmcgui.ListItem("[选择:"+episodeSel+"] " + eList + '（按此选择）', iconImage='', thumbnailImage=thumb)
@@ -448,6 +479,7 @@ def PlayVideo(name, url):
     match = re.compile('var encsrc="(.+?)"').findall(match1)
     if len(match):  
         url = match[0]
+        print "videolink", url
         xbmc.executebuiltin('System.ExecWait(\\"' + __cwd__ + '\\resources\\player\\pps4xbmc\\" ' + url + ')')
     else:
         dialog = xbmcgui.Dialog()
@@ -486,7 +518,7 @@ def getMovie(name, id, thumb):
     match0 = re.compile('js-list[0-9]*?(.+?)</ul>').findall(link)
     if len(match0):
         j=0
-        li = xbmcgui.ListItem("当前视频：" + name, iconImage='', thumbnailImage=thumb)
+        li = xbmcgui.ListItem('[COLOR FF00FFFF]【当前视频：' + name + '】[/COLOR]', iconImage='', thumbnailImage=thumb)
         u = sys.argv[0] + "?mode=40&name=" + urllib.quote_plus(name)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li)
         for k in range (0, len(match0)):
@@ -846,42 +878,63 @@ def PlayVideoSina(name,url):
         ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请稍侯再试')
 
 ##################################################################################
-# LETV Video Player - Under Development
-# Add all the video resolution items & links in playlist for auto/user selection
-# a. Press space bar, then scroll to the required item
-# b. Press Enter play
-# c. Press Stop to end playlist
+# LeTV Video Link Decode Algorithm & Player
+# Extract all the video list and start playing first found valid link
+# User may press <SPACE> bar to select video resolution for playback
 ##################################################################################
 def PlayVideoLetv(name,url):
-    VIDEORES=["高清","标清","流畅"]  
-    playlist=xbmc.PlayList(1)
-    playlist.clear()
-    
+    VIDEO_CODE=[['bHY=','bHY/'],['dg==','dj9i'],['dg==','dTgm'],['Zmx2','Zmx2']]
     link = getHttpData(url)
-    matchv = re.compile('{v:\["(.+?)","(.+?)"\],p:""}').findall(link)
-    for j in reversed(range(len(matchv[0]))):
-        #algorithm to generate the video link code
-        vid = matchv[0][j][24:56]  # extract 32-Bytes VID code
-        if matchv[0][j][56:60] == "dj9i":
-            vid += "dg=="
-        elif matchv[0][j][56:60] == "bHY/":
-            vid += "bHY="
-        elif matchv[0][j][52:56] == "bHY/":
-            vid = vid[:-1] + "="
-        url = 'http://g3.letv.cn/vod/v1/' + vid + '?format=1&b=843&expect=3&host=www_letv_com'
-        link = getHttpData(url)
-        link = link.replace("\/", "/")
-        match = re.compile('{.+?"location": "(.+?)" }').findall(link)
-        if match:
-            for i in range(len(match)):
-                p_name = name+' "'+VIDEORES[i]+'"' 
-                listitem = xbmcgui.ListItem(p_name, thumbnailImage = __addonicon__)
-                listitem.setInfo(type="Video",infoLabels={"Title":p_name})
-                playlist.add(match[i], listitem)
+
+    match = re.compile('{v:(.+?),p:""}').findall(link)
+    # link[0]:"标清-SD" ; link[1]:"高清-HD"
+    if match:
+        matchv = re.compile('"(.+?)"').findall(match[0])
+        #print "matchv", matchv
+        if matchv:
+            playlist=xbmc.PlayList(1)
+            playlist.clear()
+            # Play HD and fallback to SD if HD failed
+            vlist = reversed(range(len(matchv)))
+            for j in vlist:
+                if matchv[j] == "": continue
+                #algorithm to generate the video link code
+                vidx = matchv[j].find('MT')
+                vidx = -1 # force to start at 24
+                if vidx < 0:
+                    vid = matchv[j][24:]  # extract max VID code length
+                else:
+                    vid = matchv[j][vidx:]
+                for k in range(0, len(VIDEO_CODE)):
+                    vidcode = re.split(VIDEO_CODE[k][1], vid)
+                    if len(vidcode) > 1 :                 
+                        vid = vidcode[0] + VIDEO_CODE[k][0]
+                        break
+                url = 'http://g3.letv.cn/vod/v1/' + vid + '?format=1&b=388&expect=3&host=www_letv_com&tag=letv&sign=free'
+                link = getHttpData(url)
+                link = link.replace("\/", "/")
+                match = re.compile('{.+?"location": "(.+?)" }').findall(link)
+                if match:
+                    for i in range(len(match)):
+                        p_name = name +' ['+ VIDEO_RES[j][0] +']' 
+                        listitem = xbmcgui.ListItem(p_name, thumbnailImage = __addonicon__)
+                        listitem.setInfo(type="Video",infoLabels={"Title":p_name})
+                        playlist.add(match[i], listitem)
+                        break # skip the rest if any (1 of 3) video links access successful
+                else:
+                    dialog = xbmcgui.Dialog()
+                    ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请选择其它视频')  
+            xbmc.Player().play(playlist)
         else:
             dialog = xbmcgui.Dialog()
-            ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请稍侯再试')  
-    xbmc.Player().play(playlist)
+            ok = dialog.ok(__addonname__, '无法播放：需收费，请选择其它视频')  
+    else:
+        dialog = xbmcgui.Dialog()
+        match = re.compile('<dd class="ddBtn1">.+?title="(.+?)" class="btn01">').findall(link)
+        if match and match[0] == "点播购买":
+            ok = dialog.ok(__addonname__, '无法播放：需收费，请选择其它视频')
+        else:
+            ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请选择其它视频')    
 
 ##################################################################################
 # Unimplmented video player message display

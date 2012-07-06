@@ -2,9 +2,11 @@
 # PPStream 网络电视
 ########################################################################
 # PPStream 网络电视 by robintttt/cmeng
-# Version 2.0.9 2012-05-05 (cmeng)
-# a. Correct filter generation error 
-
+# Version 2.1.0 2012-07-06 (cmeng)
+# a. Add support for Proxy Setting
+# b. Update LeTV Player
+# c. Reuse COLOR_LIST items
+  
 # Version 2.0.8 2012-03-31 (cmeng)
 # a. To take care main web page <tag> structure change 
 
@@ -30,7 +32,6 @@
 # a. Add PPStream 网络电视 video search function
 # b. Include related video players for the site providers: 
 # c. PPS,优酷,土豆,奇艺,搜狐,新浪
-
 
 # Version 1.2.1 2012-01-14 (cmeng)
 # a. update to pps 2012 latest web layout structure
