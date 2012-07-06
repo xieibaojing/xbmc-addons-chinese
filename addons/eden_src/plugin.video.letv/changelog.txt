@@ -1,6 +1,9 @@
 ﻿########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
+# Version 1.2.1 2012-07-06
+# a. Add support for Proxy Setting
+
 # Version 1.2.0 2012-06-28
 # a. Add Setting for user default video resolution selection
 # b. Update HD/SD video link decode algorithm

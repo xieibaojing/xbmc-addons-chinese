@@ -7,11 +7,9 @@ import ChineseKeyboard
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.2.0 2012-06-28
-# a. Add Setting for user default video resolution selection
-# b. Update HD/SD video link decode algorithm
-# c. Refine special handling for '动漫' video listing
-# 
+# Version 1.2.1 2012-07-06
+# a. Add support for Proxy Setting
+
 # See changelog.txt for previous history
 ########################################################################
 
@@ -41,23 +39,35 @@ CLASS_MODE = [['10','电影'],['5','电视剧'],['5','动漫'],['11','综艺'],[
 ##################################################################################
 def getHttpData(url):
     print "getHttpData: " + url
+    # setup proxy support
+    proxy = __addon__.getSetting('http_proxy')
+    type = 'http'
+    if proxy <> '':
+        ptype = re.split(':', proxy)
+        if len(ptype)<3:
+            # full path requires by Python 2.4
+            proxy = type + '://' + proxy 
+        else: type = ptype[0]
+        httpProxy = {type: proxy}
+    else:
+        httpProxy = {}
+    proxy_support = urllib2.ProxyHandler(httpProxy)
+
+    # setup cookie support
     cj = cookielib.MozillaCookieJar(cookieFile)
     if os.path.isfile(cookieFile):
         cj.load(ignore_discard=True, ignore_expires=True)
-#        print "Re-using stored cookies:\n",
-#        for cookie in cj:
-#            print cookie,
-#        print "\n\n",
     else:
         if not os.path.isdir(os.path.dirname(cookieFile)):
             os.makedirs(os.path.dirname(cookieFile))
-    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+    
+    # create opener for both proxy and cookie
+    opener = urllib2.build_opener(proxy_support, urllib2.HTTPCookieProcessor(cj))
     req = urllib2.Request(url)
     req.add_header('User-Agent', UserAgent)
     try:
         response = opener.open(req)
     except urllib2.HTTPError, e:
-        #print e.code
         httpdata = e.read()
     except urllib2.URLError, e:
         httpdata = "IO Timeout Error"
@@ -815,7 +825,6 @@ def PlayVideoLetv(name,url):
     # link[0]:"标清-SD" ; link[1]:"高清-HD"
     if match:
         matchv = re.compile('"(.+?)"').findall(match[0])
-        #print "matchv", matchv
         if matchv:
             playlist=xbmc.PlayList(1)
             playlist.clear()
@@ -823,6 +832,7 @@ def PlayVideoLetv(name,url):
                 vlist = reversed(range(len(matchv)))
             else: # Play selected SD and HD as next item in playlist
                 vlist = range(len(matchv))
+                
             for j in vlist:
                 if matchv[j] == "": continue
                 #algorithm to generate the video link code
@@ -850,7 +860,7 @@ def PlayVideoLetv(name,url):
                         break # skip the rest if any (1 of 3) video links access successful
                 else:
                     dialog = xbmcgui.Dialog()
-                    ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请选择其它视频')  
+                    ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请选择其它视频')
             xbmc.Player().play(playlist)
         else:
             dialog = xbmcgui.Dialog()
