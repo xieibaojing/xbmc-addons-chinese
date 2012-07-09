@@ -1,7 +1,9 @@
 ﻿########################################################################
 # PPStream 网络电视
 ########################################################################
-# PPStream 网络电视 by robintttt/cmeng
+# Version 2.1.1 2012-07-09 (cmeng)
+# a. Correct error in progListMovie routine
+
 # Version 2.1.0 2012-07-06 (cmeng)
 # a. Add support for Proxy Setting
 # b. Update LeTV Player
