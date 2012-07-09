@@ -339,7 +339,7 @@
 
 <addon id="plugin.video.soku"
     name="搜库-太极拳(Soku)"
-    version="1.0.0"
+    version="1.0.1"
     provider-name="cmeng">
     <extension
         point="xbmc.python.pluginsource"

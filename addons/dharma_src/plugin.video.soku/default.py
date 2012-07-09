@@ -7,8 +7,9 @@ import ChineseKeyboard
 ########################################################################
 # 搜库 -太极拳(Soku) by cmeng
 ########################################################################
-# Version 1.0.0 2012-07-08
-# a. First Release 
+# Version 1.0.1 2012-07-09
+# a. Share common routine
+# b. Improve some UI display
 
 # See changelog.txt for previous history
 ########################################################################
@@ -94,64 +95,10 @@ def mainMenu():
         name = TC_LIST[i]
         url = p_url + urllib.quote(name)
         li = xbmcgui.ListItem(str(i+1) + '. ' + name)
-        u = sys.argv[0] + "?mode=1&name=" + name + "&url=" + urllib.quote_plus(url)+ "&page=1"
+        u = sys.argv[0] + "?mode=32&name=" + name + "&url=" + urllib.quote_plus(url)+ "&page=1"
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True,   totalItem)
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))  
-
-##################################################################################
-# Routine to fetch and build the video selection menu
-# - selected page & filters (user selectable)
-# - video items list
-# - user selectable pages
-##################################################################################
-def progListVideo(name, url, page):
-    # construct url based on user selected item
-    # 'http://www.soku.com/search_video/q_太极拳_orderby_1_page_1'    
-    p_url = url + '_orderby_1_page_' + page + '.htm'
-    link = getHttpData(p_url)
-    
-    # Extract item list for user selection    
-    match0 = re.compile('<div class="items">(.+?)<!--items end-->').findall(link)[0]
-    match = re.compile('<ul class="v">(.+?)</ul>').findall(match0)                  
-    totalItems = len(match)
-
-    # Fetch & build video titles list for user selection  
-    li = xbmcgui.ListItem(name + '（第' + str(page) + '页）[COLOR FF00FFFF]【选择: ' + name + '】[/COLOR]')
-    u = sys.argv[0] + "?mode=1&name=" + name + "&url=" + urllib.quote_plus(url)+ "&page" + str(page)
-    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
-
-    for i in range(0, len(match)):       
-        match1 = re.compile('<li class="v_link"><a title="(.+?)" target="_blank" href="(.+?)"').search(match[i])
-        p_url = match1.group(2)
-        p_name = p_list = match1.group(1)    
-        match1 = re.compile('<li class="v_thumb"><img.+?src="(.+?)"></li>').search(match[i])
-        p_thumb = match1.group(1)
-        match1 = re.compile('<li class="v_time"><span.+?>([:0-9]+)</span>').search(match[i])
-        p_time = match1.group(1)
-        match1 = re.compile('<li class="v_stat"><label>播放:</label><span.+?">([,0-9]+)</span>').search(match[i])
-        p_stat = match1.group(1)
-        p_list += ' [' +  p_time + '] [播放: ' +  p_stat + ']'
-  
-        li = xbmcgui.ListItem(str(i + 1) + '. ' + p_list, iconImage='', thumbnailImage=p_thumb)
-        u = sys.argv[0] + "?mode=10&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
-
-    # Fetch and build user selectable page number
-    matchp = re.compile('<div class="pager">(.+?)</div>').findall(link)
-    if len(matchp): 
-        matchp1 = re.compile('<a href=.+?>([1-9]+)</a>').findall(matchp[0])    
-        if len(matchp1):
-            plist=[str(page)]
-            for num in matchp1:
-                if num not in plist:
-                    plist.append(num)
-                    li = xbmcgui.ListItem("... 第" + num + "页")
-                    u = sys.argv[0] + "?mode=1&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&page=" + str(num)
-                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)        
-
-    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 ##################################################################################
 # Routine to fetch and build the video series selection menu
@@ -183,16 +130,16 @@ def progListSeries(name, url, thumb, page):
         p_ishd = re.compile('<li class="v_ishd"><span ([^>]*)></span>').findall(match[i])
         if len(p_ishd) > 0:
             if p_ishd[0].find('ico__SD') > 0:
-                p_list += ' [超清] '
+                p_list += ' [超清]'
             elif p_ishd[0].find('ico__HD') > 0:
-                p_list += ' [高清] '
+                p_list += ' [高清]'
             else:
                 p_res = 0
 
         match1 = re.compile('<li class="v_time"><span.+?>([:0-9]+)</span>').search(match[i])
         if match1:
             p_time = match1.group(1)
-            p_list += '[' + p_time + ']'
+            p_list += ' [' + p_time + ']'
         p_list = str(i+1) + ': ' + p_list
 
         #print "url,name,thumb,time, plist", str(i) , p_url, p_name, p_thumb, p_time, p_list
@@ -238,8 +185,12 @@ def searchSoku():
 ##################################################################################
 # Routine to search Soku site based on user given keyword for:
 ##################################################################################
-def sokuSearchList(name, url, page): 
-    link = getHttpData(url)
+def sokuSearchList(name, url, page):
+    # construct url based on user selected item
+    # 'http://www.soku.com/search_video/q_太极拳_orderby_1_page_1'    
+    p_url = url + '_orderby_1_page_' + page + '.htm'
+    link = getHttpData(p_url)
+
     li = xbmcgui.ListItem('[COLOR FFFF0000]当前搜索: 第' + page + '页[/COLOR][COLOR FFFFFF00] (' + name + ')[/COLOR]【[COLOR FF00FF00]' + '请输入新搜索内容' + '[/COLOR]】')
     u = sys.argv[0] + "?mode=31&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&page=" + urllib.quote_plus(page)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
@@ -298,18 +249,25 @@ def sokuSearchList(name, url, page):
                 p_ishd = re.compile('<li class="[vp]+_ishd"><span ([^>]*)></span>').findall(match[i])
                 if len(p_ishd) > 0:
                     if p_ishd[0].find('ico__SD') > 0:
-                        p_list += ' [超清] '
+                        p_list += ' [超清]'
                     elif p_ishd[0].find('ico__HD') > 0:
-                        p_list += ' [高清] '
+                        p_list += ' [高清]'
                     else:
                         p_res = 0
 
                 match1 = re.compile('<li class="v_time"><span.+?>([:0-9]+)</span>').search(match[i])
                 if match1:
                     p_time = match1.group(1)
-                    p_list += '[' + p_time + ']'
-                p_list = str(j) + str(i+1) + ': ' + p_list
+                    p_list += ' [' + p_time + ']'
+                    
+                match1 = re.compile('<li class="v_stat"><label>播放:</label><span.+?">([,0-9]+)</span>').search(match[i])
+                if match1:
+                    p_stat = match1.group(1)
+                    p_list += ' [播放:' +  p_stat + ']'
+
                 k +=1
+                p_list = str(k) + ': ' + p_list
+                #p_list = str(j) + str(i+1) + ': ' + p_list
                 #print "url,id,name,thumb,time, plist, ptype", str(j) + str(i) , p_url, p_id, p_name, p_thumb, p_time, p_list, p_type
 
                 li = xbmcgui.ListItem(p_list, iconImage=p_thumb, thumbnailImage=p_thumb)
@@ -329,7 +287,7 @@ def sokuSearchList(name, url, page):
                 if num not in plist:
                     plist.append(num)
                     li = xbmcgui.ListItem("... 第" + num + "页")
-                    u = sys.argv[0] + "?mode=1&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&page=" + str(num)
+                    u = sys.argv[0] + "?mode=32&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&page=" + str(num)
                     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)        
 
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
@@ -410,8 +368,6 @@ except:
 
 if mode == None:
     mainMenu()
-elif mode == 1:
-    progListVideo(name, url, page)
 elif mode == 5:
     progListSeries(name, url, thumb, page)
 elif mode == 10:
