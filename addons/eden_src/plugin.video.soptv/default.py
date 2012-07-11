@@ -69,6 +69,8 @@ CHAN_LIST = os.path.join(CHAN_LIST, parse_url(CHAN_LIST_URL))
 spsc_binary = "sp-sc-auth"
 SPSC = os.path.join(addon_resources_path, 'sop')
 SPSC = os.path.join(SPSC,spsc_binary)
+SPSC_LIB = os.path.join(addon_resources_path, 'lib')
+SPSC_LIB = os.path.join(SPSC_LIB,'libstdc++.so.5')
 sopcast_pid = "/tmp/sopcast.pid"
 spec_log = "/tmp/sopcast.log"
 wait_time = 20
@@ -126,7 +128,11 @@ def PID_CHECK(OS,spsc_binary):
         except:
             return 
 
+def CHK_LIB():
+    if not os.path.isfile(SPSC_LIB):
+        os.rename(SPSC_LIB+'.py', SPSC_LIB)
 
+    
 def FETCH_CHANNEL():
     if not os.path.isfile(CHAN_LIST):
         Downloader(CHAN_LIST_URL,CHAN_LIST,'请稍候','正在更新频道')
@@ -406,6 +412,7 @@ except:
 
 if mode==None or name==None or len(name)<1:
     if OS == Platform:
+        CHK_LIB()
         FETCH_CHANNEL()
 elif mode==1:
     INDEX(name,wait_time)
