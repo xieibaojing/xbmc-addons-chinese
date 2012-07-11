@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--$Revision: 19319 $-->
+<strings>
+  <!-- strings 30000 thru 30999 reserved for plugins and plugin settings -->
+<string id="30000">出错了！</string>
+<string id="30001">该插件不支持此平台</string>
+<string id="30002">请切换到 </string>
+<string id="30003">再重试</string>
+<string id="30004">正在下载 sopcast 执行文件</string>
+<string id="30005">sopcast 执行文件</string>
+<string id="30006">频道列表下载中</string>
+<string id="30007">频道列表</string>
+<string id="30008">未命名视频组 </string>
+<string id="30009">频道列表分析有误</string>
+<string id="30010">请稍后重试</string>
+<string id="30011">网络电视下载中</string>
+<string id="30012">请再等候 </string>
+<string id="30013"> 秒</string>
+<string id="30014">网路电视准备就绪</string>
+<string id="30015">网络电视下载失败</string>
+<string id="30016">您忘记关闭正在播放的网络电视了？</string>
+<string id="30017">如果您希望收看该频道</string>
+<string id="30018">请选择"是"</string>
+<string id="30019">否则取消该操作</string>
+  <!-- strings 31000 thru 31999 reserved for skins -->
+  <!-- strings 32000 thru 32999 reserved for scripts -->
+</strings>
