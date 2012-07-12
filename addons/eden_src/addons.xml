@@ -280,6 +280,27 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.soptv"
+    name="SOP电视(soptv)"
+    version="0.1.1"
+    provider-name="htpcyh2@gmail.com">
+    <requires>
+        <import addon="script.module.keyboard.chinese" version="1.0.0"/>
+    </requires>
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">SOP TV plugin</summary>
+        <summary lang="zh">SOP网络电视插件</summary>
+        <description lang="en">Watch sop p2p network TV live broadcast. support 32bit Linux systems.</description>
+        <description lang="zh">观看sopcast p2p 网络电视直播,支持32位 Linux系统.</description>
+        <platform>linux</platform>
+    </extension>
+</addon>
+
 <addon id="plugin.video.tencent"
     name="腾讯视频(Tecent)"
     version="1.0.5"
