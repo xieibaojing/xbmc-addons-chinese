@@ -38,17 +38,17 @@ def parse_url(url):
 def Downloader(url,dest,description,heading):
     dp = xbmcgui.DialogProgress()
     dp.create(heading)
-    dp.create(heading,description,url)
+    dp.create(heading,description,'')
     urllib.urlretrieve(url,dest,lambda nb, bs, fs, url=url: _pbhook(nb,bs,fs,description,url,dp))
 
 def _pbhook(numblocks, blocksize, filesize,description, url=None,dp=None):
     try:
         percent = min((numblocks*blocksize*100)/filesize, 100)
         print percent
-        dp.update(percent,description,url)
+        dp.update(percent,description,'')
     except:
         percent = 100
-        dp.update(percent,description,url)
+        dp.update(percent,description,'')
     if dp.iscanceled(): 
         print "DOWNLOAD CANCELLED" 
         dp.close()
@@ -138,15 +138,15 @@ def CHK_LIB():
 
 def FETCH_CHANNEL():
     if not os.path.isfile(CHAN_LIST):
-        Downloader(CHAN_LIST_URL,CHAN_LIST,'请稍候','正在更新频道')
+        Downloader(CHAN_LIST_URL,CHAN_LIST,'请稍候...','正在更新频道')
     else:
         for length in str(os.stat(CHAN_LIST)[6]).split('L'):
             if length == "0":
-                Downloader(CHAN_LIST_URL,CHAN_LIST, '请稍候', '正在更新频道')
+                Downloader(CHAN_LIST_URL,CHAN_LIST, '请稍候...', '正在更新频道')
         now_time = time.mktime(datetime.datetime.now().timetuple())
         time_created = os.stat(CHAN_LIST)[8]
         if now_time - time_created > list_expire:
-            Downloader(CHAN_LIST_URL,CHAN_LIST, '请稍候', '正在更新频道')
+            Downloader(CHAN_LIST_URL,CHAN_LIST, '请稍候...', '正在更新频道')
     GROUP(wait_time)
 
 

@@ -282,7 +282,7 @@
 
 <addon id="plugin.video.soptv"
     name="SOP电视(soptv)"
-    version="0.1.1"
+    version="0.1.2"
     provider-name="htpcyh2@gmail.com">
     <requires>
         <import addon="script.module.keyboard.chinese" version="1.0.0"/>
