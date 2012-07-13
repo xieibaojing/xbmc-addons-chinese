@@ -1,6 +1,14 @@
 ﻿############################################################
 # 搜狐视频(SoHu) by taxigps, 2011
 ############################################################
+# Version 2.3.0 (2012-07-12 - cmeng)
+# - Add & Update CHANNEL_LIST latest Categories and ID
+# - Improve PlayVideo Reliability
+# - Added new PlayVideoUgc
+# - Provide video search function
+# - Include Cookie support (needed by certain categories) 
+# - Include Proxy support (must be transparent for video link - header)
+
 # Version 2.2.2 (2012-03-07)
 # - fixed character decode error
 
