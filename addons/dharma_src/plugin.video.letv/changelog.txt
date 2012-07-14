@@ -1,25 +1,29 @@
 ﻿########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
+# Version 1.2.2 2012-07-14
+# - Update playVideoLeTV algorithm
+# - Need to use urllib.quote(keyword) in searchLeTV
+
 # Version 1.2.1 2012-07-06
-# a. Add support for Proxy Setting
+# - Add support for Proxy Setting
 
 # Version 1.2.0 2012-06-28
-# a. Add Setting for user default video resolution selection
-# b. Update HD/SD video link decode algorithm
-# c. Refine special handling for '动漫' video listing
+# - Add Setting for user default video resolution selection
+# - Update HD/SD video link decode algorithm
+# - Refine special handling for '动漫' video listing
 # 
 # Version 1.1.0 2012-06-27
-# a. Add in LeTV search function
-# b. Refine video link decode algorithm
-# c. Add in cookie handler
-# d. Add in HTTP error handler
+# - Add in LeTV search function
+# - Refine video link decode algorithm
+# - Add in cookie handler
+# - Add in HTTP error handler
 #
 # Version 1.0.0 2012-06-24
-# a. Add in 明星 category selection
-# b. Update video link decode algorithm
-# c. Correct update video list error
+# - Add in 明星 category selection
+# - Update video link decode algorithm
+# - Correct update video list error
 #
 # Version 0.2.0 2012-06-23
-# a. First Release 
+# - First Release 
 ########################################################################

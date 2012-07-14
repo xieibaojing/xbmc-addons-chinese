@@ -7,8 +7,9 @@ import ChineseKeyboard
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.2.1 2012-07-06
-# a. Add support for Proxy Setting
+# Version 1.2.2 2012-07-14
+# - Update playVideoLeTV algorithm
+# - Need to use urllib.quote(keyword) in searchLeTV
 
 # See changelog.txt for previous history
 ########################################################################
@@ -732,7 +733,8 @@ def searchLetv():
     keyboard.doModal()
     if (keyboard.isConfirmed()):
         keyword = keyboard.getText()
-        url='http://so.letv.com/s?from=www&wd=' + keyword
+        p_url='http://so.letv.com/s?from=www&wd='
+        url = p_url + urllib.quote(keyword)
         letvSearchList(keyword,url,'1')
     else: return
         
@@ -740,8 +742,7 @@ def searchLetv():
 # Routine to search LeTV site based on user given keyword for:
 ##################################################################################
 def letvSearchList(name, url, page): 
-    p_url = url.replace(" ","%20")
-    link = getHttpData(p_url)
+    link = getHttpData(url)
     li = xbmcgui.ListItem('[COLOR FFFF0000]当前搜索: 第' + page + '页[/COLOR][COLOR FFFFFF00] (' + name + ')[/COLOR]【[COLOR FF00FF00]' + '请输入新搜索内容' + '[/COLOR]】')
     u = sys.argv[0] + "?mode=31&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&page=" + urllib.quote_plus(page)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
@@ -821,7 +822,8 @@ def PlayVideoLetv(name,url):
     videoRes = int(__addon__.getSetting('video_resolution'))
     link = getHttpData(url)
 
-    match = re.compile('{v:(.+?),p:""}').findall(link)
+    match = re.compile('{v:\[(.+?)\]').findall(link)
+    #print match
     # link[0]:"标清-SD" ; link[1]:"高清-HD"
     if match:
         matchv = re.compile('"(.+?)"').findall(match[0])
@@ -839,16 +841,25 @@ def PlayVideoLetv(name,url):
                 vidx = matchv[j].find('MT')
                 vidx = -1 # force to start at 24
                 if vidx < 0:
-                    vid = matchv[j][24:]  # extract max VID code length
+                    vid = matchv[j][24:+180]  # extract max VID code length
                 else:
-                    vid = matchv[j][vidx:]
+                    vid = matchv[j][vidx:+180]
+                    
                 for k in range(0, len(VIDEO_CODE)):
                     vidcode = re.split(VIDEO_CODE[k][1], vid)
                     if len(vidcode) > 1 :                 
                         vid = vidcode[0] + VIDEO_CODE[k][0]
                         break
-                url = 'http://g3.letv.cn/vod/v1/' + vid + '?format=1&b=388&expect=3&host=www_letv_com&tag=letv&sign=free'
-                link = getHttpData(url)
+                    
+                # fail to decipher, use alternate method to play    
+                if len(vidcode) == 1:
+                    #print 'vidcode: ', vidcode
+                    #print "Use alternative player"
+                    playVideo(name,url,videoRes)
+                    return
+                #else:                        
+                p_url = 'http://g3.letv.cn/vod/v1/' + vid + '?format=1&b=388&expect=3&host=www_letv_com&tag=letv&sign=free'
+                link = getHttpData(p_url)
                 link = link.replace("\/", "/")
                 match = re.compile('{.+?"location": "(.+?)" }').findall(link)
                 if match:
@@ -858,6 +869,7 @@ def PlayVideoLetv(name,url):
                         listitem.setInfo(type="Video",infoLabels={"Title":p_name})
                         playlist.add(match[i], listitem)
                         break # skip the rest if any (1 of 3) video links access successful
+                    break # play user selected video resolution only
                 else:
                     dialog = xbmcgui.Dialog()
                     ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请选择其它视频')
@@ -873,6 +885,26 @@ def PlayVideoLetv(name,url):
         else:
             ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请选择其它视频')
  
+##################################################################################
+def playVideo(name,url,videoRes):
+    link = getHttpData("http://www.flvcd.com/parse.php?kw="+url+"&format="+str(videoRes))
+    match=re.compile('下载地址：\s*<a href="(.+?)" target="_blank" class="link"').findall(link)
+    if len(match):
+        playlist=xbmc.PlayList(1)
+        playlist.clear()
+        for i in range(0,len(match)):
+            listitem = xbmcgui.ListItem(name, thumbnailImage = __addonicon__)
+            listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
+            playlist.add(match[i], listitem)
+        xbmc.Player().play(playlist)
+    else:
+        if link.find('该视频为加密视频')>0:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '无法播放：该视频为加密视频')
+        elif link.find('解析失败，请确认视频是否被删除')>0:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '无法播放：该视频或为收费节目')
+            
 ##################################################################################    
 # Routine to extra parameters from xbmc
 ##################################################################################
