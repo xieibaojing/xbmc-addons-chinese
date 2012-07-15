@@ -1,6 +1,10 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.5.1 2012-07-15 (cmeng)
+# - Playlist needs to be cleared
+# - Stop xbmc from throwing error while fetching video link 
+
 # Version 1.5.0 2012-07-15 (cmeng)
 # - Improve UI response; avoid fetching video link when create directory
 # - Improve menu presentation

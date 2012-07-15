@@ -7,13 +7,9 @@ import ChineseKeyboard
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.5.0 2012-07-15 (cmeng)
-# - Improve UI response; avoid fetching video link when create directory
-# - Improve menu presentation
-# - Auto queue and play for 周榜
-# - Improve v_link fetch reliability
-# - Remove local image storage support - no auto clean up mechanism
-# - Add cookie and proxy support
+# Version 1.5.1 2012-07-15 (cmeng)
+# - Playlist needs to be cleared
+# - Stop xbmc from throwing error while fetching video link 
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -104,9 +100,12 @@ def get_flv_url(url):
 
     p_url = "http://www.flvcd.com/parse.php?kw="+url+"&format="+str(videoRes)
     for i in range(10): # Retry specified trials before giving up
-        link = getHttpData(p_url)
-        match=re.compile('下载地址：\s*<a href="(.+?)" target="_blank" class="link"').findall(link)
-        if len(match): return match[0]
+       try:
+            link = getHttpData(p_url)
+            match=re.compile('下载地址：\s*<a href="(.+?)" target="_blank" class="link"').findall(link)
+            if len(match): return match[0]
+       except:
+           pass
 
 ##################################################################################
 # Get imgae from local storage if available
@@ -642,9 +641,9 @@ def playVideo(name,url):
     v_url = get_flv_url(url)
     if v_url:
         playlist=xbmc.PlayList(1)
-        if not xbmc.Player(1).isPlayingVideo:
-            playlist.clear()
-            print 'newplaylist', playlist
+        #if not xbmc.Player(1).isPlayingVideo:
+        playlist.clear()
+        #print 'newplaylist', playlist
         listitem = xbmcgui.ListItem(name, thumbnailImage = __addonicon__)
         listitem.setInfo(type="Video",infoLabels={"Title":name})
         playlist.add(v_url, listitem)
