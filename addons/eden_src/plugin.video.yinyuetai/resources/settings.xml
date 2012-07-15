@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf8" standalone="yes"?>
+<settings>
+	<setting id="video_resolution" type="enum" label="默认播放清晰度" values="标清|高清|超清" default="2"/>
+	<setting id="video_playback" type="enum" label="视频播放" values="手动|自动" default="1"/>
+	<setting id="http_proxy" type="text" label="Proxy (http://122.72.33.138:80)" values="" default=""/>
+</settings>

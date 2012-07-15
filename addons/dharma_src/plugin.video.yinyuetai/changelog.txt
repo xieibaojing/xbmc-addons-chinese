@@ -1,27 +1,35 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.5.0 2012-07-15 (cmeng)
+# - Improve UI response; avoid fetching video link when create directory
+# - Improve menu presentation
+# - Auto queue and play for 周榜
+# - Improve v_link fetch reliability
+# - Remove local image storage support - no auto clean up mechanism
+# - Add cookie and proxy support
+
 # Version 1.4.2 2012-06-18 (cmeng)
-# a. img url link given as full path
+# - img url link given as full path
 #    => update def get_Thumb(icon):
 #
 # Version 1.4.1 2012-02-19 (cmeng)
-# a. xbmcaddon.Addon() needs 1 parameter for Dharma
-# b. remove extra " in Artist name listing
-# c. addLink: name cannot contain "/" e.g. 12/02/25
+# - xbmcaddon.Addon() needs 1 parameter for Dharma
+# - remove extra " in Artist name listing
+# - addLink: name cannot contain "/" e.g. 12/02/25
 
 # Version 1.4.0 2012-1-8 (Taxigps)
-# a. changed for eden - not use os.getcwd()
+# - changed for eden - not use os.getcwd()
 
 # Version 1.3.1 2011-12-22 (cmeng)
-# a. add support for video queue list
-# b. repair AllMV submenu broken link
+# - add support for video queue list
+# - repair AllMV submenu broken link
 
 # Version 1.3.0 2011-12-11 (cmeng)
-# a. Change coding to utf-8 for non-chinese Windows OS
-# b. Add & clean up ctl list
-# c. Repair broken links
-# d. Highlight selected page title
+# - Change coding to utf-8 for non-chinese Windows OS
+# - Add & clean up ctl list
+# - Repair broken links
+# - Highlight selected page title
 
 # Version 1.2.0  2011-2-24 (Originator: Skyemperor))
 ######################################################
