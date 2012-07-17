@@ -1,9 +1,7 @@
 # declare file encoding 
 # -*- coding: utf-8 -*-
-
 # htpcyh2@gmail.com 2012年7月创作,于2012年7月11号首发到XBMC中文插件库
 # 未经允许,不得用于商业用途
-
 
 import urllib,urllib2,re,xbmcplugin,xbmcgui,subprocess,sys,os,os.path,time,datetime
 import xml.dom.minidom
@@ -11,20 +9,27 @@ import socket
 import fcntl
 import struct
 
+import xbmc
+import xbmcaddon
+import ChineseKeyboard
 
 from urllib2 import urlopen
 from urlparse import urlparse
 from posixpath import basename, dirname
 
 
+__addonid__   = "plugin.video.soptv"
+__addon__     = xbmcaddon.Addon(id=__addonid__)
+__settings__  = xbmcaddon.Addon(id=__addonid__)
+
+net_type = __settings__.getSetting("net_type")
+sop_user_name = __settings__.getSetting("sop_user_name")
+sop_user_password = __settings__.getSetting("sop_user_password")
 ROOT_DIR = os.getcwd()
 sys.path.append(ROOT_DIR +'/resources/lib') 
-import ElementTree
-
 addon_icon=os.path.join(ROOT_DIR,'icon.png')
 reload(sys)
 sys.setdefaultencoding('utf-8')
-
 
 
 def parse_url(url):
@@ -58,33 +63,31 @@ def get_ip_address(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s', ifname[:15]) )[20:24])
 
-
 OS = os.environ.get("OS","xbox")
 localIP=get_ip_address('eth0')
 addon_resources_path= os.path.join(os.getcwd(),'resources')
 CHAN_LIST_URL = 'http://channel.sopserv.com/chlist.xml'
 CHAN_LIST = '/tmp'
 CHAN_LIST = os.path.join(CHAN_LIST, parse_url(CHAN_LIST_URL))
-
-
+MY_LIST = os.path.join(addon_resources_path, 'sop')
+MY_LIST = os.path.join(MY_LIST,'mylist.xml')
 spsc_binary = "sp-sc-auth"
 SPSC = os.path.join(addon_resources_path, 'sop')
 SPSC = os.path.join(SPSC,spsc_binary)
 SPSC_LIB = os.path.join(addon_resources_path, 'lib')
 SPSC_LIB_PY = os.path.join(SPSC_LIB,'libstd.py')
 SPSC_LIB = os.path.join(SPSC_LIB,'libstdc++.so.5')
-
 sopcast_pid = "/tmp/sopcast.pid"
 spec_log = "/tmp/sopcast.log"
-wait_time = 20
+wait_time = 23
 LOCAL_PORT = 9000
 VIDEO_PORT = 9001
 BUF_SIZE = 1024 * 4
-list_expire = 10000
+list_expire = 3000
 Platform = "Linux"
 my_error = 0
 string = xbmc.getLocalizedString
-LANGUAGE = "cn" #'cn' or 'en'
+LANGUAGE = "cn" 
 if OS != Platform:
     dialog = xbmcgui.Dialog()
     ok = dialog.ok('系统报告', '对不起!你所使用系统不支持本插件','请使用openELEC或XBMC Live等linux系统' )
@@ -100,7 +103,6 @@ def getpid(name):
     cmd = "ps -C %s -o pid=" % name
     pid = subprocess.Popen(cmd,shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     pid_out = pid.communicate()[0]
-
     list = []
     if len(pid_out) > 0:
         for item in pid_out.split():
@@ -115,8 +117,6 @@ def pid_exists(pid):
     except OSError, e:
         return 0
 
-
-
 def PID_CHECK(OS,spsc_binary):
     print "OS",OS
     if OS == Platform:
@@ -129,11 +129,107 @@ def PID_CHECK(OS,spsc_binary):
             except:
                 return
         except:
-            return
+            return 
+
 
 def CHK_LIB():
     if not os.path.isfile(SPSC_LIB):
         os.rename(SPSC_LIB_PY, SPSC_LIB)
+
+
+def mylistGetAllChannel():
+    channels_rt=[]
+    dom = xml.dom.minidom.parse(MY_LIST)
+    channel_list_root = dom.documentElement
+    channels = channel_list_root.getElementsByTagName('channel')
+    for channel in channels:
+                namelist = channel.getElementsByTagName('name')
+                channel_name = namelist[0]
+                chan_cn_name = channel_name.getAttribute('cn')
+                chan_en_name = channel_name.getAttribute('en')
+                if LANGUAGE =='cn':
+                    if chan_cn_name !='':
+                        chan_name = chan_cn_name
+                    else:
+                        chan_name = chan_en_name
+                else:
+                    if chan_en_name !='':
+                        chan_name = chan_en_name
+                    else:
+                        chan_name = chan_cn_name      
+                node = channel.getElementsByTagName('sop_address')[0]
+                chan_url = ''
+                rc = ""
+                for node in node.childNodes:
+                    if node.nodeType in ( node.TEXT_NODE, node.CDATA_SECTION_NODE):
+                        rc = rc + node.data
+                chan_url = rc   
+                channels_rt.append([chan_name,chan_url])          
+    return channels_rt
+
+
+def mylistGetChannelByName(name):
+    channel_rt=[]
+    channels=mylistGetAllChannel()
+    if len(channels)>0:
+        for channel in channels:
+            if name == channel[0]:
+                channel_rt=channel
+                return channel_rt       
+    return channel_rt
+
+
+def mylistAddChannel(name, url):
+    channel_list_file = MY_LIST
+    dom = xml.dom.minidom.parse(channel_list_file)
+    channel_list_root = dom.documentElement
+    channel_item = dom.createElement('channel')
+    name_item    = dom.createElement('name')
+    name_text    = dom.createTextNode(name)
+    name_item.setAttribute('cn', name)
+    name_item.setAttribute('en', name)
+    name_item.appendChild(name_text)
+    url_item     = dom.createElement('sop_address')
+    url_text     = dom.createTextNode(url)
+    url_item.appendChild(url_text)
+    channel_item.appendChild(name_item)
+    channel_item.appendChild(url_item)
+    channel_list_root.appendChild(channel_item)
+    f=file(channel_list_file, 'w')
+    import codecs
+    writer = codecs.lookup('utf-8')[3](f)
+    dom.writexml(writer, encoding='utf-8')
+    writer.close()
+    
+def mylistDelChannel(name):
+    channel_list_file = MY_LIST
+    dom = xml.dom.minidom.parse(channel_list_file)
+    channel_list_root = dom.documentElement
+    channels = channel_list_root.getElementsByTagName('channel')
+    for channel in channels:
+        namelist = channel.getElementsByTagName('name')
+        channel_name = namelist[0]
+        chan_cn_name = channel_name.getAttribute('cn')
+        chan_en_name = channel_name.getAttribute('en')
+        if name == chan_cn_name or name == chan_en_name:
+            channel_list_root.removeChild(channel)
+    f=file(channel_list_file, 'w')
+    import codecs
+    writer = codecs.lookup('utf-8')[3](f)
+    dom.writexml(writer, encoding='utf-8')
+    writer.close()
+
+
+def mylistChannelIndex():
+    channels=mylistGetAllChannel()
+    if len(channels)>0:
+        for channel in channels:
+            chan_name=channel[0]
+            chan_url =channel[1]
+            chan_name='[COLOR FFFFFF00]'+chan_name+'[/COLOR]'
+            addLink(chan_name,chan_url,2,'',wait_time)
+    addLink('[COLOR FF00FF00]添加频道[/COLOR]','',3,'',wait_time)
+    addLink('[COLOR FF00FF00]删除频道[/COLOR]','',3,'',wait_time)
 
 
 def FETCH_CHANNEL():
@@ -149,31 +245,26 @@ def FETCH_CHANNEL():
             Downloader(CHAN_LIST_URL,CHAN_LIST, '请稍候...', '正在更新频道')
     GROUP(wait_time)
 
-
-
 def GROUP(wait_time):
-    result = CHAN_LIST
+    addDir("[COLOR FF00FFFF]我的收藏[/COLOR]",'',1,'',wait_time)
     try:
-        response = ElementTree.parse(result)
-        groups = response.findall('.//group')
+        dom = xml.dom.minidom.parse(CHAN_LIST)
+        channel_list_root = dom.documentElement
+        channel_groups = channel_list_root.getElementsByTagName('group')
         unname_group_index = 1
-        for group in groups:
-            if group.attrib[LANGUAGE] == "":
-                group.attrib[LANGUAGE] = '未命名视频组'+str(unname_group_index)
+        for channel_group in channel_groups:
+            if channel_group.getAttribute(LANGUAGE) == "":
+                channel_group.setAttribute(LANGUAGE, '未命名视频组'+str(unname_group_index))
                 unname_group_index = unname_group_index + 1
-                if re.sub('c','e',LANGUAGE) == LANGUAGE:
-                    OTHER_LANG = re.sub('e','c',LANGUAGE)
-                else:
-                    OTHER_LANG = re.sub('c','e',LANGUAGE)
                 if LANGUAGE == "cn":
                     try:
-                        if len(group.attrib[OTHER_LANG]) > 0:
-                            print group.attrib[OTHER_LANG]
-                            group.attrib[LANGUAGE] = group.attrib[OTHER_LANG]
+                        if len( channel_group.getAttribute('en') ) > 0:
+                            channel_group.setAttribute(LANGUAGE, channel_group.getAttribute('en'))
                             unname_group_index = unname_group_index - 1
                     except:
                         pass
-            addDir(group.attrib[LANGUAGE],'',1,'',wait_time)
+                
+            addDir(channel_group.getAttribute(LANGUAGE),'',1,'',wait_time)
     except:
         dialog = xbmcgui.Dialog()
         dialog.ok(string(30000), string(30009), string(30010))
@@ -182,9 +273,6 @@ def GROUP(wait_time):
         f.close()
         global my_error
         my_error = 1
-
-
-
 
 def remove_line(contents):
     new_contents = []
@@ -196,13 +284,13 @@ def remove_line(contents):
     return "".join(new_contents)
 
 
-
 def INDEX(name,wait_time):
+    if name == '[COLOR FF00FFFF]我的收藏[/COLOR]':
+        mylistChannelIndex()
     unname_group_index = 1
     dom = xml.dom.minidom.parse(CHAN_LIST)
     channel_list_root = dom.documentElement
     channel_groups = channel_list_root.getElementsByTagName('group')
-    
     for channel_group in channel_groups:
         if channel_group.getAttribute(LANGUAGE) == "":
             channel_group.setAttribute(LANGUAGE, '未命名视频组'+str(unname_group_index))
@@ -266,7 +354,7 @@ def INDEX(name,wait_time):
                     chan_users='00'+chan_users
                 network_q_str='[COLOR FF5555FF]网络质量:[/COLOR]'+'[COLOR FF00FFFF]'+rc+'[/COLOR] ' 
                 users_str    ='[COLOR FF5555FF]人数:[/COLOR]' + '[COLOR FF00FFFF]' + chan_users + '[/COLOR]'
-                chan_name_str='[COLOR FFFFFF00]'+chan_name+'[/COLOR]' 
+                chan_name_str='[COLOR FFFFFF00]'+chan_name+'[/COLOR]' #FF5555FF
                 chan_name='[COLOR FF5555FF]【[/COLOR]' + network_q_str + users_str +'[COLOR FF5555FF]】[/COLOR]' + chan_name_str #FFFFFF00
                 addLink(chan_name,chan_url,2,'',wait_time)
 
@@ -274,11 +362,8 @@ def INDEX(name,wait_time):
 
 class streamplayer(xbmc.Player):
     def onplaybackended():
-        print "killing sopcast process as playback ended"
         os.system('killall -9 %s' % (spsc_binary))
     def onPlayBackStopped(null):
-        print null
-        print "killing sopcast process as playback stopped"
         os.system('killall -9 %s' % (spsc_binary))
 
 
@@ -315,13 +400,8 @@ def wait(time,name):
         dp.update(percent,"网路电视准备就绪")
     return 0
 
-
-
-
-
-
 def STREAM(name,sop,wait_time):
-    cmd = [SPSC, sop, str(LOCAL_PORT), str(VIDEO_PORT)]#,">", spec_log,"2>&1"]
+    cmd = [SPSC, sop, str(LOCAL_PORT), str(VIDEO_PORT)]
     print "execute command", ' '.join(cmd)
     PID_CHECK(OS,spsc_binary)
     global spsc
@@ -347,15 +427,12 @@ def STREAM(name,sop,wait_time):
     player = streamplayer(xbmc.PLAYER_CORE_AUTO)
     player.play(url, listitem)
 
-
-
 def addLink(name,url,mode,iconimage,wait_time):
     ok = True
     u=sys.argv[0]+"?"+"sop="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name.decode('utf8').encode('utf8'))+"&wait="+str(wait_time)
     liz = xbmcgui.ListItem(name, iconImage="DefaultVideo.png", thumbnailImage=iconimage)
     liz.setInfo( type="Video", infoLabels={ "Title": name } )
     ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz)
-#    print "link", u
     return ok
 
 def addDir(name,url,mode,iconimage,wait_time):
@@ -426,8 +503,42 @@ elif mode==2:
         STREAM(name,sop,wait_time)
     else:
         STREAM(name,sop,wait_time)
+elif mode==3:
+    if   name == '[COLOR FF00FF00]添加频道[/COLOR]':
+         add_channel_name=''
+         add_channel_url=''
+         keyboard = ChineseKeyboard.Keyboard('','请输入新添频道名称')
+	 keyboard.doModal()
+	 if (keyboard.isConfirmed()):
+		keyword = keyboard.getText()
+		add_channel_name = keyword
+		xbmc.executebuiltin('Container.Refresh')
+
+	 keyboard = ChineseKeyboard.Keyboard('','请输入新添频道地址')	
+	 keyboard.doModal()
+	 if (keyboard.isConfirmed()):
+		keyword = keyboard.getText()
+		add_channel_url = keyword
+		xbmc.executebuiltin('Container.Refresh')
+         if add_channel_name !='' and add_channel_url != '':
+	     mylistAddChannel(add_channel_name, add_channel_url)
+	     dialog = xbmcgui.Dialog()
+             ok = dialog.ok("频道添加成功!",'频道:[ '+add_channel_name+' ]已添加到我的收藏中')
+	 
+    elif name == '[COLOR FF00FF00]删除频道[/COLOR]':
+         del_channel_name = ''
+         keyboard = ChineseKeyboard.Keyboard('','请输入要删除的频道名称')
+	 keyboard.doModal()
+	 if (keyboard.isConfirmed()):
+		keyword = keyboard.getText()
+		del_channel_name = keyword
+		xbmc.executebuiltin('Container.Refresh')
+	 if del_channel_name != '':	
+             mylistDelChannel(del_channel_name)
+             dialog = xbmcgui.Dialog()
+             ok = dialog.ok("频道删除成功!",'频道:[ '+del_channel_name+' ]已从我的收藏中删除')
+             
 
 if (OS == Platform) and (my_error == 0):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-
-
+## if it's not linux we will simply exit

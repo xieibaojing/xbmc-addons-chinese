@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf8" standalone="yes"?>
+
+<settings>
+    
+       <setting id="net_type" type="enum" label="网卡类型" values="有线网卡|无线网卡" default="0"/>
+    
+       <setting id="sop_user_name" type="text" label="SOP用户名" values="" default=""/>
+    
+       <setting id="sop_user_password" type="text" label="SOP密码" values="" default=""/>
+    
+</settings>

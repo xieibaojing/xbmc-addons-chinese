@@ -1,0 +1,24 @@
+﻿<?xml version="1.0"?>
+<group en="HTPC" cn="HTPC">HTPC
+		<channel id="8891" type="1" btype="0" language="zh_CN">
+			<name cn="凤凰资讯(h)" en="凤凰资讯(h)">凤凰资讯</name>
+			<sop_address>sop://211.152.36.38:3912/8891</sop_address>
+		</channel>
+		<channel id="8892" type="1" btype="0" language="en">
+			<name en="凤凰中文(h)" cn="凤凰中文(h)">凤凰中文</name>
+			<sop_address>sop://211.152.36.38:3912/8892</sop_address>
+		</channel>
+                <channel id="14297" type="0" btype="0" language="en">
+			<name en="国家地理频道(h)" cn="国家地理频道">国家地理频道</name>
+			<sop_address>sop://broker.sopcast.com:3912/80397</sop_address>
+		</channel>
+                <channel id="14297" type="0" btype="0" language="en">
+			<name en="Discovery" cn="探索频道">探索频道</name>
+			<sop_address>sop://broker.sopcast.com:3912/80623</sop_address>
+		</channel>
+                <channel id="14297" type="0" btype="0" language="en">
+			<name en="高清翡翠台" cn="高清翡翠台">频道</name>
+			<sop_address></sop_address>
+		</channel>
+</group>
+
