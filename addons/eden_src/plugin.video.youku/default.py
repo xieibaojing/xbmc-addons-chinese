@@ -180,7 +180,7 @@ def progList(name,id,page,cat,area,year,order):
 def getMovie(name,id,thumb,res):
     if len(id)==21:
         link = GetHttpData('http://www.youku.com/show_page/id_' + id + '.html')
-        match = re.compile('<a class="btnShow btnplayposi" href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
+        match = re.compile('<a class="btnShow btnplayposi".*?href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
         if not match:
             match = re.compile('<div class="btnplay">.*?href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
         if match:
