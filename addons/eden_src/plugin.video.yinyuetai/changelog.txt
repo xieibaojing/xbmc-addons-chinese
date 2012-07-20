@@ -1,6 +1,12 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.5.2 2012-07-20 (cmeng)
+# - Add All MV selection menu items
+# - Add V-Chart selection menu items
+# - Show list items before start auto play-back if enable
+# - Add various auto play-back support for other than MV list
+
 # Version 1.5.1 2012-07-15 (cmeng)
 # - Playlist needs to be cleared
 # - Stop xbmc from throwing error while fetching video link 
