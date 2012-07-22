@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf8" standalone="yes"?>
 <settings>
 	<setting id="video_resolution" type="enum" label="默认播放清晰度 (Video Playback Resolution)" values="标清|高清|超清" default="2"/>
+	<setting id="video_vcplayback" type="bool" label="V-Chart 自动播放 (Auto V-Chart Video Playback)" default="true"/>
 	<setting id="video_fcsplayback" type="bool" label="聚焦视频自动播放 (Auto FocusMV Video Playback)" default="true"/>
-	<setting id="video_vcplayback" type="bool" label="V-Chart自动播放 (Auto V-Chart Video Playback)" default="true"/>
 	<setting id="video_vplayback" type="bool" label="视频自动播放  (Auto Video Playback)" default="false"/>
-	<setting id="http_proxy" type="text" label="Proxy (http://122.72.33.138:80)" values="" default=""/>
+	<setting id="http_proxy" type="text" label="Proxy-Leave blank if not required (ip:port)" values="" default=""/>
 </settings>

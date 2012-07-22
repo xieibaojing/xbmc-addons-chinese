@@ -471,7 +471,7 @@
 
 <addon id="plugin.video.yinyuetai"
     name="音悦台MV(YinYueTai)"
-    version="1.5.2"
+    version="1.5.3"
     provider-name="Skyemperor/cmeng">
     <extension
         point="xbmc.python.pluginsource"
@@ -481,8 +481,8 @@
     <extension point="xbmc.addon.metadata">
         <summary lang="en">YinYueTai video plugin</summary>
         <summary lang="zh">音悦台视频插件</summary>
-        <description lang="en">online mv from yinyuetai.com[CR][CR]Video Auto Playback Enable:[CR]------------------------[CR]a. Access Add-on settings from context menu[CR]b. Enable "Auto MV Video Playback" for MV playback [CR]c. Enable ""Auto Video Playback" for other video playback</description>
-        <description lang="zh">观看音悦台在线MV[CR][CR]视频自动播放说明：[CR]------------------------[CR]a. 找到 Add-on settings 文件列表[CR]b. 选择 "MV视频自动播放" => MV文件自动播放 [CR]c. 选择 "视频自动播放" => 其它文件自动播放</description>
+        <description lang="en">online mv from yinyuetai.com[CR][CR]Video Auto Playback Enable:[CR]---------------------------------[CR]a. Navigate to Add-on settings[CR]b. Auto V-Chart Video Playback: Enable/Disable[CR]c. Auto FocusMV Video Playback: Enable/Disable[CR]d. Auto Video Playback: Enable/Disable</description>
+        <description lang="zh">观看音悦台在线MV[CR][CR]视频自动播放说明：[CR]--------------------------------[CR]a. 找到 Add-on settings 文件列表[CR]b. 选择 "V-Chart 视频自动播放" => V-Chart 文件自动播放[CR]c. 选择 "聚焦视频自动播放" => 聚焦视频自动播放[CR]d. 选择 "视频自动播放" => 其它文件自动播放</description>
         <platform>all</platform>
     </extension>
 </addon>

@@ -1,6 +1,9 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.5.3 2012-07-22 (cmeng)
+# - Add V-Chart Time List selection
+
 # Version 1.5.2 2012-07-20 (cmeng)
 # - Add All MV selection menu items
 # - Add V-Chart selection menu items
