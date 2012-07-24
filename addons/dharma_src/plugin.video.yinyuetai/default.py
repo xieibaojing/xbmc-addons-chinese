@@ -8,8 +8,8 @@ import ChineseKeyboard
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.5.3 2012-07-22 (cmeng)
-# - Add V-Chart Time List selection
+# Version 1.5.4 2012-07-24 (cmeng)
+# - Change auto playback to continuous playback (play from here)
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -252,79 +252,21 @@ def listVChart(name,area,date,timelist):
     if link == None: return
 
     matchs=re.compile('<div class="top_line">(.+?)<div class="infobox">').findall(link)
+    if len(matchs) == 0:
+        matchp=re.compile('<div class="lft"><span class="yellow">发榜日：</span>(.+?)</div>').findall(link)
+        if len(matchp):
+            rdate = matchp[0]
+            matchp=re.compile('<div class="lft"><span class="yellow">揭榜时间：</span>(.+?)</div>').findall(link)
+            rtime = matchp[0]
+            msg = '[COLOR FF00FFFF]发榜日：'+rdate+'[CR]揭榜时间：'+rtime+'[/COLOR]     请稍侯再试!'
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, msg)
+            return
+        
     matchli=re.compile('<div class="vListInfo">(.+?)</ul></div>').findall(matchs[0])
-
     if len(matchli):
         totalItems=len(matchli)
-        videoVCplayback = __addon__.getSetting('video_vcplayback')
-        if videoVCplayback == 'true': vp = 2
-        else: vp = 1
-        for k in range(vp):
-            j=1
-            for item in matchli:
-                matchp=re.compile('<a href="(.+?)" target="_blank"><img src="(.+?)" alt="(.+)"/>').findall(item)
-                p_url = 'http://www.yinyuetai.com' + matchp[0][0]              
-                p_thumb = matchp[0][1]
-                p_name = matchp[0][2]
-
-                artist=re.compile('<a href="/fanclub.+?target="_blank">(.+?)</a>').findall(item)
-                p_artist = artist[0]
-                
-                matchp=re.compile('name="data_info">([.0-9]+)</div>').findall(item)
-                p_score = matchp[0]
-
-                matchp=re.compile('<li>发布时间：(.+?)</li>').findall(item)
-                p_date = matchp[0]
-
-                p_list = str(j)+'. '+p_name+' [COLOR FFFF55FF]['+p_artist+'][/COLOR][COLOR FFFFFF55] ('+p_score+') [/COLOR]['+p_date+']'
-                      
-                li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
-                li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
-                if k==0:
-                    u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
-                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
-                    j+=1
-                else:
-                    v_url = get_flv_url(p_url)
-                    if v_url == None: continue
-                    playlist.add(v_url, li)
-                    if j == 2: 
-                        xbmc.Player().play(playlist)
-                    j+=1
-
-            if k==0:
-                xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-                xbmcplugin.endOfDirectory(int(sys.argv[1]))
-                playlist=xbmc.PlayList(1)
-                playlist.clear()  # clear any stray playlist
-
-###################### Play From Here  ######################################
-def listVChartX(name,area,date,timelist):   
-    # fetch user specified parameters
-    if area is None: area = '内地篇'
-    fltrArea  = fetchID(VCHART_LIST, area)
-
-    if timelist is None:
-        timelist = getTimeList(fltrArea)
-    if date is None: date = timelist[0][1]
-    fltrDate  = fetchID(timelist, date)
-    year = fltrDate[:4]
-
-    # Fetch & build video titles list for user selection, highlight user selected filter  
-    li = xbmcgui.ListItem('[COLOR FF00FFFF]'+name+'[/COLOR]【[COLOR FFFF0000]'+area+'[/COLOR]/[COLOR FF00FF00]'+year+'[/COLOR]/[COLOR FF5555FF]'+date+'[/COLOR]】（按此选择）')
-    u = sys.argv[0] + "?mode=11&name="+urllib.quote_plus(name)+"&area="+area+"&date="+date
-    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
-
-    url = 'http://www.yinyuetai.com/vchart/v?area='+fltrArea+'&date='+fltrDate
-    link=getHttpData(url)
-    if link == None: return
-
-    matchs=re.compile('<div class="top_line">(.+?)<div class="infobox">').findall(link)
-    matchli=re.compile('<div class="vListInfo">(.+?)</ul></div>').findall(matchs[0])
-
-    if len(matchli):
-        totalItems=len(matchli)
-        playlist=xbmc.PlayList(1)
+        playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
         playlist.clear()
         j=0
         for item in matchli:
@@ -347,13 +289,13 @@ def listVChartX(name,area,date,timelist):
                       
             li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
             li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
-            u = sys.argv[0]+"?mode=20"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+            u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
             playlist.add(p_url, li)
 
         xbmcplugin.setContent(int(sys.argv[1]), 'movies')
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
-
+        
 ##################################################################################
 # Routine to update video list as per user selected filters
 ##################################################################################
@@ -371,14 +313,17 @@ def performChangeVChart(name,area,date,timelist):
     year  = fetchID(timelist, date)[:4]
     for x in timelist:
         if x[2] not in list: list.append(x[2])
-    sel = dialog.select('年份', list)
-    if sel != -1:
-        year = list[sel]
-        change = True
+    if len(list) > 2:
+        sel = dialog.select('年份', list)
+        if sel != -1:
+            year = list[sel]
+            change = True
+    else:
+        year = list[0]
 
     list=[]
     list = [x[1] for x in timelist if x[2] == year]        
-    sel = dialog.select('期份', list)
+    sel = dialog.select(year+' 期份', list)
     if sel != -1:
         date = list[sel]
         change = True
@@ -407,42 +352,31 @@ def listFocusMV(name,cat):
 
     if len(matchli):
         totalItems=len(matchli)
-        videoFCSplayback = __addon__.getSetting('video_fcsplayback')
-        if videoFCSplayback == 'true': vp = 2
-        else: vp = 1
-        for k in range(vp):
-            j=1
-            for item in matchli:
-                matchp=re.compile('<div class="title"><a href="(.+?)" title="(.+?)" target="_blank" class="song">').findall(item)
-                p_name = matchp[0][1]
-                p_url = 'http://www.yinyuetai.com' + matchp[0][0]              
+        playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
+        playlist.clear()
+        j=0
+        for item in matchli:
+            matchp=re.compile('<div class="title"><a href="(.+?)" title="(.+?)" target="_blank" class="song">').findall(item)
+            p_name = matchp[0][1]
+            p_url = 'http://www.yinyuetai.com' + matchp[0][0]              
 
-                artist=re.compile('--<a href="(.+?)" title="(.+?)" class="artist" target="_blank">').findall(item)
-                p_artist = artist[0][1]
+            artist=re.compile('--<a href="(.+?)" title="(.+?)" class="artist" target="_blank">').findall(item)
+            p_artist = artist[0][1]
       
-                img=re.compile('<img src="(.+?)"').findall(item)
-                p_thumb = img[0]
-                p_list = str(j)+'. '+p_name+' ['+p_artist+']'
-                
-                li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
-                li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
-                if k==0:
-                    u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
-                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
-                    j+=1
-                else:
-                    v_url = get_flv_url(p_url)
-                    if v_url == None: continue
-                    playlist.add(v_url, li)
-                    if j == 2: 
-                        xbmc.Player().play(playlist)
-                    j+=1
+            img=re.compile('<img src="(.+?)"').findall(item)
+            p_thumb = img[0]
 
-            if k==0:
-                xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-                xbmcplugin.endOfDirectory(int(sys.argv[1]))
-                playlist=xbmc.PlayList(1)
-                playlist.clear()  # clear any stray playlist
+            j+=1
+            p_list = str(j)+'. '+p_name+' ['+p_artist+']'
+                
+            li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
+            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+            u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+            playlist.add(p_url, li)
+
+        xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 ##################################################################################
 # Routine to update video list as per user selected filters
@@ -527,57 +461,44 @@ def listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)
         li=xbmcgui.ListItem('[COLOR FFFF0000]非常抱歉 ![/COLOR] 您选择的查询条件暂无结果')
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
-    else:                                
-        videoVplayback = __addon__.getSetting('video_vplayback')
-        if videoVplayback == 'true': vp = 2
-        else: vp = 1
-        for k in range(vp):
-            j=1
-            for item in matchli:
-                match=re.compile('<a href="(.+?)" target="_blank"><img src="(.+?)" alt="(.+?)"').findall(item)
-                p_url = 'http://www.yinyuetai.com' + match[0][0]
-                p_thumb = match[0][1]
-                p_name = match[0][2]
+    else:
+        playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
+        playlist.clear()
+        j=0
+        for item in matchli:
+            match=re.compile('<a href="(.+?)" target="_blank"><img src="(.+?)" alt="(.+?)"').findall(item)
+            p_url = 'http://www.yinyuetai.com' + match[0][0]
+            p_thumb = match[0][1]
+            p_name = match[0][2]
             
-                p_artist=''
-                match=re.compile('target="_blank" class="c3" title="(.+?)">').findall(item)
-                if len(match): p_artist = match[0]
+            p_artist=''
+            match=re.compile('target="_blank" class="c3" title="(.+?)">').findall(item)
+            if len(match): p_artist = match[0]
                
-                p_list = str(j)+'. '+p_name
-                if p_artist: p_list+=' ['+p_artist +']'
-                
-                li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
-                li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
-
-                if k==0:
-                    u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
-                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
-                    j+=1
-                else:
-                    v_url = get_flv_url(p_url)
-                    if v_url == None: continue
-                    playlist.add(v_url, li)
-                    if j == 2: 
-                        xbmc.Player().play(playlist)
-                    j+=1                
+            j +=1
+            p_list = str(j)+'. '+p_name
+            if p_artist: p_list+=' ['+p_artist +']'
+              
+            li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
+            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+            u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+            playlist.add(p_url, li)
       
             # Fetch and build page selection menu
-            if k==0:
-                matchp=re.compile('<div class="page-nav"(.+?)</div>').findall(link)
-                if len(matchp):   
-                    matchp1=re.compile('<a href=".+?>([0-9]+)</a>', re.DOTALL).findall(matchp[0])    
-                    plist=[str(page)]
-                    for num in matchp1:
-                       if num not in plist:
-                            plist.append(num)
-                            li = xbmcgui.ListItem("... 第" + num + "页")
-                            u = sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url)+"&area="+area+"&artist="+artist+"&area="+area+"&version="+version+"&tag="+urllib.quote(tag)+"&genre="+genre+"&fname="+fname+"&order="+"&page="+num+"&listpage="+urllib.quote_plus(listpage)
-                            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+        matchp=re.compile('<div class="page-nav"(.+?)</div>').findall(link)
+        if len(matchp):   
+            matchp1=re.compile('<a href=".+?>([0-9]+)</a>', re.DOTALL).findall(matchp[0])    
+            plist=[str(page)]
+            for num in matchp1:
+               if num not in plist:
+                    plist.append(num)
+                    li = xbmcgui.ListItem("... 第" + num + "页")
+                    u = sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url)+"&area="+area+"&artist="+artist+"&area="+area+"&version="+version+"&tag="+urllib.quote(tag)+"&genre="+genre+"&fname="+fname+"&order="+"&page="+num+"&listpage="+urllib.quote_plus(listpage)
+                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
 
-                playlist=xbmc.PlayList(1)
-                playlist.clear()  # clear any stray playlist
-                xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-                xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 ##################################################################################
 # Routine to update video list as per user selected filters
@@ -659,54 +580,42 @@ def listRecommendMV(name,cat,page):
 
     if len(matchli):        
         totalItems=len(matchli)
-        videoVplayback = __addon__.getSetting('video_vplayback')
-        if videoVplayback == 'true': vp = 2
-        else: vp = 1
-        for k in range(vp):
-            j=1
-            for item in matchli:
-                url1=re.compile('<a href="(.+?)" target="_blank"><img src="(.+?)" title="(.+?)" alt="(.+?)"/>').findall(item)
-                p_url = 'http://www.yinyuetai.com' + url1[0][0]
-                #p_thumb = get_Thumb(url1[0][1])
-                p_thumb = url1[0][1]
-                p_list = p_name = url1[0][2]
+        playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
+        playlist.clear()
+        j=0
+        for item in matchli:
+            url1=re.compile('<a href="(.+?)" target="_blank"><img src="(.+?)" title="(.+?)" alt="(.+?)"/>').findall(item)
+            p_url = 'http://www.yinyuetai.com' + url1[0][0]
+            #p_thumb = get_Thumb(url1[0][1])
+            p_thumb = url1[0][1]
+            p_list = p_name = url1[0][2]
             
-                artist=re.compile('--<a href="(.+?)" title="(.+?)" class="link_people"').findall(item)
-                p_artist = artist[0][1]
+            artist=re.compile('--<a href="(.+?)" title="(.+?)" class="link_people"').findall(item)
+            p_artist = artist[0][1]
                
-                p_list = str(j)+'. '+p_name+' ['+p_artist +']'
+            j+=1
+            p_list = str(j)+'. '+p_name+' ['+p_artist +']'
                 
-                li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
-                li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
-                if k==0:
-                    u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
-                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
-                    j+=1
-                else:
-                    v_url = get_flv_url(p_url)
-                    if v_url == None: continue
-                    playlist.add(v_url, li)
-                    if j == 2: 
-                        xbmc.Player().play(playlist)
-                    j+=1
-    
-            # Fetch and build page selection menu
-            if k==0:
-                matchp=re.compile('<div class="page-nav">(.+?)</div>').findall(link)   
-                if len(matchp):   
-                    matchp1=re.compile('<a href=".+?>([0-9]+)</a>', re.DOTALL).findall(matchp[0])    
-                    plist=[str(page)]
-                    for num in matchp1:
-                        if num not in plist:
-                            plist.append(num)
-                            li = xbmcgui.ListItem("... 第" + num + "页")
-                            u = sys.argv[0] + "?mode=4&name="+urllib.quote_plus(name)+"&cat="+cat+"&page="+num
-                            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+            li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
+            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+            u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+            playlist.add(p_url, li)
+            
+        # Fetch and build page selection menu
+        matchp=re.compile('<div class="page-nav">(.+?)</div>').findall(link)   
+        if len(matchp):   
+            matchp1=re.compile('<a href=".+?>([0-9]+)</a>', re.DOTALL).findall(matchp[0])    
+            plist=[str(page)]
+            for num in matchp1:
+                if num not in plist:
+                    plist.append(num)
+                    li = xbmcgui.ListItem("... 第" + num + "页")
+                    u = sys.argv[0] + "?mode=4&name="+urllib.quote_plus(name)+"&cat="+cat+"&page="+num
+                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
 
-                xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-                xbmcplugin.endOfDirectory(int(sys.argv[1]))
-                playlist=xbmc.PlayList(1)
-                playlist.clear()  # clear any stray playlist
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 ##################################################################################
 # Routine to update video list as per user selected filters
@@ -752,56 +661,43 @@ def listFavouriteMV(name,cat,order,page):
 
     if len(matchli):        
         totalItems=len(matchli)
-        videoVplayback = __addon__.getSetting('video_vplayback')
-        if videoVplayback == 'true': vp = 2
-        else: vp = 1
-        for k in range(vp):
-            j=1
-            for item in matchli:
-                match=re.compile('<a href="(.+?)" target="_blank" title="(.+?)"><img src="(.+?)"').findall(item)
-                p_url = 'http://www.yinyuetai.com' + match[0][0]
-                p_name = match[0][1]
-                p_thumb = match[0][2]
+        playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
+        playlist.clear()
+        j=0
+        for item in matchli:
+            match=re.compile('<a href="(.+?)" target="_blank" title="(.+?)"><img src="(.+?)"').findall(item)
+            p_url = 'http://www.yinyuetai.com' + match[0][0]
+            p_name = match[0][1]
+            p_thumb = match[0][2]
             
-                p_artist=''
-                match=re.compile('target="_blank">(.+?)</a>：').findall(item)
-                if len(match): p_artist = match[0]
+            p_artist=''
+            match=re.compile('target="_blank">(.+?)</a>：').findall(item)
+            if len(match): p_artist = match[0]
                
-                p_list = str(j)+'. '+p_name
-                if p_artist: p_list+=' ['+p_artist +']'
-                
-                li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
-                li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
-
-                if k==0:
-                    u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
-                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
-                    j+=1
-                else:
-                    v_url = get_flv_url(p_url)
-                    if v_url == None: continue
-                    playlist.add(v_url, li)
-                    if j == 2: 
-                        xbmc.Player().play(playlist)
-                    j+=1                
+            j+=1
+            p_list = str(j)+'. '+p_name
+            if p_artist: p_list+=' ['+p_artist +']'
+              
+            li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
+            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+            u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+            playlist.add(p_url, li)
     
-            # Fetch and build page selection menu
-            if k==0:
-                matchp=re.compile('<div class="page-nav">(.+?)</div>').findall(link)   
-                if len(matchp):   
-                    matchp1=re.compile('<a href=".+?>([0-9]+)</a>', re.DOTALL).findall(matchp[0])    
-                    plist=[str(page)]
-                    for num in matchp1:
-                        if num not in plist:
-                            plist.append(num)
-                            li = xbmcgui.ListItem("... 第" + num + "页")
-                            u = sys.argv[0] + "?mode=5&name="+urllib.quote_plus(name)+"&cat="+cat+"&order="+order+"&page="+num
-                            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+        # Fetch and build page selection menu
+        matchp=re.compile('<div class="page-nav">(.+?)</div>').findall(link)   
+        if len(matchp):   
+            matchp1=re.compile('<a href=".+?>([0-9]+)</a>', re.DOTALL).findall(matchp[0])    
+            plist=[str(page)]
+            for num in matchp1:
+                if num not in plist:
+                    plist.append(num)
+                    li = xbmcgui.ListItem("... 第" + num + "页")
+                    u = sys.argv[0] + "?mode=5&name="+urllib.quote_plus(name)+"&cat="+cat+"&order="+order+"&page="+num
+                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
 
-                xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-                xbmcplugin.endOfDirectory(int(sys.argv[1]))
-                playlist=xbmc.PlayList(1)
-                playlist.clear()  # clear any stray playlist
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
     
 ##################################################################################
 # Routine to update video list as per user selected filters
@@ -912,47 +808,37 @@ def listArtistMV(name,url,thumb,page):
 
     if len(match):        
         totalItems=len(match)
-        videoVplayback = __addon__.getSetting('video_vplayback')
-        if videoVplayback == 'true': vp = 2
-        else: vp = 1
-        for k in range(vp):
-            j=1
-            artist=re.compile('<h1>(.+?)</h1>').findall(link)
-            p_artist = artist[0]
-            for p_name,p_url,p_thumb in match:
-                p_url = 'http://www.yinyuetai.com' + p_url              
-                p_list = str(j)+'. '+p_name+' ['+p_artist +']'
+        playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
+        playlist.clear()
+        j=0
+
+        artist=re.compile('<h1>(.+?)</h1>').findall(link)
+        p_artist = artist[0]
+        for p_name,p_url,p_thumb in match:
+            p_url = 'http://www.yinyuetai.com' + p_url              
+            j+=1
+            p_list = str(j)+'. '+p_name+' ['+p_artist +']'
                 
-                li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
-                li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
-                if k==0:
-                    u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
-                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
-                    j+=1
-                else:
-                    v_url = get_flv_url(p_url)
-                    if v_url == None: continue
-                    playlist.add(v_url, li)
-                    if j == 2: 
-                        xbmc.Player().play(playlist)
-                    j+=1
+            li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
+            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+            u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+            playlist.add(p_url, li)
     
-            # Fetch and build page selection menu
-            if k==0:
-                matchp=re.compile('<div class="page-nav">(.+?)</div>').findall(link)   
-                if len(matchp):   
-                    matchp1=re.compile('<a href=".+?>([0-9]+)</a>', re.DOTALL).findall(matchp[0])    
-                    plist=[str(page)]
-                    for num in matchp1:
-                        if num not in plist:
-                            plist.append(num)
-                            li = xbmcgui.ListItem("... 第" + num + "页")
-                            u = sys.argv[0]+"?mode=7"+"&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url)+"&thumb="+urllib.quote_plus(thumb)+"&page="+num
-                            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
-                xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-                xbmcplugin.endOfDirectory(int(sys.argv[1]))
-                playlist=xbmc.PlayList(1)
-                playlist.clear()  # clear any stray playlist
+        # Fetch and build page selection menu
+        matchp=re.compile('<div class="page-nav">(.+?)</div>').findall(link)   
+        if len(matchp):   
+            matchp1=re.compile('<a href=".+?>([0-9]+)</a>', re.DOTALL).findall(matchp[0])    
+            plist=[str(page)]
+            for num in matchp1:
+                if num not in plist:
+                    plist.append(num)
+                    li = xbmcgui.ListItem("... 第" + num + "页")
+                    u = sys.argv[0]+"?mode=7"+"&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url)+"&thumb="+urllib.quote_plus(thumb)+"&page="+num
+                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 ##################################################################################
 # Routine to update video list as per user selected filters
@@ -981,48 +867,48 @@ def performChangeGs(name,area,geshou,fname,page):
 
     if change:listArtist(name,area,geshou,fname,1)
 
-###################### Play From Here - Still under development ################################
-def playVideoX(name,url,thumb):
-#    videoplaycont = bool(__addon__.getSetting('video_playcont'))
-
-    playlist=xbmc.PlayList(1)
-    #playlist.clear()
-    v_pos = int(name.split('.')[0])-1
-   
-    psize = playlist.size()
-    print 'play from here start at: ', v_pos
-    for x in range(psize):
-        if x < v_pos: continue
-        pitem=playlist.__getitem__(x)
-        p_url=pitem.getfilename(x)
-        p_list =pitem.getdescription(x)
-
-        if re.search('http://www.yinyuetai.com/', p_url):
-            playlist.remove(p_url) # remove old url
-            v_url = get_flv_url(p_url)
-            if v_url == None: continue
-            #li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = thumb)
-            li = xbmcgui.ListItem(p_list)
-            li.setInfo(type = "Video", infoLabels = {"Title":p_list})   
-            playlist.add(v_url, li,x)
-            print 'playlist_altered', x, p_list, p_url, v_url 
-        else:
-            v_url = p_url
-            print 'playlist_unaltered', x, p_list, p_url 
-        if x == v_pos:
-            print 'start playing video ... #' + str(v_pos+1)
-            #xbmc.Player(1).playnext() # does not start playing
-            #xbmc.Player(1).playnext(v_pos) # does not start playing
-            #xbmc.Player(1).playselected(v_pos) # does not start playing
-            #xbmc.Player(1).playselected(v_url) # error
-            xbmc.Player(1).play(v_pos, True) # does not start playing
-            #xbmc.Player(1).play() # does not start playing
-            #xbmc.Player(1).play(v_url) # play but also clear the playlist
-            #xbmc.Player(1).play(playlist) # play from begining
-            #print 'current playing file: ', xbmc.Player(1).getPlayingFile()
-
+##################################################################################
+# Continuous Player start playback from user selected video
+# User backspace to previous menu will not work - playlist = last selected
 ##################################################################################
 def playVideo(name,url,thumb):
+    videoplaycont = bool(__addon__.getSetting('video_vplaycont'))
+    playlistA=xbmc.PlayList(0)
+    playlist=xbmc.PlayList(1)
+    playlist.clear()
+
+    v_pos = int(name.split('.')[0])-1
+    psize = playlistA.size()
+    k=0
+    for x in range(psize):
+        if x < v_pos: continue
+        p_item=playlistA.__getitem__(x)
+        p_url=p_item.getfilename(x)
+        p_list =p_item.getdescription(x)
+
+        #li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = thumb)
+        li = xbmcgui.ListItem(p_list)
+        li.setInfo(type = "Video", infoLabels = {"Title":p_list})   
+
+        if re.search('http://www.yinyuetai.com/', p_url):
+            v_url = get_flv_url(p_url)
+            if v_url == None: continue
+            playlistA.remove(p_url) # remove old url
+            playlistA.add(v_url, li, x)  # keep a copy of v_url in Audio Playlist
+        else:
+            v_url = p_url
+            
+        playlist.add(v_url, li, k)
+        print 'playlist_added', k, p_list, p_url, v_url
+        k +=1 
+
+        if k == 1:
+            print 'start playing video ... #' + str(k), playlist[k-1]
+            xbmc.Player(1).play(playlist)
+        if videoplaycont == 'true': break
+            
+##################################################################################
+def playVideoX(name,url,thumb):
     v_url = get_flv_url(url)
     if v_url:
         playlist=xbmc.PlayList(1)
@@ -1155,11 +1041,7 @@ ctl = {
             5    : ('listFavouriteMV(name,cat,order,page)','音悦台 - 悦单','/pl/playlist_newRecommend',True), 
             6    : ('listArtist(name,area,geshou,fname,page)','音悦台 - 歌手','/fanAll',True),
             7    : ('listArtistMV(name,url,thumb,page)','显示歌手MV','/fanAll',True),
-            
-            9    : ('listVChartX(name,area,date,timelist)','音悦台 - V榜 (Play from here)','',True),
-
             10   : ('playVideo(name,url,thumb)',''),
-            20   : ('playVideoX(name,url,thumb)',''),
             
             11   : ('performChangeVChart(name,area,date,timelist)',''),
             12   : ('performChangeFocus(name,cat)',''),
