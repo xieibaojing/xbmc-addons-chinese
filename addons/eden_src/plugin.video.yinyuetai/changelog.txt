@@ -1,6 +1,9 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.5.5 2012-07-24 (cmeng)
+# - Resolve continuous playback disabled not working
+
 # Version 1.5.4 2012-07-24 (cmeng)
 # - Change auto playback to continuous playback (play from here)
 

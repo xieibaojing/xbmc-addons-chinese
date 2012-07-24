@@ -8,8 +8,8 @@ import ChineseKeyboard
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.5.4 2012-07-24 (cmeng)
-# - Change auto playback to continuous playback (play from here)
+# Version 1.5.5 2012-07-24 (cmeng)
+# - Resolve continuous playback disabled not working
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -872,7 +872,7 @@ def performChangeGs(name,area,geshou,fname,page):
 # User backspace to previous menu will not work - playlist = last selected
 ##################################################################################
 def playVideo(name,url,thumb):
-    videoplaycont = bool(__addon__.getSetting('video_vplaycont'))
+    videoplaycont = __addon__.getSetting('video_vplaycont')
     playlistA=xbmc.PlayList(0)
     playlist=xbmc.PlayList(1)
     playlist.clear()
@@ -905,7 +905,7 @@ def playVideo(name,url,thumb):
         if k == 1:
             print 'start playing video ... #' + str(k), playlist[k-1]
             xbmc.Player(1).play(playlist)
-        if videoplaycont == 'true': break
+        if videoplaycont == 'false': break
             
 ##################################################################################
 def playVideoX(name,url,thumb):
