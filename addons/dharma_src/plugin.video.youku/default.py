@@ -138,7 +138,7 @@ def progList(name,id,page,cat,area,year,order):
         p_id = match1.group(1)
         match1 = re.compile('<li class="p_thumb"><img src="(.+?)"').search(match[i])
         p_thumb = match1.group(1)
-        match1 = re.compile('<li class="p_title"><a [^>]+>(.+?)</a>').search(match[i])
+        match1 = re.compile('<li class="p_title"><a .*?">(.+?)</a>').search(match[i])
         p_name = match1.group(1)
         match1 = re.compile('<li class="p_status"><span class="status">(.+?)</span>').search(match[i])
         if match1:
@@ -195,35 +195,36 @@ def getMovie(name,id,thumb,res):
     else:
         PlayVideo(name, 'http://v.youku.com/v_show/id_'+id+'.html', thumb, res)
 
-def seriesList(name,id,thumb,page):
-    url = "http://www.youku.com/show_eplist/showid_"+id+"_type_pic_from_ajax_page_"+page+".html"
-    print url
+def seriesList(name,id,thumb,res,page):
     currpage = int(page)
-    link = GetHttpData(url)
-    match = re.compile('<ul class="pages">(.+?)</ul>', re.DOTALL).findall(link)
-    if len(match):
-        match1 = re.compile('<li.+?>([0-9]+)(</a>|</span>)</li>', re.DOTALL).findall(match[0])
-        totalpages = int(match1[len(match1)-1][0])
-    else:
-        totalpages = 1
-    match = re.compile('<ul class="v">(.+?)</ul>', re.DOTALL).findall(link)
+    i = 0
+    data = ''
+    while True:
+        url = "http://www.youku.com/show_point.html?id="+id+"&page="+str(i)+"&dt=json&__rt=1&__ro=point_more"+str(i)
+        link = GetHttpData(url)
+        data += link
+        i += 10
+        if len(link) < 10:
+            break
+    totalpages = 1
+    match = re.compile('<div class="item">(.+?)</div><!--.item-->', re.DOTALL).findall(data)
     totalItems = len(match) + 1
-    if currpage > 1: totalItems = totalItems + 1
-    if currpage < totalpages: totalItems = totalItems + 1
+    #if currpage > 1: totalItems = totalItems + 1
+    #if currpage < totalpages: totalItems = totalItems + 1
 
 
     li = xbmcgui.ListItem("当前节目："+name+'（第'+str(currpage)+'/'+str(totalpages)+'页）')
     u=sys.argv[0]+"?mode=40&name="+urllib.quote_plus(name)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     for i in range(0,len(match)):
-        match1 = re.compile('<li class="v_link"><a .*?href="(http://v.youku.com/v_show/id_.+?.html)"').search(match[i])
+        match1 = re.compile('<div class="link"><a .*?href="(http://v.youku.com/v_show/id_.+?.html)"').search(match[i])
         if match1:
             p_url = match1.group(1)
         else:
             continue
-        match1 = re.compile('<li class="v_thumb"><img src="(.+?)"').search(match[i])
+        match1 = re.compile('<div class="thumb"><img .*?src="(.+?)"').search(match[i])
         p_thumb = match1.group(1)
-        match1 = re.compile('<li class="v_title">[\s]*<a [^>]+>(.+?)</a>').search(match[i])
+        match1 = re.compile('<div class="title">[\s]*<a [^>]+>(.+?)</a>').search(match[i])
         p_name = match1.group(1)
         if match[i].find('<span class="ico__SD"')>0:
             p_name += '[超清]'
@@ -238,14 +239,14 @@ def seriesList(name,id,thumb,page):
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
 
-    if currpage > 1:
-        li = xbmcgui.ListItem('上一页')
-        u = sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&thumb="+urllib.quote_plus(thumb)+"&page="+urllib.quote_plus(str(currpage-1))
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
-    if currpage < totalpages:
-        li = xbmcgui.ListItem('下一页')
-        u = sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&thumb="+urllib.quote_plus(thumb)+"&page="+urllib.quote_plus(str(currpage+1))
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    #if currpage > 1:
+    #    li = xbmcgui.ListItem('上一页')
+    #    u = sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&thumb="+urllib.quote_plus(thumb)+"&res="+str(res)+"&page="+urllib.quote_plus(str(currpage-1))
+    #    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    #if currpage < totalpages:
+    #    li = xbmcgui.ListItem('下一页')
+    #    u = sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&thumb="+urllib.quote_plus(thumb)+"&res="+str(res)+"&page="+urllib.quote_plus(str(currpage+1))
+    #    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -469,7 +470,7 @@ elif mode == 1:
 elif mode == 2:
     getMovie(name,id,thumb,res)
 elif mode == 3:
-    seriesList(name,id,thumb,page)
+    seriesList(name,id,thumb,res,page)
 elif mode == 4:
     performChanges(name,id,page,cat,area,year,order)
 elif mode == 10:
