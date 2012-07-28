@@ -169,6 +169,23 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.pps"
+    name="PPS网络电视(PPS客户端)"
+    version="1.0"
+    provider-name="yxnr">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">PPStream video plugin</summary>
+        <summary lang="zh">PPS网络电视(客户端)</summary>
+        <description lang="zh">观看PPStream在线影视节目</description>
+        <platform>windx wingl</platform>
+    </extension>
+</addon>
+
 <addon id="plugin.video.ppstream"
     name="PPS网络电视(PPStream)"
     version="2.1.1"

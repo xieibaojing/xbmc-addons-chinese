@@ -1,0 +1,13 @@
+﻿########################################################################
+# PPS网络电视(PPS客户端)
+########################################################################
+# Version 1.0.1 2012-07-28 (cmeng)
+# - change default.py text string to utf-8 for non-Chinese OS display
+# - clean up python syntax error
+# - clean up xbmc deprecated function call
+# - add in chinese keyboard support
+# - change search url querry string
+
+# Version 1.0.0 2012-07-23 (yxnr)
+# - initial release
+########################################################################
