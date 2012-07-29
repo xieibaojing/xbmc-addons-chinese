@@ -1,34 +1,41 @@
 ﻿########################################################################
 # PPStream 网络电视
 ########################################################################
+# Version 2.1.2 2012-07-29 (cmeng)
+# - hard coded list items to speed up main menu display
+# - correct error in getList() routine
+# - correct url query string error in progListMovie()
+# - allows 3 trials when accessing url data
+# - take care of inconsistency in ppstream listpage fetch:'综艺'=>'娱乐'
+
 # Version 2.1.1 2012-07-09 (cmeng)
-# a. Correct error in progListMovie routine
+# - Correct error in progListMovie routine
 
 # Version 2.1.0 2012-07-06 (cmeng)
-# a. Add support for Proxy Setting
-# b. Update LeTV Player
-# c. Reuse COLOR_LIST items
+# - Add support for Proxy Setting
+# - Update LeTV Player
+# - Reuse COLOR_LIST items
   
 # Version 2.0.8 2012-03-31 (cmeng)
-# a. To take care main web page <tag> structure change 
+# - To take care main web page <tag> structure change 
 
 # Version 2.0.7 2012-03-01 (cmeng)
-# a. Enhance Letv player video link algorithm - under development
-# b. Change IsFolder=False for video playback item lists
+# - Enhance Letv player video link algorithm - under development
+# - Change IsFolder=False for video playback item lists
 
 # Version 2.0.6 2012-02-25 (cmeng)
-# a. Include Episode Chapter & Section information in the video playlist
-# b. Add Letv video player - under development
+# - Include Episode Chapter & Section information in the video playlist
+# - Add Letv video player - under development
 
 # Version 2.0.5 2012-02-16 (taxigps)
-# a. Work around for XBMC Eden Beta 3 [COLOR\] tag problem
+# - Work around for XBMC Eden Beta 3 [COLOR\] tag problem
 
 # Version 2.0.4 2012-02-11 (cmeng)
-# a. Update PlayVideoSohu to take care of missing video/resolution 
-# b. Take care for XBMC Eden Beta 3 [COLOR\] script problem
+# - Update PlayVideoSohu to take care of missing video/resolution 
+# - Take care for XBMC Eden Beta 3 [COLOR\] script problem
 
 # Version 2.0.1 2012-01-29 (taxigps)
-# a. fixed error for COLOR_LIST index out of range
+# - fixed error for COLOR_LIST index out of range
 
 # Version 2.0.0 2012-01-27 (cmeng)
 # a. Add PPStream 网络电视 video search function

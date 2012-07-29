@@ -6,8 +6,12 @@ import ChineseKeyboard
 
 ########################################################################
 # PPStream 网络电视 by robintttt/cmeng
-# Version 2.1.1 2012-07-09 (cmeng)
-# a. Correct error in progListMovie routine
+# Version 2.1.2 2012-07-29 (cmeng)
+# - hard coded list items to speed up main menu display
+# - correct error in getList() routine
+# - correct url query string error in progListMovie()
+# - allows 3 trials when accessing url data
+# - take care of inconsistency in ppstream listpage fetch:'综艺'=>'娱乐'
 
 # See changelog.txt for previous history
 ########################################################################
@@ -22,10 +26,13 @@ __addonicon__ = os.path.join( __addon__.getAddonInfo('path'), 'icon.png' )
 
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 VIDEO_LIST = [['tv','电视剧'],['movie','电影'],['fun','综艺'],['anime','动漫']]
-SORT_LIST = [['sum_online_sum','按观众数'],['vote_num','按评分']]
+UGC_LIST = [['c10','原创'],['c11','音乐'],['c9','娱乐'],['c14','生活'],['c4','焦点'],['c12','游戏'],['c5','财经'],['c6','体育'],['c7','汽车'],['c8','科技'],['c15','时尚'],['c16','旅游'],['c18','母婴'],['c19','教育'],['c20','搞笑'],['c21','女性'],['c22','其它'],['c24','达人秀'],['c17','美食']]
+SORT_LIST = [['sum_online_num','按观众数'],['vote_num','按评分']]
 COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]','[COLOR FFFF00FF]']
 MPLAYER_LIST = [['10','PPS'],['99','SMG'],['43','优酷'],['44','土豆'],['45','奇艺'],['46','搜狐'],['47','新浪'],['48','乐视']]
-VIDEO_RES = [["标清",'sd'],["高清",'hd'],["普通",''],["未注","null"]]
+VIDEO_RES = [["标清",'sd'],["高清",'hd'],["普通",''],["未注","null"]] 
+datelist = [['t1','全部'],['t2','今日'],['t3','本周'],['t4','本月']]
+orderlist = [['o1','最新发布'],['o2','最多播放'],['o3','最多评论'],['o4','最多推荐']]   
      
 ##################################################################################
 # Routine to fetech url site data using Mozilla browser
@@ -55,16 +62,20 @@ def getHttpData(url):
     
     req = urllib2.Request(url)
     req.add_header('User-Agent', UserAgent)
-    try:
-        response = opener.open(req)
-    except urllib2.HTTPError, e:
-        httpdata = e.read()
-    except urllib2.URLError, e:
-        httpdata = "IO Timeout Error"
-    else:
-        httpdata = response.read()
-        response.close()
-
+    
+    for k in range(3): # give 3 trails to fetch url data
+        try:
+            response = opener.open(req)
+        except urllib2.HTTPError, e:
+            httpdata = e.read()
+        except urllib2.URLError, e:
+            httpdata = "IO Timeout Error"
+        else:
+            httpdata = response.read()
+            response.close()
+            break
+        
+    print 'httpdata', k, httpdata[:1000]
     httpdata = re.sub('\r|\n|\t', '', httpdata)
     match = re.compile('<meta.+?charset=["]*(.+?)"').findall(httpdata)
     if len(match):
@@ -94,18 +105,47 @@ def fetchID(dlist, idx):
 # 
 ##################################################################################
 def getList(listpage):
-    print listpage
-    match0 = re.compile('<dt>按类型</dt>(.+?)</ul>', re.DOTALL).search(listpage)
-    catlist = re.compile('<li><a href="/.+?/.+?/(.+?),.+?title="(.+?)">.+?</a></li>').findall(match0.group(1))
-    match0 = re.compile('<dt>按国家/地区</dt>(.+?)</ul>', re.DOTALL).search(listpage)
-    arealist = re.compile('<li><a href="/.+?/.+?/(.+?),.+?title="(.+?)">.+?</a></li>').findall(match0.group(1))
-    match0 = re.compile('<dt>按年份</dt>(.+?)</ul>', re.DOTALL).search(listpage)
-    yearlist = re.compile('<a href="/.+?/.+?/(.+?),.+?title="(.+?)">.+?</a></li>').findall(match0.group(1))
+    #print 'lsitpage', listpage
+    match0 = re.compile('<dt>按类型</dt>(.+?)</ul>').findall(listpage)
+    match1 = re.compile('<a href="/.+?/(.+?)/(.+?)/.+?>(.+?)</a></li>').findall(match0[0])
+    catlist=[]
+    for typex, idx, cat in match1:
+        type = typex.split(',')
+        id = idx.split(',')
+        catid=''
+        for i in range(len(type)):
+            if type[i]=='genre':
+                catid = id[i]
+                break
+        catlist.append([catid,cat])
+            
+    match0 = re.compile('<dt>按国家/地区</dt>(.+?)</ul>').findall(listpage)
+    match1 = re.compile('<a href="/.+?/(.+?)/(.+?)/.+?>(.+?)</a></li>').findall(match0[0])
+    arealist=[]
+    for typex, idx, area in match1:
+        type = typex.split(',')
+        id = idx.split(',')
+        areaid=''
+        for i in range(len(type)):
+            if type[i]=='area':
+                areaid = id[i]
+                break
+        arealist.append([areaid,area])
+    
+    match0 = re.compile('<dt>按年份</dt>(.+?)</ul>').findall(listpage)
+    match1 = re.compile('<a href="/.+?/(.+?)/(.+?)/.+?>(.+?)</a></li>').findall(match0[0])
+    yearlist=[]
+    for typex, idx, year in match1:
+        type = typex.split(',')
+        id = idx.split(',')
+        yearid=''
+        for i in range(len(type)):
+            if type[i]=='year':
+                yearid = id[i]
+                break
+        yearlist.append([yearid,year])
 
-# tuple to list conversion not necessary    
-#    catlist = [[x[0],x[1]] for x in catlist]
-#    arealist = [[x[0],x[1]] for x in arealist]
-#    yearlist = [[x[0],x[1]] for x in yearlist]
+    #print 'catlist...', catlist, arealist, yearlist
     return catlist, arealist, yearlist
 
 ##################################################################################
@@ -113,20 +153,43 @@ def getList(listpage):
 # - 发布时间 (Published date)
 # - 排序方式 (Order)
 ##################################################################################
-def getListUgc(listpage):
-    match0 = re.compile('<div class="sort2">发布时间:(.+?)</div>').search(listpage)
-    datelist = re.compile('href="/ugc/.+?-t([0-9]+)-.+?">[ ]*(.+?)[ ]*</a>').findall(match0.group(1))
-    match0 = re.compile('<div class="sort2">排序方式:(.+?)</div>').search(listpage)
-    orderlist = re.compile('href="/ugc/.+?-o([0-9]+)-.+?">[ ]*(.+?)[ ]*</a>').findall(match0.group(1))
-    return datelist, orderlist
+#def getListUgc(listpage):
+#    match0 = re.compile('<div class="sort2">发布时间:(.+?)</div>').search(listpage)
+#    datelist = re.compile('href="/ugc/.+?-t([0-9]+)-.+?">[ ]*(.+?)[ ]*</a>').findall(match0.group(1))
+#    match0 = re.compile('<div class="sort2">排序方式:(.+?)</div>').search(listpage)
+#    orderlist = re.compile('href="/ugc/.+?-o([0-9]+)-.+?">[ ]*(.+?)[ ]*</a>').findall(match0.group(1))
+#    return datelist, orderlist
 
 ##################################################################################
 # Routine to fetch & build PPS 网络电视 main menu
 # - video list as per [VIDEO_LIST]
-# - ugc list
+# - ugc list as per [UGC_LIST]
 # - movie, series & ugc require different sub-menu access methods
 ##################################################################################
 def mainMenu():
+    #li = xbmcgui.ListItem('[COLOR FFFF0000]PPS 网络电视:[/COLOR][COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
+    li = xbmcgui.ListItem('[COLOR FF00FFFF] PPS 网络电视搜索:[/COLOR][COLOR FF00FF00]【点此进行】[/COLOR]')
+    u=sys.argv[0]+"?mode=31"
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+    
+    # fetch the url for video channels specified in VIDEO_LIST
+    i = 0
+    for id, name in VIDEO_LIST:
+        i = i + 1
+        li = xbmcgui.ListItem(str(i) + '. ' + name)
+        u = sys.argv[0] + "?mode=1&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&cat=全部" + "&area=全部" + "&year=全部" + "&order=按观众数"
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+    
+    # fetch the url for ugc channels, exclude those already in VIDEO_LIST 
+    for cat, name in UGC_LIST:
+        i = i + 1
+        li = xbmcgui.ListItem(str(i) + '. ' + name)
+        u = sys.argv[0] + "?mode=11&name=" + urllib.quote_plus(name) + "&id=ugc" + "&cat=" + cat + "&year=本周" + "&order=最多播放"
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))  
+
+def mainMenux():
     #li = xbmcgui.ListItem('[COLOR FFFF0000]PPS 网络电视:[/COLOR][COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
     li = xbmcgui.ListItem('[COLOR F0F0F0F0]0. PPS 网络电视搜索:[/COLOR][COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
     u=sys.argv[0]+"?mode=31"
@@ -144,7 +207,7 @@ def mainMenu():
         if id == '': continue
         i = i + 1
         li = xbmcgui.ListItem(str(i) + '. ' + name)
-        u = sys.argv[0] + "?mode=1&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&cat=全部" + "&area=全部" + "&year=全部" + "&order=按观众数" + "&year=全部" + "&order=最新更新"
+        u = sys.argv[0] + "?mode=1&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&cat=全部" + "&area=全部" + "&year=全部" + "&order=按观众数"
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     
     # fetch the url for ugc channels, exclude those already in VIDEO_LIST 
@@ -191,19 +254,21 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
         if yearstr != None: yearID = 'year,'
         
     sortID = fetchID(SORT_LIST, order) + ','    
-    if sortID == ',': sortID = 'sum_online_sum,'  
+    if sortID == ',': sortID = 'sum_online_num,'  
     videoID = fetchID(VIDEO_LIST, name)    
     if videoID == '': videoID = 'movie'
                    
     # construct url based on user elected filter ID's
-    url = 'http://v.pps.tv/' + videoID + '/' + areaID + catID + yearID + 'orderby_field,asc_desc/' + areastr + catstr + yearstr + sortID + 'dec/'
+    url = 'http://v.pps.tv/' + videoID + '/' + areaID + catID + yearID + 'orderby_field,asc_desc/' + areastr + catstr + yearstr + sortID + 'desc/'
     if page: currpage = int(page)
     else: currpage = 1
     url += page
     url += '.html'
     link = getHttpData(url)
-    # Extract filter list for user selection - list order valid on first entry only    
-    match = re.compile('<!--classification ' + name + '-->(.+?)<!--/classification-->', re.DOTALL).findall(link)
+    # Extract filter list for user selection - list order valid on first entry only
+    cname = name
+    if cname =='综艺': cname = '娱乐' # take care ppstream inconsistent in listpage  
+    match = re.compile('<!--classification ' + cname + '-->(.+?)<!--/classification-->', re.DOTALL).findall(link)
     if len(match):
         listpage = match[0]
     else:
@@ -215,7 +280,7 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
     if re.search(year,'全部'): year = '全部年份'
 
     # Fetch & build video titles list for user selection, highlight user selected filter  
-    li = xbmcgui.ListItem(name + '（第' + str(currpage) + '页）【[COLOR FFFF0000]' + cat + '[/COLOR]/[COLOR FF00FF00]' + area + '[/COLOR]/[COLOR FFFFFF00]' + year + '[/COLOR]/[COLOR FF00FFFF]' + order + '[/COLOR]】（按此选择）')
+    li = xbmcgui.ListItem('[COLOR FFFF00FF]'+name + '[/COLOR]（第' + str(currpage) + '页）【[COLOR FFFF0000]' + cat + '[/COLOR]/[COLOR FF00FF00]' + area + '[/COLOR]/[COLOR FFFFFF00]' + year + '[/COLOR]/[COLOR FF00FFFF]' + order + '[/COLOR]】（按此选择）')
     u = sys.argv[0] + "?mode=4&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&cat=" + urllib.quote_plus(cat) + "&area=" + urllib.quote_plus(area) + "&year=" + urllib.quote_plus(year) + "&order=" + order + "&listpage=" + urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
@@ -302,41 +367,21 @@ def updateListMovie(name, id, page, cat, area, year, order, listpage):
 # - ugc items list
 # - user selectable pages
 ##################################################################################
-def progListUgc(name, id, page, cat, year, order, datelist=[], orderlist=[]): 
+def progListUgc(name, id, page, cat, year, order): 
     # fetch url filter ID's
-    dateID = '1'
-    orderID = '1'
-    if len(datelist):
-        dateID = fetchID(datelist, year)
-        if dateID == '': dateID = '1'
-        
-    if len(orderlist):
-        orderID = fetchID(orderlist, order)    
-        if orderID == '': orderID = '1' 
-                   
+    dateID = fetchID(datelist, year)
+    orderID = fetchID(orderlist, order)    
+                
     # Construct url based on filter ID's & selected page           
-    url = 'http://v.pps.tv/' + id + '/list-' + cat + '-t' + dateID + '-o' + orderID + '-p'
-    if page:
-        currpage = int(page)
-    else:
-        currpage = 1
-    url += page
-    url += '.html'
+    url = 'http://v.pps.tv/'+id+'/list-'+cat+'-'+dateID+'-'+orderID+'-p'+page+'.html'
     link = getHttpData(url)
     match = re.compile('<!--ugc-tag-list-->(.+?)<!--/ugc-tag-list-->').findall(link)
-    
-    # Extract filter list for user selection
-    match1 = re.compile('id="ugc-tag-list">(.+?)<ul class="ugc-list">').findall(match[0])
-    if len(match1):
-        listpage = match1[0]
-    else:
-        listpage = ''
-          
+             
     # Fetch & build ugc list for user selection, highlight user selected filter      
     match = re.compile('<li class="ugc-item">(.+?)</ul>').findall(match[0])
     totalItems = len(match)   
-    li = xbmcgui.ListItem(name + '（第' + str(currpage) + '页）【[COLOR FFFFFF00]' + year + '[/COLOR]/[COLOR FF00FFFF]' + order + '[/COLOR]】（按此选择）')
-    u = sys.argv[0] + "?mode=12&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&cat=" + urllib.quote_plus(cat) + "&year=" + urllib.quote_plus(year) + "&order=" + urllib.quote_plus(order)+ "&page=" + urllib.quote_plus(listpage)
+    li = xbmcgui.ListItem('[COLOR FFFF00FF]'+name + '[/COLOR]（第' + str(page) + '页）【[COLOR FFFFFF00]' + year + '[/COLOR]/[COLOR FF00FFFF]' + order + '[/COLOR]】（按此选择）')
+    u = sys.argv[0] + "?mode=12&name="+urllib.quote_plus(name)+"&id="+id+"&cat="+cat+"&year="+year+"&order="+order
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     for i in range(0, len(match)):
         match1 = re.compile('<a href="(.+?)"').search(match[i])
@@ -355,7 +400,7 @@ def progListUgc(name, id, page, cat, year, order, datelist=[], orderlist=[]):
         p_thumb = match1.group(1)
             
         li = xbmcgui.ListItem(str(i + 1) + '. ' + p_list, iconImage='', thumbnailImage=p_thumb)
-        u = sys.argv[0] + "?mode=14&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
+        u = sys.argv[0] + "?mode=14&name=" + urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
             
     # Fetch and build user selectable page number 
@@ -367,7 +412,7 @@ def progListUgc(name, id, page, cat, year, order, datelist=[], orderlist=[]):
             if num not in plist:
                 plist.append(num)
                 li = xbmcgui.ListItem("... 第" + num + "页")
-                u = sys.argv[0] + "?mode=11&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id) + "&cat=" + urllib.quote_plus(cat) + "&year=" + urllib.quote_plus(year) + "&order=" + order + "&page=" + urllib.quote_plus(str(num))
+                u = sys.argv[0] + "?mode=11&name="+urllib.quote_plus(name)+"&id="+id+"&cat="+cat+"&year="+year+"&order="+order+"&page="+str(num)
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems) 
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
@@ -377,8 +422,8 @@ def progListUgc(name, id, page, cat, year, order, datelist=[], orderlist=[]):
 # - 发布时间 (Published date)
 # - 排序方式 (Order)
 ##################################################################################
-def updateListUgc(name, id, listpage, cat, year, order):
-    datelist, orderlist = getListUgc(listpage)
+def updateListUgc(name, id, cat, year, order):
+    #datelist, orderlist = getListUgc(listpage)
     change = False
     dialog = xbmcgui.Dialog()
     list = [x[1] for x in datelist]
@@ -394,7 +439,7 @@ def updateListUgc(name, id, listpage, cat, year, order):
         change = True
 
     if change:
-        progListUgc(name, id, '1', cat, year, order, datelist, orderlist)
+        progListUgc(name, id, '1', cat, year, order)
 
 ##################################################################################
 # Routine to fetch and build the video series selection menu
@@ -1043,7 +1088,7 @@ elif mode == 10:
 elif mode == 11:
     progListUgc(name, id, page, cat, year, order)
 elif mode == 12:
-    updateListUgc(name, id, page, cat, year, order) 
+    updateListUgc(name, id, cat, year, order) 
 elif mode == 14:
     playVideoUgc(name, url, thumb)    
     
