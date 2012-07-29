@@ -197,15 +197,14 @@ def getMovie(name,id,thumb,res):
 
 def seriesList(name,id,thumb,res,page):
     currpage = int(page)
-    i = 0
-    data = ''
-    while True:
-        url = "http://www.youku.com/show_point.html?id="+id+"&page="+str(i)+"&dt=json&__rt=1&__ro=point_more"+str(i)
-        link = GetHttpData(url)
-        data += link
-        i += 10
-        if len(link) < 10:
-            break
+    url = "http://www.youku.com/show_point_id_"+id+".html?dt=json&__rt=1&__ro=reload_point"
+    data = GetHttpData(url)
+    pages = re.compile('<li data="(point_reload_[0-9]+)"', re.DOTALL).findall(data)
+    if len(pages)>1:
+        for i in range(1,len(pages)):
+            url = "http://www.youku.com/show_point/id_"+id+".html?dt=json&divid="+pages[i]+"&tab=0&__rt=1&__ro="+pages[i]
+            link = GetHttpData(url)
+            data += link
     totalpages = 1
     match = re.compile('<div class="item">(.+?)</div><!--.item-->', re.DOTALL).findall(data)
     totalItems = len(match) + 1
