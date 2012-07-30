@@ -8,8 +8,9 @@ import ChineseKeyboard
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.5.5 2012-07-24 (cmeng)
-# - Resolve continuous playback disabled not working
+# Version 1.5.6 2012-07-30 (cmeng)
+# - Take care of exception where p-thumb is not available in listArtist()
+# - XBMC Dharma needs URL Referer to successfully fetch the images
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -57,7 +58,7 @@ def getHttpData(url):
     # setup cookie support
     cj = cookielib.MozillaCookieJar(cookieFile)
     if os.path.isfile(cookieFile):
-        cj.load(ignore_discard=True, ignore_expires=True)
+        cj.load(ignore_discard=False, ignore_expires=False)
     else:
         if not os.path.isdir(os.path.dirname(cookieFile)):
             os.makedirs(os.path.dirname(cookieFile))
@@ -273,6 +274,8 @@ def listVChart(name,area,date,timelist):
             matchp=re.compile('<a href="(.+?)" target="_blank"><img src="(.+?)" alt="(.+)"/>').findall(item)
             p_url = 'http://www.yinyuetai.com' + matchp[0][0]              
             p_thumb = matchp[0][1]
+            p_thumb += '|Referer=http://www.yinyuetai.com'
+
             p_name = matchp[0][2]
 
             artist=re.compile('<a href="/fanclub.+?target="_blank">(.+?)</a>').findall(item)
@@ -365,6 +368,7 @@ def listFocusMV(name,cat):
       
             img=re.compile('<img src="(.+?)"').findall(item)
             p_thumb = img[0]
+            p_thumb += '|Referer=http://www.yinyuetai.com'
 
             j+=1
             p_list = str(j)+'. '+p_name+' ['+p_artist+']'
@@ -469,6 +473,8 @@ def listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)
             match=re.compile('<a href="(.+?)" target="_blank"><img src="(.+?)" alt="(.+?)"').findall(item)
             p_url = 'http://www.yinyuetai.com' + match[0][0]
             p_thumb = match[0][1]
+            p_thumb += '|Referer=http://www.yinyuetai.com'
+
             p_name = match[0][2]
             
             p_artist=''
@@ -588,6 +594,8 @@ def listRecommendMV(name,cat,page):
             p_url = 'http://www.yinyuetai.com' + url1[0][0]
             #p_thumb = get_Thumb(url1[0][1])
             p_thumb = url1[0][1]
+            p_thumb += '|Referer=http://www.yinyuetai.com'
+
             p_list = p_name = url1[0][2]
             
             artist=re.compile('--<a href="(.+?)" title="(.+?)" class="link_people"').findall(item)
@@ -669,6 +677,7 @@ def listFavouriteMV(name,cat,order,page):
             p_url = 'http://www.yinyuetai.com' + match[0][0]
             p_name = match[0][1]
             p_thumb = match[0][2]
+            p_thumb += '|Referer=http://www.yinyuetai.com'
             
             p_artist=''
             match=re.compile('target="_blank">(.+?)</a>：').findall(item)
@@ -757,7 +766,10 @@ def listArtist(name,area,geshou,fname,page):
             p_url = 'http://www.yinyuetai.com/fanclub/mv-all/'+artistid+'/toNew'
         
             match1 = re.compile('<img.+?src="(.+?)"/>').findall(match[i])
-            p_thumb = match1[0]          
+            if match1: 
+                p_thumb = match1[0]
+                p_thumb += '|Referer=http://www.yinyuetai.com'
+            else: p_thumb =''          
 
             match1 = re.compile('<div class="info">.+?<a href="(.+?)"').findall(match[i])
             p_url2 = match1[0]
@@ -818,6 +830,9 @@ def listArtistMV(name,url,thumb,page):
             p_url = 'http://www.yinyuetai.com' + p_url              
             j+=1
             p_list = str(j)+'. '+p_name+' ['+p_artist +']'
+            
+            #p_thumb += '|User-Agent='+UserAgent
+            p_thumb += '|Referer=http://www.yinyuetai.com'
                 
             li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
             li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
