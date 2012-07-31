@@ -7,9 +7,8 @@ import ChineseKeyboard
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.2.2 2012-07-14
-# - Update playVideoLeTV algorithm
-# - Need to use urllib.quote(keyword) in searchLeTV
+# Version 1.2.3 2012-07-31
+# - correct script error in letvSearchList()
 
 # See changelog.txt for previous history
 ########################################################################
@@ -421,6 +420,7 @@ def progListVariety(name, url, page, year, month):
     link = getHttpData(url)
     listpage = re.compile('<div class="listPic active">(.+?)<div class="d-l"></div>').findall(link)[0]
     datelist = getListVariety(listpage)
+    #print 'datelist', datelist
    
     if year is None: year = datelist[0][0]
     fltrYear = '&y=' + year
@@ -783,11 +783,14 @@ def letvSearchList(name, url, page):
         p_name = p_list = match.group(1)
         match = re.compile('<img.+?src="(.+?)"').search(match_vl[j])
         p_thumb = match.group(1)
-        match = re.compile(' <span class="time">([0-9:]*?)</span>').search(match_vl[j])
-        p_time = match.group(1)
+        match = re.compile('<span class="time">([0-9:]*?)</span>').search(match_vl[j])
+        if match: 
+            p_time = '【'+match.group(1)+'】'
+        else:
+            p_time = ''
         match = re.compile('<span class="class">(.+?)</span>').search(match_vl[j])
         p_class = match.group(1)
-        p_list = str(i+j) + ': ' + p_name +  '【'+ p_class +'】'+  '【'+ p_time +'】'
+        p_list = str(i+j)+': '+ p_name+'【'+p_class+'】'+p_time
 
         # contains only single item to play
         #mode = fetchID(CLASS_MODE, p_class) 
@@ -799,7 +802,7 @@ def letvSearchList(name, url, page):
     # Fetch and build user selectable page number
     matchp = re.compile('<div class="page"(.+?)</div>').findall(link)
     if len(matchp): 
-        matchp1 = re.compile('<a href="(.+?)">([1-9]+?)</a>').findall(matchp[0])
+        matchp1 = re.compile('<a href="(.+?)".+?([1-9]+?)</a>').findall(matchp[0])
         if len(matchp1):
             plist=[str(page)]
             for p_url, num in matchp1:
