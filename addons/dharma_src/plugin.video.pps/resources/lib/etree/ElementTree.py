@@ -1619,7 +1619,7 @@ class XMLParser(object):
 
     def feed(self, data):
         try:
-            print 'xmldata:', data
+            #print 'xmldata:', data
             self._parser.Parse(data, 0)
         except self._error, v:
             self._raiseerror(v)

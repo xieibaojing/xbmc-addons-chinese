@@ -1,6 +1,11 @@
 ﻿########################################################################
 # PPS网络电视(PPS客户端)
 ########################################################################
+# Version 1.0.2 2012-08-04 (cmeng)
+# - add sort to menu listing (keeping numbering) 
+# - replace ElementTree deprecated function getiterator()
+# - correct script error in (year)-cause items list filtering
+
 # Version 1.0.1 2012-07-28 (cmeng)
 # - change default.py text string to utf-8 for non-Chinese OS display
 # - clean up python syntax error

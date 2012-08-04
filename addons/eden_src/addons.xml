@@ -171,7 +171,7 @@
 
 <addon id="plugin.video.pps"
     name="PPS网络电视(PPS客户端)"
-    version="1.0.1"
+    version="1.0.2"
     provider-name="yxnr">
     <extension
         point="xbmc.python.pluginsource"

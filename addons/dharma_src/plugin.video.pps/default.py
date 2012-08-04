@@ -5,16 +5,11 @@ import zipfile
 import ChineseKeyboard
 
 ########################################################################
-# PPS网络电视(PPS客户端) by yxnr
-# Version 1.0.1 2012-07-28 (cmeng)
-# - change default.py text string to utf-8 for non-Chinese OS display
-# - clean up python syntax error
-# - clean up xbmc deprecated function call
-# - add in chinese keyboard support
-# - change search url querry string
-
-# Version 1.0.0 2012-07-23 (yxnr)
-# - initial release
+# PPS网络电视(PPS客户端)
+# Version 1.0.2 2012-08-04 (cmeng)
+# - add sort to menu listing (keeping numbering) 
+# - replace ElementTree deprecated function getiterator()
+# - correct script error in (year)-cause items list filtering
 
 # See changelog.txt for previous history
 ########################################################################
@@ -70,6 +65,7 @@ def getHttpData(url):
 ##################################################################################
 def read_xml(fname,type=1):
 #    dialog = xbmcgui.Dialog()
+
     if type :
         url= "http://list1.pps.tv/class/"+fname+".xml.zip" #目录    
     else :
@@ -85,73 +81,91 @@ def read_xml(fname,type=1):
     root = ElementTree.fromstring(text)
     j = 0 
     #主目录
-    lst_node = root.getiterator("Gen") 
-    for node in lst_node:
-        j+=1
-        li=xbmcgui.ListItem('[COLOR FF00FF00]'+ str(j)+'. ['+node.attrib['name']+'][/COLOR]')
-        u=sys.argv[0]+"?mode=gen&name="+urllib.quote_plus(node.attrib['name'].encode('gb18030'))+"&id="+node.attrib['id']
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+    elemroot = root.iter('Gen')
+    vlist = []
+    for elem in elemroot:
+        name = elem.attrib['name']
+        id = elem.attrib['id']
+        vlist.append([name, id])
+    vlist.sort()
         
+    for name, id in vlist:
+        j+=1
+        li=xbmcgui.ListItem('[COLOR FF00FF00]'+ str(j)+'. ['+name+'][/COLOR]')
+        u=sys.argv[0]+"?mode=gen&name="+urllib.quote_plus(name.encode('gb18030'))+"&id="+id
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+       
     #添加一个“欧美剧场”
-    if lst_node:
+    if vlist:
         j+=1
         li=xbmcgui.ListItem('[COLOR FF00FF00]'+ str(j)+'. ['+'欧美剧场'+'][/COLOR]')
         u=sys.argv[0]+"?mode=gen&name="+urllib.quote_plus('欧美剧场')+"&id=192"
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
 
     #次目录
-    lst_node = root.getiterator("Sub")
-    for node in lst_node:
+    elemroot = root.iter("Sub")
+    vlist = []
+    for elem in elemroot:
+        name = elem.attrib['name']
+        id = elem.attrib['id']
+        cnt = elem.attrib['op']
+        vlist.append([name, id, cnt])
+    vlist.sort()
+        
+    for name, id, cnt in vlist:
         j+=1
-        li=xbmcgui.ListItem('[COLOR FF00FF00]'+ str(j)+'. ['+node.attrib['name']+'][/COLOR]')
-        try:
-            li.setInfo( type="Video", infoLabels={"Title":node.attrib['name'], "count": int(get_params2(node.attrib['op'])["on"])})
-        except:
-            pass
-        u=sys.argv[0]+"?mode=sub&name="+node.attrib['name']+"&id="+node.attrib['id']
+        li=xbmcgui.ListItem('[COLOR FF00FF00]'+ str(j)+'. ['+name+'][/COLOR]')
+        try: li.setInfo( type="Video", infoLabels={"Title":name, "count": int(get_params2(cnt)["on"])})
+        except: pass
+        u=sys.argv[0]+"?mode=sub&name="+urllib.quote_plus(name.encode('gb18030'))+"&id="+id
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
 
     #文件
-    lst_node = root.getiterator("Ch")
-    i=0
-    for node in lst_node:
-        try:     
-            i+=1
+    elemroot = root.iter("Ch")
+    #vlist = []
+    i = 0
+    for node in elemroot:
+        try: 
+        #for j in range(1):    
             CHON=0
             CHBKID=""
-            CHBKVM=1.0
-            year=1990
+            CHBKVM='1.0'
+            year='1990'
 
-            node_findall = node.find("ID")
-            CHID=node_findall.attrib['ID']
+            elemtop = node.find('ID')
+            CHID=elemtop.attrib['ID']
 
-            try:    CHON=int(node.attrib['ON'])               
+            # image="2007-04/0103285-61-2007-04-13 15-32-16.jpg"
+            #p_thumb=elemtop.attrib['image']
+            #print 'image', p_thumb
+
+            try: CHON=int(node.attrib['ON'])               
             except: pass
-            try:    CHBKID=node_findall.attrib['BKID']
+            try: CHBKID=elemtop.attrib['BKID']
             except: pass
-            try:    CHBKVM=float(node_findall.attrib['VM'])
+            try: CHBKVM=float(elemtop.attrib['VM'])
             except: pass
+
             try:
-                cs=node_findall.attrib['search']
-                yy=re.compile('(.+?):(.+?):(.+?):(.+?);').findall(cs)
-                year=int(yy[0][3])
+                cs=elemtop.attrib['search']
+                yy=re.compile('.+?:.+?:.+?:(.+?);').findall(cs)
+                # (类型):(动作,惊怵,犯罪,剧情;产地):(中国香港;年份):(2005); | 年份:80年代
+                if yy: year=yy[0]
             except: pass
-
-            node_findall = node.find("Name")
-            CHName=node_findall.text
-
-            node_findall = node.find("URL")
-            CHURL=node_findall.text
-
-           # ok=dialog.ok(CHName,CHName)
+            
+            elemtop = node.find("Name")
+            CHName = elemtop.text
+            elemtop = node.find("URL")
+            CHURL = elemtop.text
+                  
+            #vlist.append([CHName, CHON, CHBKVM, CHBKID, year, CHID, CHURL])
             li=xbmcgui.ListItem(CHName)
-            try:     li.setInfo( type="Video", infoLabels={"Title":CHName, "count": CHON, "Rating":CHBKVM, "CODE":CHBKID,"Year":year})
-            except:  li.setInfo( type="Video", infoLabels={"Title":CHName, "count": CHON, "Rating":CHBKVM, "CODE":CHBKID})
+            li.setInfo( type="Video", infoLabels={"Title":CHName, "count": CHON, "Rating":CHBKVM, "CODE":CHBKID,"Year":year})
             u=sys.argv[0]+"?mode=ch&name="+CHName+"&id="+CHID+"&url="+urllib.quote_plus(CHURL.encode('gb18030'))
-            xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,False)
-        except:
-            pass
-
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,False)       
+            i+=1 # increment only if everything is OK
+        except: pass
+    
     #添加一个“PPS搜索”
     li=xbmcgui.ListItem('  【[COLOR FFFF00FF]  PPS 搜索: [/COLOR] 点此进行】'+'[COLOR FF00FFFF]共计：[/COLOR][ '+str(i)+' ]')
     u=sys.argv[0]+"?mode=search&name="+urllib.quote_plus('PPS搜索')+"&id="
@@ -175,9 +189,10 @@ def Search(mname):
 
         #match=re.compile("    (.+?)    ").findall(link)
         match=re.compile("[0-9]+[,0-9]*[,0-9]*(.+?)0").findall(link)
+        match.sort()
         for i in range(0,len(match)):
             p_name = match[i].strip()
-            p_list = str(i+1) + ': ' + p_name
+            p_list = str(i+1) + '. ' + p_name
             li=xbmcgui.ListItem(p_list)
             u=sys.argv[0]+"?mode=search&name="+urllib.quote_plus(p_name)+"&id="
             xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)        
@@ -193,54 +208,67 @@ def Search(mname):
 
         root = ElementTree.fromstring(text)
         #文件
-        lst_node = root.getiterator("Ch")
-        i=0
-        for node in lst_node:
-            try:     
-                i+=1
+        elemroot = root.iter("Ch")
+        i = 0
+        for node in elemroot:
+            try: 
+            #for j in range(1):    
                 CHON=0
                 CHBKID=""
-                CHBKVM=0.0
-                node_findall = node.find("ID")
-                CHID=node_findall.attrib['ID']
+                CHBKVM='0.0'
+                year='1990'
 
-                try:    CHON=int(node.attrib['ON'])               
+                elemtop = node.find('ID')
+                CHID=elemtop.attrib['ID']
+
+                try: CHON=int(node.attrib['ON'])               
                 except: pass
-                try:    CHBKID=node_findall.attrib['BKID']
+                try: CHBKID=elemtop.attrib['BKID']
                 except: pass
-                try:    CHBKVM=float(node_findall.attrib['VM'])
+                try: CHBKVM=float(elemtop.attrib['VM'])
                 except: pass
+
                 try:
-                    cs=node_findall.attrib['search']
-                    yy=re.compile('(.+?):(.+?):(.+?):(.+?);').findall(cs)
+                    cs=elemtop.attrib['search']
+                    yy=re.compile('.+?:.+?:.+?:(.+?);').findall(cs)
+                    if yy: year=yy[0]
                 except: pass
-
-                node_findall = node.find("Name")
-                CHName=node_findall.text
-
-                node_findall = node.find("URL")
-                CHURL=node_findall.text
-
-                # ok=dialog.ok(CHName,CHName)
+            
+                elemtop = node.find("Name")
+                CHName = elemtop.text
+                elemtop = node.find("URL")
+                CHURL = elemtop.text
+                  
                 li=xbmcgui.ListItem(CHName)
-                try:     li.setInfo( type="Video", infoLabels={"Title":CHName, "count": CHON, "Rating":CHBKVM, "CODE":CHBKID,"Year":int(yy[0][3])})
-                except:  li.setInfo( type="Video", infoLabels={"Title":CHName, "count": CHON, "Rating":CHBKVM, "CODE":CHBKID})
+                li.setInfo( type="Video", infoLabels={"Title":CHName, "count": CHON, "Rating":CHBKVM, "CODE":CHBKID,"Year":year})
                 u=sys.argv[0]+"?mode=ch&name="+CHName+"&id="+CHID+"&url="+urllib.quote_plus(CHURL.encode('gb18030'))
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,False)
-            except:
-                pass
-        
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,False)       
+                i+=1 # increment only if everything is OK
+            except: pass
+            
         #次目录
-        lst_node = root.getiterator("Sub")
-        for node in lst_node:
-            li=xbmcgui.ListItem('[COLOR FF00FF00]['+node.attrib['name']+'][/COLOR]')
-            try:
-                li.setInfo( type="Video", infoLabels={"Title":node.attrib['name'], "count": int(get_params2(node.attrib['op'])["on"])})
-            except:
-                pass
-            u=sys.argv[0]+"?mode=sub&name="+node.attrib['name']+"&id="+node.attrib['id']
-            xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+        elemroot = root.iter("Sub")
+        vlist = []
+
+        for elem in elemroot:
+            name = elem.attrib['name']
+            id = elem.attrib['id']
+            cnt = elem.attrib['op']
+            vlist.append([name, id, cnt])
+        vlist.sort()
         
+        j=0
+        for name, id, cnt in vlist:
+            j+=1
+            li=xbmcgui.ListItem('[COLOR FF00FF00]'+ str(j)+'. ['+name+'][/COLOR]')
+            try: li.setInfo( type="Video", infoLabels={"Title":name, "count": int(get_params2(cnt)["on"])})
+            except: pass
+            u=sys.argv[0]+"?mode=sub&name="+urllib.quote_plus(name.encode('gb18030'))+"&id="+id
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)            
+        
+##################################################################################
+# Routine to play video
+##################################################################################
 def KankanPlay(url):
 #    if (os.name == 'nt'):
 #        xbmc.executebuiltin('System.ExecWait(\\"'+ os.getcwd()+'\\resources\\player\\pps4xbmc\\" '+url.decode("gbk").encode("utf8")+')')
