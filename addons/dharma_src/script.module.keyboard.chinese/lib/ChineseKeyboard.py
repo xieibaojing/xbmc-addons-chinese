@@ -5,24 +5,29 @@ from traceback import print_exc
 import xbmc, xbmcgui
 from xbmcaddon import Addon
 import urllib2, urllib, httplib, time
+import cookielib
 
 ##############################################################################
 # Chinese Keyboard Addon Module Change History
+# Version 1.2.5 2012-08-05 (cmeng)
+# - Add cookie handler support
+# - Add support for xbmc remote keyboard entry
+
 # See changelog.txt for earlier history
-#
-# Version 1.2.4 2012-02-19 (cmeng)
-# a. Remove repeated last word selection from previous page 
-# b. Need to round up self.totalpage count
 ##############################################################################
 
 __settings__ = Addon( "script.module.keyboard.chinese" )
 __addonDir__ = __settings__.getAddonInfo( "path" )
 __language__ = __settings__.getLocalizedString
+__profile__  = xbmc.translatePath( __settings__.getAddonInfo('profile') )
 
 XBMC_SKIN  = xbmc.getSkinDir()
 SKINS_PATH = os.path.join( __addonDir__, "resources", "skins" )
 ADDON_SKIN = ( "default", XBMC_SKIN )[ os.path.exists( os.path.join( SKINS_PATH, XBMC_SKIN ) ) ]
 MEDIA_PATH = os.path.join( SKINS_PATH, ADDON_SKIN, "media" )
+
+cookieFile = __profile__ + 'cookies.baidu'
+UserAgent  = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 
 ACTION_PARENT_DIR     = 9
 ACTION_PREVIOUS_MENU  = (10, 92)
@@ -49,9 +54,10 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         self.nowpage = 0
         self.words = ''
         self.wordperpage = WORD_PER_PAGE[0]
-        self.inputString = kwargs.get( "default" ) or ""
-        self.heading = kwargs.get( "heading" ) or ""
-        xbmcgui.WindowXMLDialog.__init__( self )
+        self.inputString = kwargs.get("default") or ""
+        self.heading = kwargs.get("heading") or ""
+        self.fetchCookie()
+        xbmcgui.WindowXMLDialog.__init__(self)
 
     def onInit(self):
         self.setKeyToChinese()
@@ -59,7 +65,27 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         self.getControl(CTRL_ID_CODE).setLabel('')
         self.getControl(CTRL_ID_TEXT).setLabel(self.inputString)
         self.confirmed = False
-
+    
+    # Routine to request cookie from www.baidu.com
+    # http://olime.baidu.com access needs cookie to get fast response.
+    def fetchCookie(self):    
+        # setup cookie support
+        self.cj = cookielib.MozillaCookieJar(cookieFile)
+        if os.path.isfile(cookieFile):
+            self.cj.load(ignore_discard=True, ignore_expires=True)
+        else:
+            if not os.path.isdir(os.path.dirname(cookieFile)):
+                os.makedirs(os.path.dirname(cookieFile))
+   
+        # create opener for both cookie
+        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cj))     
+        req = urllib2.Request('http://shurufa.baidu.com/')
+        req.add_header('User-Agent', UserAgent) 
+        response = self.opener.open(req)     
+        httpdata = response.read()
+        self.cj.save(cookieFile, ignore_discard=True, ignore_expires=True)
+        response.close()   
+        
     def onFocus( self, controlId ):
         self.controlId = controlId
 
@@ -124,7 +150,23 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         #print "======="+s1+"========="+s2+"=========="
         keycode = action.getButtonCode()
         #self.getControl(CTRL_ID_HEAD).setLabel(str(keycode))
-        if keycode >= 61505 and keycode <= 61530: #a-z
+
+        # xbmc remote keyboard control handler
+        if keycode >= 61728 and keycode <= 61823: 
+            keychar = chr(keycode - 61728 + ord(' '))
+            if keychar >='0' and keychar <= '9': 
+                self.onClick(ord(keychar))
+            elif self.getControl(CTRL_ID_LANG).isSelected():
+                s = self.getControl(CTRL_ID_CODE).getLabel() + keychar
+                self.getControl(CTRL_ID_CODE).setLabel(s)
+                self.getChineseWord(s)
+            else:
+                self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+keychar)
+        elif keycode == 61706:
+            self.onClick(CTRL_ID_RETN)
+
+        # Hard keyboard handler
+        elif keycode >= 61505 and keycode <= 61530: #a-z
             if self.getControl(CTRL_ID_LANG).isSelected():
                 keychar = chr(keycode - 61505 + ord('a'))
                 s = self.getControl(CTRL_ID_CODE).getLabel() + keychar
@@ -231,10 +273,15 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         t = time.time()
         url = 'http://olime.baidu.com/py?py=' + py + '&rn=0&pn=20&ol=1&prd=shurufa.baidu.com&t=' + str(int(t))
         req = urllib2.Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')      
+        req.add_header('User-Agent', UserAgent)
+        
         # need cookie to avoid bad gateway problem
-        req.add_header('Cookie', 'BAIDUID=9056ED272CC1696BE2896EC96A43B806:FG=1')
-        response = urllib2.urlopen(req)
+        if os.path.isfile(cookieFile):
+            self.cj.load(ignore_discard=True, ignore_expires=True)
+#        else: # last resort to use constant cookie if earlier cookie request failed
+#            req.add_header('Cookie', 'BAIDUID=9056ED272CC1696BE2896EC96A43B806:FG=1')
+
+        response = self.opener.open(req)
         httpdata = response.read()
         response.close()
         words = []
@@ -243,8 +290,8 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         self.wordperpage = WORD_PER_PAGE[wordcnt]
         for word in match:
             words.append(eval('u"'+word+'"').encode('utf-8'))
+        #print match, words
         return words    
-
 
 class Keyboard:
     def __init__( self, default='', heading='' ):
