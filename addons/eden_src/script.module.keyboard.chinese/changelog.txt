@@ -1,5 +1,10 @@
 ﻿##############################################################################
 # Chinese Keyboard Addon Module Change History
+##############################################################################
+# Version 1.2.6 2012-08-07 (cmeng)
+# - fix xbmc Dharma cookie handling problem
+# - simplify cookie access to speed up response
+
 # Version 1.2.5 2012-08-05 (cmeng)
 # - Add cookie handler support
 # - Add support for xbmc remote keyboard entry

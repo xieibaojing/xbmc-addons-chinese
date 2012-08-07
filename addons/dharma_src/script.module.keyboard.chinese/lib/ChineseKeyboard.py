@@ -5,13 +5,13 @@ from traceback import print_exc
 import xbmc, xbmcgui
 from xbmcaddon import Addon
 import urllib2, urllib, httplib, time
-import cookielib
+#import cookielib
 
 ##############################################################################
 # Chinese Keyboard Addon Module Change History
-# Version 1.2.5 2012-08-05 (cmeng)
-# - Add cookie handler support
-# - Add support for xbmc remote keyboard entry
+# Version 1.2.6 2012-08-07 (cmeng)
+# - fix xbmc Dharma cookie handling problem
+# - simplify cookie access to speed up response
 
 # See changelog.txt for earlier history
 ##############################################################################
@@ -26,7 +26,7 @@ SKINS_PATH = os.path.join( __addonDir__, "resources", "skins" )
 ADDON_SKIN = ( "default", XBMC_SKIN )[ os.path.exists( os.path.join( SKINS_PATH, XBMC_SKIN ) ) ]
 MEDIA_PATH = os.path.join( SKINS_PATH, ADDON_SKIN, "media" )
 
-cookieFile = __profile__ + 'cookies.baidu'
+#cookieFile = __profile__ + 'cookies.baidu'
 UserAgent  = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 
 ACTION_PARENT_DIR     = 9
@@ -66,25 +66,52 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         self.getControl(CTRL_ID_TEXT).setLabel(self.inputString)
         self.confirmed = False
     
-    # Routine to request cookie from www.baidu.com
+    # Routine to fetch cookie from http://shurufa.baidu.com/
     # http://olime.baidu.com access needs cookie to get fast response.
-    def fetchCookie(self):    
-        # setup cookie support
-        self.cj = cookielib.MozillaCookieJar(cookieFile)
-        if os.path.isfile(cookieFile):
-            self.cj.load(ignore_discard=True, ignore_expires=True)
-        else:
-            if not os.path.isdir(os.path.dirname(cookieFile)):
-                os.makedirs(os.path.dirname(cookieFile))
-   
-        # create opener for both cookie
-        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cj))     
+    # XBMC Dharma has problem of reading set-cookie if it is the first line of response.info()
+    # So build own cookie instead, and also to speed up response
+    def fetchCookie(self):
         req = urllib2.Request('http://shurufa.baidu.com/')
-        req.add_header('User-Agent', UserAgent) 
-        response = self.opener.open(req)     
-        httpdata = response.read()
-        self.cj.save(cookieFile, ignore_discard=True, ignore_expires=True)
-        response.close()   
+        req.add_header('User-Agent', UserAgent)
+        response = urllib2.urlopen(req)  
+        response.close() 
+        cdata = response.info().get('Set-Cookie')
+        self.cookie = cdata.split(';')[0]
+        if re.search('BAIDUID',self.cookie) is None: # just in case
+            self.cookie='BAIDUID=5FF5CF0348C2CD89C15799855BBCB09A:FG=1'
+         
+#        # setup cookie support
+#        self.cj = cookielib.MozillaCookieJar(cookieFile)
+#        if os.path.isfile(cookieFile):
+#            self.cj.load(ignore_discard=True, ignore_expires=True)
+#        else:
+#            if not os.path.isdir(os.path.dirname(cookieFile)):
+#                os.makedirs(os.path.dirname(cookieFile))
+#
+#        # create opener for cookie
+#        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cj))          
+#        req = urllib2.Request('http://shurufa.baidu.com/')
+#        req.add_header('User-Agent', UserAgent)
+#        response = self.opener.open(req)     
+#        response.close() 
+#
+#        self.cj.save(cookieFile, ignore_discard=True, ignore_expires=True)
+#        cdata =   response.info().get('Set-Cookie')
+#        
+#        # XBMC Dharma has problem of reading set-cookie if it is the first line of response.info()
+#        # So build own cookie and write to file
+#        if not len(self.cj) and cdata:
+#            xdata =   re.compile('(.+?)=(.+?); max-age=([0-9]+);.+?domain=(.+?);').findall(cdata)
+#            cookie = '\t'.join([xdata[0][3],'TRUE','\\','FALSE',xdata[0][2],xdata[0][0],xdata[0][1]])
+#            
+#            cfile = open(cookieFile, 'a')
+#            cookies = cfile.readlines()
+#            cookies.append(cookie)
+#            cfile.close()
+#
+#            cfile = open(cookieFile,'w')
+#            cfile.writelines(cookies)
+#            cfile.close()
         
     def onFocus( self, controlId ):
         self.controlId = controlId
@@ -276,12 +303,12 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         req.add_header('User-Agent', UserAgent)
         
         # need cookie to avoid bad gateway problem
-        if os.path.isfile(cookieFile):
-            self.cj.load(ignore_discard=True, ignore_expires=True)
-#        else: # last resort to use constant cookie if earlier cookie request failed
-#            req.add_header('Cookie', 'BAIDUID=9056ED272CC1696BE2896EC96A43B806:FG=1')
+        # if os.path.isfile(cookieFile):
+        #    self.cj.load(ignore_discard=True, ignore_expires=True)
+        # else: # last resort to use constant cookie if earlier cookie request failed
+        req.add_header('Cookie', self.cookie)
 
-        response = self.opener.open(req)
+        response = urllib2.urlopen(req)
         httpdata = response.read()
         response.close()
         words = []
