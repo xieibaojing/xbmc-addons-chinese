@@ -1,6 +1,11 @@
 ﻿########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
+# Version 1.2.4 2012-08-09
+# - add found zero item massage in letvSearchList()
+# - allow 10 trails to fetch video url
+# - allow 3 trails to fetch general url data
+
 # Version 1.2.3 2012-07-31
 # - correct script error in letvSearchList()
 

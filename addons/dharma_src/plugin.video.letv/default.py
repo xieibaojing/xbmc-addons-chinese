@@ -7,8 +7,10 @@ import ChineseKeyboard
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.2.3 2012-07-31
-# - correct script error in letvSearchList()
+# Version 1.2.4 2012-08-09
+# - add found zero item massage in letvSearchList()
+# - allow 10 trails to fetch video url
+# - allow 3 trails to fetch general url data
 
 # See changelog.txt for previous history
 ########################################################################
@@ -65,16 +67,19 @@ def getHttpData(url):
     opener = urllib2.build_opener(proxy_support, urllib2.HTTPCookieProcessor(cj))
     req = urllib2.Request(url)
     req.add_header('User-Agent', UserAgent)
-    try:
-        response = opener.open(req)
-    except urllib2.HTTPError, e:
-        httpdata = e.read()
-    except urllib2.URLError, e:
-        httpdata = "IO Timeout Error"
-    else:
-        httpdata = response.read()
-        response.close()
-        cj.save(cookieFile, ignore_discard=True, ignore_expires=True)
+    
+    for k in range(3): # give 3 trails to fetch url data
+        try:
+            response = opener.open(req)
+        except urllib2.HTTPError, e:
+            httpdata = e.read()
+        except urllib2.URLError, e:
+            httpdata = "IO Timeout Error"
+        else:
+            httpdata = response.read()
+            response.close()
+            cj.save(cookieFile, ignore_discard=True, ignore_expires=True)
+            break
 
     httpdata = re.sub('\r|\n|\t', '', httpdata)
     match = re.compile('<meta.+?charset=["]*(.+?)"').findall(httpdata)
@@ -167,7 +172,7 @@ def getListVariety(listpage):
 # - movie, series, star & ugc require different sub-menu access methods
 ##################################################################################
 def mainMenu():
-    li = xbmcgui.ListItem('[COLOR F0F0F0F0]0. LeTV 乐视网搜索:[/COLOR][COLOR FF00FF00]【请输入搜索内容】[/COLOR]')
+    li = xbmcgui.ListItem('[COLOR F0F0F0F0] LeTV 乐视网 - 搜索:[/COLOR][COLOR FF00FF00]【点此进入】[/COLOR]')
     u=sys.argv[0]+"?mode=31"
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     
@@ -743,10 +748,20 @@ def searchLetv():
 ##################################################################################
 def letvSearchList(name, url, page): 
     link = getHttpData(url)
-    li = xbmcgui.ListItem('[COLOR FFFF0000]当前搜索: 第' + page + '页[/COLOR][COLOR FFFFFF00] (' + name + ')[/COLOR]【[COLOR FF00FF00]' + '请输入新搜索内容' + '[/COLOR]】')
+    match = re.compile('<div class="t-e">.+?<u> ([0-9]+) </u>.+?</div>').findall(link)
+    if len(match): cnt = ' : [' + match[0] + ']'
+    else: cnt = cnt = ' : [0]'
+
+    li = xbmcgui.ListItem('[COLOR FFFF0000]当前搜索: 第' + page + '页[/COLOR][COLOR FFFFFF00] ('+name+')[/COLOR]'+cnt+'【[COLOR FF00FF00]' + '点此输入新搜索内容' + '[/COLOR]】')
     u = sys.argv[0] + "?mode=31&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&page=" + urllib.quote_plus(page)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     
+    if not len(match):
+        li=xbmcgui.ListItem('  抱歉，没有找到[COLOR FFFF0000] '+name+' [/COLOR]的相关视频')
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,False)
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
+        return
+
     #########################################################################
     # Video listing for all found related episode title
     #########################################################################
@@ -890,8 +905,15 @@ def PlayVideoLetv(name,url):
  
 ##################################################################################
 def playVideo(name,url,videoRes):
-    link = getHttpData("http://www.flvcd.com/parse.php?kw="+url+"&format="+str(videoRes))
-    match=re.compile('下载地址：\s*<a href="(.+?)" target="_blank" class="link"').findall(link)
+    p_url = "http://www.flvcd.com/parse.php?kw="+url+"&format="+str(videoRes)
+    for i in range(10): # Retry specified trials before giving up (seen 9 trials max)
+       try: # stop xbmc from throwing error to prematurely terminate video search
+            link = getHttpData(p_url)
+            match=re.compile('下载地址：\s*<a href="(.+?)" target="_blank" class="link"').findall(link)
+            if len(match): break
+       except:
+           pass   
+    
     if len(match):
         playlist=xbmc.PlayList(1)
         playlist.clear()
