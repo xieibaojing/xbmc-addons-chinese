@@ -3,7 +3,7 @@ import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, o
 
 ########################################################################
 # 优酷视频(YouKu) by taxigps, 2011
-# Version 2.1.1 2012-08-20 (cmeng)
+# Version 2.1.2 2012-08-20 (cmeng)
 # - add multi-pages selection for easy access
 # - add segment numbering in playlist for reference
 
@@ -327,7 +327,7 @@ def PlayVideo(name,url,thumb,res):
         playlist=xbmc.PlayList(1)
         playlist.clear()
         for i in range(0,len(match)):
-            title = name+" 第"+str(i+1)+"/"+str(len(paths))+"节"
+            title = name+" 第"+str(i+1)+"/"+str(len(match))+"节"
             listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
             listitem.setInfo(type="Video",infoLabels={"Title":title})
             playlist.add(match[i], listitem)
