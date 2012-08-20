@@ -1,8 +1,14 @@
 ﻿# -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
 
+########################################################################
 # 优酷视频(YouKu) by taxigps, 2011
+# Version 2.1.1 2012-08-20 (cmeng)
+# - add multi-pages selection for easy access
+# - add segment numbering in playlist for reference
 
+# See changelog.txt for previous history
+########################################################################
 # Plugin constants 
 __addonname__ = "优酷视频(YouKu)"
 __addonid__ = "plugin.video.youku"
@@ -16,6 +22,7 @@ YEAR_LIST2 = [['1','今日'], ['2','本周'], ['3','本月'], ['4','历史']]
 RES_LIST = ['normal', 'high', 'super']
 
 def GetHttpData(url):
+    print "getHttpData: " + url
     req = urllib2.Request(url)
     req.add_header('User-Agent', 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)')
     try:
@@ -100,9 +107,9 @@ def progList(name,id,page,cat,area,year,order):
         currpage = 1
     url += '.html'
     link = GetHttpData(url)
-    match = re.compile('<ul class="pages">(.+?)</ul>', re.DOTALL).findall(link)
-    if len(match):
-        match1 = re.compile('<li.+?>([0-9]+)(</a>|</span>)</li>', re.DOTALL).findall(match[0])
+    matchp = re.compile('<ul class="pages">(.+?)</ul>', re.DOTALL).findall(link)
+    if len(matchp):
+        match1 = re.compile('<li.+?>([0-9]+)(</a>|</span>)</li>', re.DOTALL).findall(matchp[0])
         totalpages = int(match1[len(match1)-1][0])
     else:
         totalpages = 1
@@ -161,19 +168,23 @@ def progList(name,id,page,cat,area,year,order):
         else:
             mode = 3
             isdir = True
-        li = xbmcgui.ListItem(str(i + 1) + '.' + p_name1, iconImage = '', thumbnailImage = p_thumb)
+        li = xbmcgui.ListItem(str(i + 1) + '. ' + p_name1, iconImage = '', thumbnailImage = p_thumb)
         u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(p_name)+"&id="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)+"&res="+str(p_res)
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, isdir, totalItems)
-
-    if currpage > 1:
-        li = xbmcgui.ListItem('上一页')
-        u = sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus(cat)+"&area="+urllib.quote_plus(area)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(str(currpage-1))
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
-    if currpage < totalpages:
-        li = xbmcgui.ListItem('下一页')
-        u = sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus(cat)+"&area="+urllib.quote_plus(area)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(str(currpage+1))
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+        
+    # Fetch and build user selectable page number 
+    if len(matchp): matchp1 = re.compile('<li.+?>([0-9]+)</a>', re.DOTALL).findall(matchp[0])
+    print matchp, matchp1
+    if len(matchp1):
+        plist=[]
+        for num in matchp1:
+            if num not in plist:
+                plist.append(num)
+                li = xbmcgui.ListItem("... 第" + num + "页")
+                u = sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus(cat)+"&area="+urllib.quote_plus(area)+"&year="+year+"&order="+order+"&page="+str(num)
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)         
+        
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -211,7 +222,6 @@ def seriesList(name,id,thumb,res,page):
     #if currpage > 1: totalItems = totalItems + 1
     #if currpage < totalpages: totalItems = totalItems + 1
 
-
     li = xbmcgui.ListItem("当前节目："+name+'（第'+str(currpage)+'/'+str(totalpages)+'页）')
     u=sys.argv[0]+"?mode=40&name="+urllib.quote_plus(name)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
@@ -238,14 +248,6 @@ def seriesList(name,id,thumb,res,page):
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
 
-    #if currpage > 1:
-    #    li = xbmcgui.ListItem('上一页')
-    #    u = sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&thumb="+urllib.quote_plus(thumb)+"&res="+str(res)+"&page="+urllib.quote_plus(str(currpage-1))
-    #    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
-    #if currpage < totalpages:
-    #    li = xbmcgui.ListItem('下一页')
-    #    u = sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&thumb="+urllib.quote_plus(thumb)+"&res="+str(res)+"&page="+urllib.quote_plus(str(currpage+1))
-    #    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -258,9 +260,9 @@ def progList2(name,id,page,cat,year,order):
         currpage = 1
     url += '.html'
     link = GetHttpData(url)
-    match = re.compile('<ul class="pages">(.+?)</ul>', re.DOTALL).findall(link)
-    if len(match):
-        match1 = re.compile('<li.+?>([0-9]+)(</a>|</span>)</li>', re.DOTALL).findall(match[0])
+    matchp = re.compile('<ul class="pages">(.+?)</ul>', re.DOTALL).findall(link)
+    if len(matchp):
+        match1 = re.compile('<li.+?>([0-9]+)(</a>|</span>)</li>', re.DOTALL).findall(matchp[0])
         totalpages = int(match1[len(match1)-1][0])
     else:
         totalpages = 1
@@ -296,19 +298,22 @@ def progList2(name,id,page,cat,year,order):
             p_res = 1
         else:
             p_res = 0
-        li = xbmcgui.ListItem(str(i + 1) + '.' + p_name, iconImage = '', thumbnailImage = p_thumb)
+        li = xbmcgui.ListItem(str(i + 1) + '. ' + p_name, iconImage = '', thumbnailImage = p_thumb)
         u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)+"&res="+str(p_res)
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
 
-    if currpage > 1:
-        li = xbmcgui.ListItem('上一页')
-        u = sys.argv[0]+"?mode=11&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus(cat)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(str(currpage-1))
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
-    if currpage < totalpages:
-        li = xbmcgui.ListItem('下一页')
-        u = sys.argv[0]+"?mode=11&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus(cat)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(str(currpage+1))
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    # Fetch and build user selectable page number 
+    if len(matchp): matchp1 = re.compile('<li.+?>([0-9]+)</a>', re.DOTALL).findall(matchp[0])
+    if len(matchp1):
+        plist=[]
+        for num in matchp1:
+            if num not in plist:
+                plist.append(num)
+                li = xbmcgui.ListItem("... 第" + num + "页")
+                u = sys.argv[0]+"?mode=11&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus(cat)+"&year="+year+"&order="+order+"&page="+str(num)
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)         
+    
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -322,8 +327,9 @@ def PlayVideo(name,url,thumb,res):
         playlist=xbmc.PlayList(1)
         playlist.clear()
         for i in range(0,len(match)):
-            listitem = xbmcgui.ListItem(name, thumbnailImage = __addonicon__)
-            listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
+            title = name+" 第"+str(i+1)+"/"+str(len(paths))+"节"
+            listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
+            listitem.setInfo(type="Video",infoLabels={"Title":title})
             playlist.add(match[i], listitem)
         xbmc.Player().play(playlist)
     else:
