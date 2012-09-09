@@ -1,6 +1,10 @@
 ﻿########################################################################
 # PPStream 网络电视
 ########################################################################
+# Version 2.1.4 2012-09-09 (cmeng)
+# - Enhance video link search algorithm in playVideo()
+# - take care other web page design variants
+
 # Version 2.1.3 2012-09-08 (cmeng)
 # - Update all video links/fetches per latest web design changes
 # - Optimize access method to speed up response

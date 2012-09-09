@@ -6,9 +6,9 @@ import ChineseKeyboard
 
 ########################################################################
 # PPStream 网络电视 by robintttt/cmeng
-# Version 2.1.3 2012-09-08 (cmeng)
-# - Update all video links/fetches per latest web design changes
-# - Optimize access method to speed up response
+# Version 2.1.4 2012-09-09 (cmeng)
+# - Enhance video link search algorithm in playVideo()
+# - take care other web page design variants
 
 # See changelog.txt for previous history
 ########################################################################
@@ -335,7 +335,8 @@ def progListSeries(name, url, thumb, episodeSel):
     for i in range(0, len(epSet)):
         eList = eList+COLOR_LIST[i%5]+epSet[i]+'[/COLOR]|'
         if epSet[i]==episodeSel: epsel = i
-    episodeSel=epSet[epsel]
+    if epSet: episodeSel=epSet[epsel]
+    else: episodeSel=''
         
     li = xbmcgui.ListItem('[COLOR FFFF00FF]'+name+'[/COLOR]: (选择:'+episodeSel+')【'+eList+'】（按此选择）', iconImage='', thumbnailImage=thumb)
     u = sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url)+"&thumb="+urllib.quote_plus(thumb)+"&listpage="+urllib.quote_plus(listpage) 
@@ -514,15 +515,27 @@ def getMovie(name, url, thumb):
 ##################################################################################
 # Routine to play movide video file
 # Player using ppstream player
+# http://active.v.pps.tv/check_play_10UIFO.js
+#    match = ['pps://hwqmupwqeb6oiief2aqh2lrid7ica.pps/8bcd8aa4e01c87164d99f315a7c5b5f11c848767.pfv']
 ##################################################################################
 def PlayVideo(name, url):
     link = getHttpData(url)
     match = re.compile('p2p_src:[\s]+"(.*?)"').findall(link)
-    if len(match):  
-        url = match[0]
-        print "videolink: ", url
-        xbmc.executebuiltin('System.ExecWait(\\"'+__cwd__+'\\resources\\player\\pps4xbmc\\" '+url+')')
-    else:
+    if not match: # try second method to fetch pps video link
+        matchp = re.compile('play_(.+?).html').findall(url)
+        p_url = 'http://active.v.pps.tv/check_play_'+matchp[0]+'.js' 
+        link = getHttpData(p_url)
+        match = re.compile('var src="(.*?)"').findall(link)
+        if match: match[0]=match[0].decode("gbk").encode("utf8")
+
+    if match:
+        v_url = match[0]
+        if v_url == '':  # pps link not found, try ugc playback 
+            playVideoUgc(name, url, 'None')
+        else:
+            print "videolink: "+v_url
+            xbmc.executebuiltin('System.ExecWait(\\"'+__cwd__+'\\resources\\player\\pps4xbmc\\" '+v_url+')')
+    else: # exhausted all attempts
         dialog = xbmcgui.Dialog()
         ok = dialog.ok(__addonname__,'您当前观看的视频暂不能播放，请选择其它节目')
           
