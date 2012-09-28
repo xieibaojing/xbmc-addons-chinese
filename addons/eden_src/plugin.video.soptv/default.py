@@ -353,7 +353,7 @@ def INDEX(name,wait_time):
                 elif i==2:
                     chan_users='00'+chan_users
                 network_q_str='[COLOR FF5555FF]网络质量:[/COLOR]'+'[COLOR FF00FFFF]'+rc+'[/COLOR] ' 
-                users_str    ='[COLOR FF5555FF]人数:[/COLOR]' + '[COLOR FF00FFFF]' + chan_users + '[/COLOR]'
+                users_str    ='[COLOR FF5555FF]热度:[/COLOR]' + '[COLOR FF00FFFF]' + chan_users + '[/COLOR]'
                 chan_name_str='[COLOR FFFFFF00]'+chan_name+'[/COLOR]' #FF5555FF
                 chan_name='[COLOR FF5555FF]【[/COLOR]' + network_q_str + users_str +'[COLOR FF5555FF]】[/COLOR]' + chan_name_str #FFFFFF00
                 addLink(chan_name,chan_url,2,'',wait_time)
