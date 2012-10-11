@@ -149,6 +149,8 @@ def progList(name,id,page,cat,area,year,order):
         p_name = match1.group(1)
         match1 = re.compile('<li class="p_status"><span class="status">(.+?)</span>').search(match[i])
         if match1:
+            if match1.group(1) == '资料':
+                continue
             p_name1 = p_name + '（' + match1.group(1) + '）'
         else:
             p_name1 = p_name
