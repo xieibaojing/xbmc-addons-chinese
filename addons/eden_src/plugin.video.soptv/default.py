@@ -1,7 +1,16 @@
 # declare file encoding 
 # -*- coding: utf-8 -*-
+
+# work flow
+#
+# 1 download xml to harddisk
+# 2 parse xml for group name
+# 3 for a particular group name and search local xml file for all channels belongs to that group
+# 4 for each channel get sop link from local xml file
+# 5 start up sp-sc binary on local machine with the sop link obtained from step 4
+# 6 wait for a few senconds then tell xbmc link is ready for play
 # htpcyh2@gmail.com 2012年7月创作,于2012年7月11号首发到XBMC中文插件库
-# 未经允许,不得用于商业用途
+# 此插件未经允许作者允许,不得用于商业用途
 
 import urllib,urllib2,re,xbmcplugin,xbmcgui,subprocess,sys,os,os.path,time,datetime
 import xml.dom.minidom
@@ -16,6 +25,7 @@ import ChineseKeyboard
 from urllib2 import urlopen
 from urlparse import urlparse
 from posixpath import basename, dirname
+import shutil
 
 
 __addonid__   = "plugin.video.soptv"
@@ -25,9 +35,15 @@ __settings__  = xbmcaddon.Addon(id=__addonid__)
 net_type = __settings__.getSetting("net_type")
 sop_user_name = __settings__.getSetting("sop_user_name")
 sop_user_password = __settings__.getSetting("sop_user_password")
+
+
+
 ROOT_DIR = os.getcwd()
-sys.path.append(ROOT_DIR +'/resources/lib') 
+sys.path.append(ROOT_DIR +'/resources/lib')
+
+
 addon_icon=os.path.join(ROOT_DIR,'icon.png')
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -38,7 +54,6 @@ def parse_url(url):
         return basename(parse_object[2])
     except:
         return 'chlist.xml'
-
 
 def Downloader(url,dest,description,heading):
     dp = xbmcgui.DialogProgress()
@@ -63,13 +78,17 @@ def get_ip_address(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s', ifname[:15]) )[20:24])
 
+
 OS = os.environ.get("OS","xbox")
 localIP=get_ip_address('eth0')
 addon_resources_path= os.path.join(os.getcwd(),'resources')
 CHAN_LIST_URL = 'http://channel.sopserv.com/chlist.xml'
 CHAN_LIST = '/tmp'
 CHAN_LIST = os.path.join(CHAN_LIST, parse_url(CHAN_LIST_URL))
+
+
 MY_LIST = os.path.join(addon_resources_path, 'sop')
+EXA_LIST= os.path.join(MY_LIST,'exalist.xml')
 MY_LIST = os.path.join(MY_LIST,'mylist.xml')
 spsc_binary = "sp-sc-auth"
 SPSC = os.path.join(addon_resources_path, 'sop')
@@ -87,14 +106,15 @@ list_expire = 3000
 Platform = "Linux"
 my_error = 0
 string = xbmc.getLocalizedString
-LANGUAGE = "cn" 
+
+
+LANGUAGE = "cn" #'cn' or 'en'
 if OS != Platform:
     dialog = xbmcgui.Dialog()
     ok = dialog.ok('系统报告', '对不起!你所使用系统不支持本插件','请使用openELEC或XBMC Live等linux系统' )
 else:
     os.chmod(SPSC,0755)
     
-
 def getpid(name):
     """
         checks if a process with the given name exists
@@ -108,7 +128,6 @@ def getpid(name):
         for item in pid_out.split():
             list.append(int(item))
         return list
-
 
 def pid_exists(pid):
     try:
@@ -156,7 +175,7 @@ def mylistGetAllChannel():
                     if chan_en_name !='':
                         chan_name = chan_en_name
                     else:
-                        chan_name = chan_cn_name      
+                        chan_name = chan_cn_name       
                 node = channel.getElementsByTagName('sop_address')[0]
                 chan_url = ''
                 rc = ""
@@ -219,7 +238,6 @@ def mylistDelChannel(name):
     dom.writexml(writer, encoding='utf-8')
     writer.close()
 
-
 def mylistChannelIndex():
     channels=mylistGetAllChannel()
     if len(channels)>0:
@@ -230,6 +248,10 @@ def mylistChannelIndex():
             addLink(chan_name,chan_url,2,'',wait_time)
     addLink('[COLOR FF00FF00]添加频道[/COLOR]','',3,'',wait_time)
     addLink('[COLOR FF00FF00]删除频道[/COLOR]','',3,'',wait_time)
+
+def checkMyChannelList():
+    if not os.path.isfile(CHAN_LIST):
+        shutil.copy(EXA_LIST, MY_LIST) 
 
 
 def FETCH_CHANNEL():
@@ -244,6 +266,7 @@ def FETCH_CHANNEL():
         if now_time - time_created > list_expire:
             Downloader(CHAN_LIST_URL,CHAN_LIST, '请稍候...', '正在更新频道')
     GROUP(wait_time)
+
 
 def GROUP(wait_time):
     addDir("[COLOR FF00FFFF]我的收藏[/COLOR]",'',1,'',wait_time)
@@ -273,6 +296,7 @@ def GROUP(wait_time):
         f.close()
         global my_error
         my_error = 1
+
 
 def remove_line(contents):
     new_contents = []
@@ -354,7 +378,7 @@ def INDEX(name,wait_time):
                     chan_users='00'+chan_users
                 network_q_str='[COLOR FF5555FF]网络质量:[/COLOR]'+'[COLOR FF00FFFF]'+rc+'[/COLOR] ' 
                 users_str    ='[COLOR FF5555FF]热度:[/COLOR]' + '[COLOR FF00FFFF]' + chan_users + '[/COLOR]'
-                chan_name_str='[COLOR FFFFFF00]'+chan_name+'[/COLOR]' #FF5555FF
+                chan_name_str='[COLOR FFFFFF00]'+chan_name+'[/COLOR]' 
                 chan_name='[COLOR FF5555FF]【[/COLOR]' + network_q_str + users_str +'[COLOR FF5555FF]】[/COLOR]' + chan_name_str #FFFFFF00
                 addLink(chan_name,chan_url,2,'',wait_time)
 
@@ -362,8 +386,11 @@ def INDEX(name,wait_time):
 
 class streamplayer(xbmc.Player):
     def onplaybackended():
+        print "killing sopcast process as playback ended"
         os.system('killall -9 %s' % (spsc_binary))
     def onPlayBackStopped(null):
+        print null
+        print "killing sopcast process as playback stopped"
         os.system('killall -9 %s' % (spsc_binary))
 
 
@@ -400,8 +427,13 @@ def wait(time,name):
         dp.update(percent,"网路电视准备就绪")
     return 0
 
+
+
+
+
+
 def STREAM(name,sop,wait_time):
-    cmd = [SPSC, sop, str(LOCAL_PORT), str(VIDEO_PORT)]
+    cmd = [SPSC, sop, str(LOCAL_PORT), str(VIDEO_PORT)]#,">", spec_log,"2>&1"]
     print "execute command", ' '.join(cmd)
     PID_CHECK(OS,spsc_binary)
     global spsc
@@ -422,10 +454,13 @@ def STREAM(name,sop,wait_time):
             f.close()
         return
     url = "http://"+localIP+":"+str(VIDEO_PORT)+"/"
+    
     listitem = xbmcgui.ListItem(name , thumbnailImage = addon_icon)
     listitem.setInfo('video', {'Title': name})
     player = streamplayer(xbmc.PLAYER_CORE_AUTO)
     player.play(url, listitem)
+
+
 
 def addLink(name,url,mode,iconimage,wait_time):
     ok = True
@@ -493,6 +528,7 @@ except:
 if mode==None or name==None or len(name)<1:
     if OS == Platform:
         CHK_LIB()
+        checkMyChannelList()
         FETCH_CHANNEL()
 elif mode==1:
     INDEX(name,wait_time)
@@ -541,4 +577,4 @@ elif mode==3:
 
 if (OS == Platform) and (my_error == 0):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-## if it's not linux we will simply exit
+
