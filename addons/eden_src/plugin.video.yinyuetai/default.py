@@ -8,9 +8,8 @@ import ChineseKeyboard
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.5.6 2012-07-30 (cmeng)
-# - Take care of exception where p-thumb is not available in listArtist()
-# - XBMC Dharma needs URL Referer to successfully fetch the images
+# Version 1.5.7 2012-10-14 (cmeng)
+# - Update video link for Vchart webpage
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -252,19 +251,24 @@ def listVChart(name,area,date,timelist):
     link=getHttpData(url)
     if link == None: return
 
-    matchs=re.compile('<div class="top_line">(.+?)<div class="infobox">').findall(link)
-    if len(matchs) == 0:
-        matchp=re.compile('<div class="lft"><span class="yellow">发榜日：</span>(.+?)</div>').findall(link)
-        if len(matchp):
-            rdate = matchp[0]
-            matchp=re.compile('<div class="lft"><span class="yellow">揭榜时间：</span>(.+?)</div>').findall(link)
-            rtime = matchp[0]
-            msg = '[COLOR FF00FFFF]发榜日：'+rdate+'[CR]揭榜时间：'+rtime+'[/COLOR]     请稍侯再试!'
-            dialog = xbmcgui.Dialog()
-            ok = dialog.ok(__addonname__, msg)
-            return
+    #matchs=re.compile('<div class="top_line">(.+?)<div class="infobox">').findall(link)
+    #if len(matchs) == 0:
+    matchp=re.compile('<div class="lft"><span class="yellow">发榜日：</span>(.+?)</div>').findall(link)
+    if len(matchp):
+        rdate = matchp[0]
+        matchp=re.compile('<div class="lft"><span class="yellow">揭榜时间：</span>(.+?)</div>').findall(link)
+        rtime = matchp[0]
+        msg = '[COLOR FF00FFFF]发榜日：'+rdate+'[CR]揭榜时间：'+rtime+'[/COLOR]     请稍侯再试!'
+        dialog = xbmcgui.Dialog()
+        ok = dialog.ok(__addonname__, msg)
+        return
         
-    matchli=re.compile('<div class="vListInfo">(.+?)</ul></div>').findall(matchs[0])
+    url = 'http://www.yinyuetai.com/vchart/ajax/vchart?area='+fltrArea+'&date='+fltrDate
+    link=getHttpData(url)
+    if link == None: return
+
+    matchs=re.compile('<div class="top_line">(.+?)<div class="infobox">').findall(link)
+    matchli=re.compile('<div class="clearfix">(.+?)</ul></div>').findall(matchs[0])
     if len(matchli):
         totalItems=len(matchli)
         playlist=xbmc.PlayList(0) # use Music playlist for temporary storage

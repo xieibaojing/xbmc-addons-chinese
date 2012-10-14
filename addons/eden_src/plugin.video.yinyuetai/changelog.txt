@@ -1,6 +1,9 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.5.7 2012-10-14 (cmeng)
+# - Update video link for Vchart webpage
+
 # Version 1.5.6 2012-07-30 (cmeng)
 # - Take care of exception where p-thumb is not available in listArtist()
 # - XBMC Dharma needs URL Referer to successfully fetch the images
