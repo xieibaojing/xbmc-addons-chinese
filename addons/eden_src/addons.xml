@@ -131,6 +131,23 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.kugoumv"
+    name="酷狗MV(KugouMV)"
+    version="1.0.0"
+    provider-name="runner6502@gmail.com">
+    <extension point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>KugouMV video plugin</summary>
+        <summary lang="zh">酷狗MV插件</summary>
+        <description>KugouMV video plugin</description>
+        <description lang="zh">酷狗Music Video</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
 <addon id="plugin.video.letv"
     name="乐视网 (LeTV)"
     version="1.2.4"

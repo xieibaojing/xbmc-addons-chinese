@@ -1,0 +1,2 @@
+﻿[B]0.0.1[/B] (2012/10/13 by runner6502@gmail.com)
+- 初学XBMC插件和python，练手用。
