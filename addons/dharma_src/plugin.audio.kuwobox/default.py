@@ -176,11 +176,12 @@ def PlayMusic():
         artist = get_content_by_tag(tree, 'artist')
 
         # prefer AAC or WMA, somehow it starts or loads faster than the mp3 link,
-        path = get_content_by_tag(tree, 'path')
-        dl = get_content_by_tag(tree, 'wmadl')
+        # change AAC to the first download.  edit by runner6502@gamil.com
+        path = get_content_by_tag(tree, 'aacpath')
+        dl = get_content_by_tag(tree, 'aacdl')
         if not (path and dl):
-            path = get_content_by_tag(tree, 'aacpath')
-            dl = get_content_by_tag(tree, 'aacdl')
+            path = get_content_by_tag(tree, 'path')
+            dl = get_content_by_tag(tree, 'wmadl')
             if not (path and dl):
                 path = get_content_by_tag(tree, 'mp3path')
                 dl = get_content_by_tag(tree, 'mp3dl')
