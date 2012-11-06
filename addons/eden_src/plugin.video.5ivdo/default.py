@@ -12,8 +12,6 @@ __addon__ = xbmcaddon.Addon(id=__addonid__)
 
 
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
-subfrom = ''
-subto = ''
 
 
 def get_params():
@@ -78,6 +76,7 @@ def showmenu(purl):
 
 def showdata(purl):
     imultesite = ''
+    ipara = ''
     link = Get5ivdoData(purl)
     match0 = re.compile('<head>(.+?)</head>').search(link).group(1)
     if match0.find('multesite') > 0:
@@ -85,6 +84,7 @@ def showdata(purl):
     if imultesite == 'TRUE':
         match = re.compile('<mode>(.+?)</mode><title>(.+?)</title><url>(.+?)</url>(.+?)\n').findall(link)
         for imode, ititle, iurl ,iother in match:
+            ipara = ''
             if iother.find('thumb') > 0:
                 ithumb=re.compile('<thumb>(.+?)</thumb>').findall(iother)[0]
             else:
@@ -102,10 +102,17 @@ def showdata(purl):
                 iisub=re.compile('<sub>(.+?)</sub>').findall(iother)[0]
             else:
                 iisub=''
-            u=sys.argv[0]+"?name="+urllib.quote_plus(ititle)+"&mode="+urllib.quote_plus(imode)+"&matchstr="+urllib.quote_plus(iimatchstr)+"&mflag="+urllib.quote_plus(iimflag)+"&url="+urllib.quote_plus(iurl)+"&sub="+urllib.quote_plus(iisub)
+            if iother.find('prefix') > 0:
+                iiprefix=re.compile('<prefix>(.+?)</prefix>').findall(iother)[0]
+                ipara = ipara + "&prefix="+urllib.quote_plus(iiprefix)
+            if iother.find('options') > 0:
+                iioptions=re.compile('<options>(.+?)</options>').findall(iother)[0]
+                ipara = ipara + "&options="+urllib.quote_plus(iioptions)
+            u=sys.argv[0]+"?name="+urllib.quote_plus(ititle)+"&mode="+urllib.quote_plus(imode)+"&matchstr="+urllib.quote_plus(iimatchstr)+"&mflag="+urllib.quote_plus(iimflag)+"&url="+urllib.quote_plus(iurl)+"&sub="+urllib.quote_plus(iisub)+ipara
             xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,False)
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
     else:
+        ipara = ''
         if match0.find('matchstr') > 0:
             imatchstr=re.compile('<matchstr>(.+?)</matchstr>').findall(match0)[0]
         if match0.find('mflag') > 0:
@@ -114,10 +121,16 @@ def showdata(purl):
             isub=re.compile('<sub>(.+?)</sub>').findall(match0)[0]
         else:
             isub=''
+        if match0.find('prefix') > 0:
+            iiprefix=re.compile('<prefix>(.+?)</prefix>').findall(match0)[0]
+            ipara = ipara + "&prefix="+urllib.quote_plus(iiprefix)
+        if match0.find('options') > 0:
+            iioptions=re.compile('<options>(.+?)</options>').findall(match0)[0]
+            ipara = ipara + "&options="+urllib.quote_plus(iioptions)
         match = re.compile('<mode>(.+?)</mode><title>(.+?)</title><url>(.+?)</url><thumb>(.+?)</thumb>').findall(link)
         for imode, ititle, iurl ,ithumb in match:
             li=xbmcgui.ListItem(ititle,iconImage = '', thumbnailImage = ithumb)
-            u=sys.argv[0]+"?name="+urllib.quote_plus(ititle)+"&mode="+urllib.quote_plus(imode)+"&matchstr="+urllib.quote_plus(imatchstr)+"&mflag="+urllib.quote_plus(imflag)+"&url="+urllib.quote_plus(iurl)+"&sub="+urllib.quote_plus(isub)
+            u=sys.argv[0]+"?name="+urllib.quote_plus(ititle)+"&mode="+urllib.quote_plus(imode)+"&matchstr="+urllib.quote_plus(imatchstr)+"&mflag="+urllib.quote_plus(imflag)+"&url="+urllib.quote_plus(iurl)+"&sub="+urllib.quote_plus(isub) + ipara
             xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,False)
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -144,10 +157,11 @@ def urlExists(url):
     return result 
 
 
-def checksub(purl,psub):
+def checksub(purl):
     global subfrom 
     global subto
-    match = re.compile('<from>(.+?)</from><to>(.+?)</to>').findall(psub)
+    global sub
+    match = re.compile('<from>(.+?)</from><to>(.+?)</to>').findall(sub)
     for ifrom,ito in match:
         subfrom  = ifrom 
         subto = ito
@@ -156,33 +170,71 @@ def checksub(purl,psub):
     subto ='ERROR'
 
 
-def PlayVideo(name,url,matchstr,multiflag,thumb,sub):
-    link = GetHttpData(url) 
-    match = re.compile(matchstr).findall(link)
+def sohuPlayVideo(pname,purl,pthumb):
+    link = GetHttpData(purl)
+    match = re.compile('"clipsURL"\:\["(.+?)"\]').findall(link)
     if len(match) == 0:
         dialog = xbmcgui.Dialog()
-        ok = dialog.ok(__addonname__, '播放地址已失效，请换用其他网站重试。')
+        ok = dialog.ok(__addonname__, '无法播放，请换用其他网站重试。')
         return
-    if len(sub) > 0:
-        checksub(match[0],sub) 
-    if multiflag == '1':
-        listitem = xbmcgui.ListItem(name)
-        if len(sub) > 0:
-            xbmc.Player().play(match[0].replace(subfrom,subto)+'|User-Agent='+UserAgent, listitem)
-        else:
-            xbmc.Player().play(match[0]+'|User-Agent='+UserAgent, listitem)
-    else:
-        playlist=xbmc.PlayList(1)
-        playlist.clear()
-        for i in range(0,len(match)): 
-            listitem = xbmcgui.ListItem(name) 
-            listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
-            if len(sub) > 0:
-                playlist.add(match[i].replace(subfrom,subto), listitem)
-            else:
-                playlist.add(match[i], listitem)
-        xbmc.Player().play(playlist) 
+    paths = match[0].split('","')
+    match = re.compile('"su"\:\["(.+?)"\]').findall(link)
+    if len(match) == 0:
+        dialog = xbmcgui.Dialog()
+        ok = dialog.ok(__addonname__, '无法播放，请换用其他网站重试。')
+        return
+    newpaths = match[0].split('","')
+    playlist=xbmc.PlayList(1) 
+    playlist.clear()
+    for i in range(0,len(paths)):
+        p_url = 'http://data.vod.itc.cn/?prot=2&file='+paths[i].replace('http://data.vod.itc.cn','')+'&new='+newpaths[i]
+        link = GetHttpData(p_url)
+        # http://newflv.sohu.ccgslb.net/|623|116.14.234.161|Googu7gm-8WjRTd5ZfBVPIfrtRtLE5Cn|1|0
+        key=link.split('|')[3]
+        url=link.split('|')[0].rstrip("/")+newpaths[i]+'?key='+key
+        title = pname+" 第"+str(i+1)+"/"+str(len(paths))+"节"
+        listitem=xbmcgui.ListItem(title)
+        listitem.setInfo(type="Video",infoLabels={"Title":title})
+        playlist.add(url, listitem)    
+    xbmc.Player().play(playlist)
 
+
+
+def PlayVideo(name,url,matchstr,multiflag,thumb,pmod):
+    if pmod.find('RAW') >0:
+        playlist=xbmc.PlayList(1)  
+        playlist.clear() 
+        listitem = xbmcgui.ListItem(name) 
+        listitem.setInfo(type="Video",infoLabels={"Title":name})
+        playlist.add(url, listitem)
+        xbmc.Player().play(playlist)
+    elif pmod.find('SOHU') >0: 
+        sohuPlayVideo(name,url,thumb)
+    else:
+        playlist=xbmc.PlayList(1)  
+        playlist.clear() 
+        link = GetHttpData(url) 
+        match = re.compile(matchstr).findall(link)
+        if len(match) == 0:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '播放地址已失效，请换用其他网站重试。')
+            return
+        for i in range(0,len(match)): 
+            if multiflag == '1' and i < len(match) -1: continue
+            listitem = xbmcgui.ListItem(name) 
+            if multiflag == '1':
+                listitem.setInfo(type="Video",infoLabels={"Title":name})
+            else:
+                listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
+            purl=match[i]
+            if pmod.find('SUB') > 0:
+                if i==0: checksub(match[i]) 
+                purl = purl.replace(subfrom,subto)
+            if pmod.find('PRE') > 0:
+                purl = prefix + purl
+            playlist.add(purl, listitem)
+        xbmc.Player().play(playlist)
+    
 
 
 
@@ -193,6 +245,12 @@ thumb = None
 name = None
 matchstr = None
 mflag = None
+subfrom = None
+subto = None
+sub = None
+prefix = None
+options = None
+pmod = '|'
 
 try:
     thumb = urllib.unquote_plus(params["thumb"])
@@ -229,6 +287,17 @@ try:
 except:
     pass
 
+try:
+    prefix = urllib.unquote_plus(params["prefix"])
+except:
+    pass
+
+try:
+    options = urllib.unquote_plus(params["options"])
+except:
+    pass
+
+
 
 
 if mode == None:
@@ -238,8 +307,11 @@ elif mode == 'menu':
 elif mode == 'data':
     showdata(url)
 elif mode == 'play':
-    PlayVideo(name,url,matchstr,mflag,thumb,sub)
-elif mode == 'diag': 
+    if options: pmod = pmod + options
+    if sub: pmod = pmod + '|SUB'
+    if prefix: pmod = pmod + '|PRE'
+    PlayVideo(name,url,matchstr,mflag,thumb,pmod) 
+elif mode == 'diag':
     dialog = xbmcgui.Dialog()
     ok = dialog.ok(__addonname__, '开发阶段。')
 
