@@ -8,8 +8,9 @@ import ChineseKeyboard
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.5.8 2012-11-24 (cmeng)
-# - Update video link for 全部MV webpage
+# Version 1.5.9 2012-11-24 (cmeng)
+# - Fix video link category search for 全部MV webpage
+# - Fix '\"' escape sequence in matching
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -145,31 +146,31 @@ def fetchID(dlist, idx):
 ##################################################################################
 def getListMV(listpage):
     match = re.compile('<ul name="area">(.+?)</ul>').findall(listpage)
-    arealist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>(.+?)</a></li>',re.DOTALL).findall(match[0])
+    arealist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>[\s]*(.+?)</a>',re.DOTALL).findall(match[0])
     if len(arealist)>0:
          arealist.pop(0)
          arealist.insert(0,['','全部地区'])
     
     match = re.compile('<ul name="artist">(.+?)</ul>').findall(listpage)
-    artistlist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>(.+?)</a></li>',re.DOTALL).findall(match[0])
+    artistlist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>[\s]*(.+?)</a>',re.DOTALL).findall(match[0])
     if len(artistlist)>0:
          artistlist.pop(0)
          artistlist.insert(0,['','全部类别'])
 
     match = re.compile('<ul name="version">(.+?)</ul>').findall(listpage)
-    versionlist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>(.+?)</a></li>',re.DOTALL).findall(match[0])
+    versionlist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>[\s]*(.+?)</a>',re.DOTALL).findall(match[0])
     if len(versionlist)>0:
          versionlist.pop(0)
          versionlist.insert(0,['','全部视频'])
 
     match = re.compile('<ul name="tag">(.+?)</ul>').findall(listpage)
-    taglist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>(.+?)</a></li>',re.DOTALL).findall(match[0])
+    taglist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>(.+?)</a>',re.DOTALL).findall(match[0])
     if len(taglist)>0:
          taglist.pop(0)
          taglist.insert(0,['','全部标签'])
     
     match = re.compile('<ul name="genre">(.+?)</ul>').findall(listpage)
-    genrelist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>(.+?)</a></li>',re.DOTALL).findall(match[0])
+    genrelist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>(.+?)</a>',re.DOTALL).findall(match[0])
     if len(genrelist)>0:
          genrelist.pop(0)
          genrelist.insert(0,['','全部流派'])
@@ -417,7 +418,6 @@ def performChangeFocus(name,cat):
 # page: page number
 #############################################################################################
 def listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage):
-    print 'listpage',listpage
     if listpage is None:
         link=getHttpData(url)
         if link == None: return
@@ -463,10 +463,8 @@ def listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)
     if link == None: return
             
     matchs=re.compile('<div id="mvlist".+?class="mv_list_vertical">.+?<ul>(.+?)</ul>').findall(link)
-    print matchs
     matchli=re.compile('<div class="thumb thumb_mv">(.+?)</li>').findall(matchs[0])
     totalItems=len(matchli)
-    print totalItems
     if totalItems == 0:
         li=xbmcgui.ListItem('[COLOR FFFF0000]非常抱歉 ![/COLOR] 您选择的查询条件暂无结果')
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
@@ -476,6 +474,7 @@ def listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)
         playlist.clear()
         j=0
         for item in matchli:
+            item = item.replace('\\"','\'')
             match=re.compile('<a href="(.+?)" target="_blank">').findall(item)
             p_url = 'http://www.yinyuetai.com' + match[0]
             match=re.compile('<img src="(.+?)" alt="(.+?)"').findall(item)
@@ -921,11 +920,9 @@ def playVideo(name,url,thumb):
             v_url = p_url
             
         playlist.add(v_url, li, k)
-        print 'playlist_added', k, p_list, p_url, v_url
         k +=1 
 
         if k == 1:
-            print 'start playing video ... #' + str(k), playlist[k-1]
             xbmc.Player(1).play(playlist)
         if videoplaycont == 'false': break
             

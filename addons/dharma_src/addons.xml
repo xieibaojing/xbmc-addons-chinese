@@ -527,7 +527,7 @@
 
 <addon id="plugin.video.yinyuetai"
     name="音悦台MV(YinYueTai)"
-    version="1.5.8"
+    version="1.5.9"
     provider-name="Skyemperor/cmeng">
     <extension
         point="xbmc.python.pluginsource"
