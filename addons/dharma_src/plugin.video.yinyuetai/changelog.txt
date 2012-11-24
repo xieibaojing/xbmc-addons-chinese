@@ -1,6 +1,9 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.5.8 2012-11-24 (cmeng)
+# - Update video link for 全部MV webpage
+
 # Version 1.5.7 2012-10-14 (cmeng)
 # - Update video link for Vchart webpage
 

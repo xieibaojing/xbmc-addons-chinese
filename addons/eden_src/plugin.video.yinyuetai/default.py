@@ -8,8 +8,8 @@ import ChineseKeyboard
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.5.7 2012-10-14 (cmeng)
-# - Update video link for Vchart webpage
+# Version 1.5.8 2012-11-24 (cmeng)
+# - Update video link for 全部MV webpage
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -462,9 +462,11 @@ def listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)
     link=getHttpData(url)
     if link == None: return
             
-    matchs=re.compile('<div id="mvlist" class="mv_list_vertical"><ul>(.+?)</ul>').findall(link)
+    matchs=re.compile('<div id="mvlist".+?class="mv_list_vertical">.+?<ul>(.+?)</ul>').findall(link)
+    print matchs
     matchli=re.compile('<div class="thumb thumb_mv">(.+?)</li>').findall(matchs[0])
     totalItems=len(matchli)
+    print totalItems
     if totalItems == 0:
         li=xbmcgui.ListItem('[COLOR FFFF0000]非常抱歉 ![/COLOR] 您选择的查询条件暂无结果')
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
@@ -474,12 +476,13 @@ def listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)
         playlist.clear()
         j=0
         for item in matchli:
-            match=re.compile('<a href="(.+?)" target="_blank"><img src="(.+?)" alt="(.+?)"').findall(item)
-            p_url = 'http://www.yinyuetai.com' + match[0][0]
-            p_thumb = match[0][1]
+            match=re.compile('<a href="(.+?)" target="_blank">').findall(item)
+            p_url = 'http://www.yinyuetai.com' + match[0]
+            match=re.compile('<img src="(.+?)" alt="(.+?)"').findall(item)
+            p_thumb = match[0][0]
             p_thumb += '|Referer=http://www.yinyuetai.com'
 
-            p_name = match[0][2]
+            p_name = match[0][1]
             
             p_artist=''
             match=re.compile('target="_blank" class="c3" title="(.+?)">').findall(item)
