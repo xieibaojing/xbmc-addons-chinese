@@ -8,9 +8,8 @@ import ChineseKeyboard
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.5.9 2012-11-24 (cmeng)
-# - Fix video link category search for 全部MV webpage
-# - Fix '\"' escape sequence in matching
+# Version 1.5.10 2012-12-08 (cmeng)
+# - Fix video link search for listFocusMV webpage
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -346,7 +345,7 @@ def listFocusMV(name,cat):
     if cat == None: cat = '首播'
     fltrCat  = fetchID(FCS_LIST, cat)
     url = 'http://www.yinyuetai.com/'+fltrCat
-
+    
     # Fetch & build video titles list for user selection, highlight user selected filter  
     li = xbmcgui.ListItem('[COLOR FF00FFFF]'+name+'[/COLOR]【[COLOR FF00FF00]'+cat+'[/COLOR]】（按此选择）')
     u = sys.argv[0] + "?mode=12&name="+urllib.quote_plus(name)+"&cat="+cat
@@ -368,7 +367,7 @@ def listFocusMV(name,cat):
             p_name = matchp[0][1]
             p_url = 'http://www.yinyuetai.com' + matchp[0][0]              
 
-            artist=re.compile('--<a href="(.+?)" title="(.+?)" class="artist" target="_blank">').findall(item)
+            artist=re.compile('--<a href="(.+?)"[\s]+?title="(.+?)"[\s]+?class="artist"[\s]+?target="_blank">').findall(item)
             p_artist = artist[0][1]
       
             img=re.compile('<img src="(.+?)"').findall(item)

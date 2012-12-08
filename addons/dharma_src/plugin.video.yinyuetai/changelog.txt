@@ -1,6 +1,9 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.5.10 2012-12-08 (cmeng)
+# - Fix video link search for listFocusMV webpage
+
 # Version 1.5.9 2012-11-24 (cmeng)
 # - Fix video link category search for 全部MV webpage
 # - Fix '\"' escape sequence in matching
