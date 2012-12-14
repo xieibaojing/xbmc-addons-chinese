@@ -1,14 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
 
-########################################################################
-# 土豆视频(Tudou) by taxigps, 2011
-# Version 1.1.1 2012-08-20 (cmeng)
-# - add multi-pages selection for easy access
-
-# See changelog.txt for previous history
-########################################################################
-
 # Plugin constants 
 __addonname__ = "土豆视频(Tudou)"
 __addonid__ = "plugin.video.tudou"
@@ -117,8 +109,8 @@ def progList(name,baseurl,page,cat,area,year,order):
 
         match1 = re.compile('<div class="txt"><h6 class="caption"><a [^>]+>(.+?)</a></h6>').search(match[i])
         p_name = match1.group(1)
-        match1 = re.compile('<a .*?class="vinf".*?>(.+?)</a>').search(match[i])
-        if match1:
+        match1 = re.compile('<a .*?class="vinf".*?>(.*?)</a>').search(match[i])
+        if match1 and match1.group(1):
             p_name1 = p_name + '（' + match1.group(1) + '）'
         else:
             p_name1 = p_name
@@ -173,58 +165,29 @@ def progList(name,baseurl,page,cat,area,year,order):
 
 def seriesList(name,url,thumb):
     link = GetHttpData(url)
-    link= re.sub("\r|\n|\t","",link)
-    match0 = re.compile('<div id="playItems"(.+?)<div class="page_nav"').search(link)
-    match = re.compile('<div class="pic">\s*<a target="new" title="(.+?)"\s*href="\s*(http://www.tudou.com/.*?.html)\s*"></a>\s*<img .+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
+    match = re.compile('<div class="pack pack_video_card">\s*<div class="pic">\s*<a target="new" title="(.+?)"\s*href="\s*(http://www.tudou.com/.*?.html)\s*"></a>\s*<div class="inner">\s*<img\s*src="(.+?)"', re.DOTALL).findall(link)
     if match:
         totalItems = len(match)
-        for p_name, p_url, alt, src in match:
+        for p_name, p_url, src in match:
             p_thumb = src
             li = xbmcgui.ListItem(name+'：'+p_name, iconImage = '', thumbnailImage = p_thumb)
             u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
             #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+        xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
     else:
-        match=re.compile('href="\s*(http://tudou.letv.com/playlist/p/le/.+?/play.html)\s*"></a><img').findall(match0.group(1))
-        link=GetHttpData(match[0])
-        match = re.compile('partnerIds = {(.+?)}').search(link)
-        jjlist = re.compile('"(.+?)":([0-9]+)').findall(match.group(1))
-        match = re.compile('title:"(.+?)".+?icode:"(.+?)".+?pic:"(.+?)"', re.DOTALL).findall(link)
-        #match = re.compile('<div class="pic"><a target="new" title="(.+?)" href=" (.+?)"></a><img.+?alt="(.+?)" src="(.+?)"').findall(match0.group(1))
-        totalItems = len(match)
-        for p_name, p_iid, p_thumb in match:
-            p_id=searchDict(jjlist,p_iid)
-            li = xbmcgui.ListItem(name+'：'+p_name, iconImage = '', thumbnailImage = p_thumb)
-            u = sys.argv[0] + "?mode=5&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_id)+ "&thumb=" + urllib.quote_plus(p_thumb)
-            #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
-            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)        
-    xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+        match = re.compile('<div class="album-btn">\s*<a href="(http://www.tudou.com/.*?.html)"', re.DOTALL).findall(link)
+        PlayVideo(name,match[0],thumb)
 
 def PlayVideo(name,url,thumb):
     link = GetHttpData("http://www.flvcd.com/parse.php?kw="+url)
-    match = re.compile('"(http://.+?)" target="_blank" class="link"').findall(link)
+    link = re.compile('<br>下载地址：(.*?)<br>花费时间：', re.DOTALL).findall(link)[0]
+    match = re.compile('<a href="(http://.+?)" target="_blank"').findall(link)
     listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
     #listitem.setInfo(type = "Video", infoLabels = {"Title":name, "Director":director, "Plot":plot, "Year":int(year)})
     xbmc.Player().play(match[0]+'|User-Agent='+UserAgent, listitem)
 
-def PlayVideo1(name,url,thumb):
-    link = GetHttpData('http://www.letv.com/v_xml/'+url+'.xml')
-    match = re.compile('&high=(.+?)&hd=').findall(link)
-    if match:
-        match0 = re.compile('&df=(.+?)&br=(.+?)').findall(urllib.unquote(match[0]))
-        link = GetHttpData('http://g3.letv.com/'+match0[0][0]+'?format=1&b='+match0[0][1])
-        match=re.compile('"location": "(.+?)", "').findall(link)
-        url=match[0].replace('\\','')
-    else:
-        match0 = re.compile('"newuri":"&df=(.+?)","', re.DOTALL).findall(link)
-        url1=match0[0].replace('&','?')
-        url1=url1.replace('\\','')
-        url='http://g3.letv.com/'+url1
-    listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
-    #listitem.setInfo(type = "Video", infoLabels = {"Title":name, "Director":director, "Plot":plot, "Year":int(year)})
-    xbmc.Player().play(url+'|User-Agent='+UserAgent, listitem)
-    
 def performChanges(name,url,listpage,cat,area,year,order):
     catlist,arealist,yearlist = getList(listpage)
     change = False
@@ -332,5 +295,3 @@ elif mode == 3:
     PlayVideo(name,url,thumb)
 elif mode == 4:
     performChanges(name,url,page,cat,area,year,order)
-elif mode == 5:
-    PlayVideo1(name,url,thumb)
