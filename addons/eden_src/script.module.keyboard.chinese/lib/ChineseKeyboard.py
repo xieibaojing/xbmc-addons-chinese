@@ -312,7 +312,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         httpdata = response.read()
         response.close()
         words = []
-        match = re.compile('\["(.+?)",\d+\]').findall(httpdata)
+        match = re.compile('\["(.+?)",[^\]]+\]').findall(httpdata)
         wordcnt = len(match[0].split("\\"))-2
         self.wordperpage = WORD_PER_PAGE[wordcnt]
         for word in match:

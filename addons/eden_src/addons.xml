@@ -473,7 +473,7 @@
 
 <addon id="script.module.keyboard.chinese"
     name="Chinese keyboard"
-    version="1.2.6"
+    version="1.2.7"
     provider-name="Taxigps">
     <extension point="xbmc.python.module" library="lib" />
     <extension point="xbmc.addon.metadata">
