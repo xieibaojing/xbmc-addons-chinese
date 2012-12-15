@@ -178,15 +178,27 @@ def seriesList(name,url,thumb):
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
     else:
         match = re.compile('<div class="album-btn">\s*<a href="(http://www.tudou.com/.*?.html)"', re.DOTALL).findall(link)
-        PlayVideo(name,match[0],thumb)
+        if match:
+            PlayVideo(name,match[0],thumb)
+        else:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '没有可播放的视频')
 
 def PlayVideo(name,url,thumb):
     link = GetHttpData("http://www.flvcd.com/parse.php?kw="+url)
-    link = re.compile('<br>下载地址：(.*?)<br>花费时间：', re.DOTALL).findall(link)[0]
-    match = re.compile('<a href="(http://.+?)" target="_blank"').findall(link)
-    listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
-    #listitem.setInfo(type = "Video", infoLabels = {"Title":name, "Director":director, "Plot":plot, "Year":int(year)})
-    xbmc.Player().play(match[0]+'|User-Agent='+UserAgent, listitem)
+    match = re.compile('<br>下载地址：(.*?)<br>花费时间：', re.DOTALL).findall(link)
+    if match:
+        match = re.compile('<a href="(http://.+?)" target="_blank"').findall(match[0])
+        listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
+        #listitem.setInfo(type = "Video", infoLabels = {"Title":name, "Director":director, "Plot":plot, "Year":int(year)})
+        xbmc.Player().play(match[0]+'|User-Agent='+UserAgent, listitem)
+    else:
+        match = re.compile('<br/>提示：\s*(.*?)</td>', re.DOTALL).findall(link)
+        dialog = xbmcgui.Dialog()
+        if match:
+            ok = dialog.ok(__addonname__, match[0])
+        else:
+            ok = dialog.ok(__addonname__, '没有可播放的视频')
 
 def performChanges(name,url,listpage,cat,area,year,order):
     catlist,arealist,yearlist = getList(listpage)
