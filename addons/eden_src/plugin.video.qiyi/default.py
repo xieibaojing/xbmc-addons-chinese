@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
-       
+if sys.version_info < (2, 7):
+    import simplejson
+else:
+    import json as simplejson
+
 ############################################################
 # 奇艺视频(QIYI) by taxigps, 2012
 ############################################################
@@ -43,8 +47,7 @@ def urlExists(url):
         resp = urllib2.urlopen(url)
         result = True
         resp.close()
-    except urllib2.URLError, e:
-        #print e
+    except:
         result = False
     return result
 
@@ -274,16 +277,21 @@ def seriesList(name,url,thumb):
 
 def PlayVideo(name,url,thumb):
     link = GetHttpData(url)
-    match1 = re.compile('<script type="text/javascript">\s*var info\s*=(.*?)</script>', re.DOTALL).findall(link)
+    match1 = re.compile('<script\s*type="text/javascript">\s*var info\s*=(.*?)</script>', re.DOTALL).findall(link)
     if match1:
-        match1 = re.compile('"?pid"?:"(\d+)".*?"?ptype"?:"(\d+)".*?"?videoId"?:"([^"]+)"', re.DOTALL).findall(match1[0].replace(' ', ''))
-        if len(match1) > 0:
-            pid = match1[0][0]
-            ptype = match1[0][1]
-            videoId = match1[0][2]
-        else:
+        try:
+            data = unicode(match1[0], 'utf-8', errors='ignore')
+            json_response = simplejson.loads(data)
+            pid = json_response['pid'].encode('utf-8')
+            ptype = json_response['ptype'].encode('utf-8')
+            videoId = json_response['videoId'].encode('utf-8')
+        except:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '未能解析视频地址')
             return
     else:
+        dialog = xbmcgui.Dialog()
+        ok = dialog.ok(__addonname__, '未能解析视频地址')
         return
     url = 'http://cache.video.qiyi.com/v/' + videoId + '/' + pid + '/' + ptype + '/'
     link = GetHttpData(url)
@@ -312,20 +320,26 @@ def PlayVideo(name,url,thumb):
         url = 'http://cache.video.qiyi.com/v/' + match1[ratelist[sel][2]][1] + '/' + pid + '/' + ptype + '/'
         link = GetHttpData(url)
 
-    match=re.compile('<file>http://data.video.qiyi.com/videos/([^/]+)/(.+?)</file>').findall(link)
+    match=re.compile('<file>(.+?)</file>').findall(link)
     playlist=xbmc.PlayList(1)
     playlist.clear()
     listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
     listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(1)+"/"+str(len(match))+" 节"})
-    if urlExists('http://qiyi.soooner.com/videos2/'+match[0][0]+'/'+match[0][1]):
+    filepart = '/'.join(match[0].split('/')[-3:])
+    if urlExists('http://qiyi.soooner.com/videos2/'+filepart):
         baseurl = 'http://qiyi.soooner.com/videos2/'
-    else:
+    elif urlExists('http://qiyi.soooner.com/videos/'+filepart):
         baseurl = 'http://qiyi.soooner.com/videos/'
-    playlist.add(baseurl+match[0][0]+'/'+match[0][1], listitem = listitem)
+    else:
+        dialog = xbmcgui.Dialog()
+        ok = dialog.ok(__addonname__, '未能获取视频地址')
+        return
+    playlist.add(baseurl+filepart, listitem = listitem)
     for i in range(1,len(match)):
         listitem=xbmcgui.ListItem(name, thumbnailImage = thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
-        playlist.add(baseurl+match[i][0]+'/'+match[i][1], listitem = listitem)
+        filepart = '/'.join(match[0].split('/')[-3:])
+        playlist.add(baseurl+filepart, listitem = listitem)
     xbmc.Player().play(playlist)
 
 def performChanges(name,id,listpage,cat,area,year,order,paytype):
