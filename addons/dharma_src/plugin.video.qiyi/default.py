@@ -338,7 +338,7 @@ def PlayVideo(name,url,thumb):
     for i in range(1,len(match)):
         listitem=xbmcgui.ListItem(name, thumbnailImage = thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
-        filepart = '/'.join(match[0].split('/')[-3:])
+        filepart = '/'.join(match[i].split('/')[-3:])
         playlist.add(baseurl+filepart, listitem = listitem)
     xbmc.Player().play(playlist)
 
