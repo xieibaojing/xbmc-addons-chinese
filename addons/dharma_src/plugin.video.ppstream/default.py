@@ -6,9 +6,9 @@ import ChineseKeyboard
 
 ########################################################################
 # PPStream 网络电视 by robintttt/cmeng
-# Version 2.1.4 2012-09-09 (cmeng)
-# - Enhance video link search algorithm in playVideo()
-# - take care other web page design variants
+# Version 2.1.5 2012-12-22 (cmeng)
+# - Movie: bypass getMovie(2) sub-meu and goes straight to PlayVideo(10)
+# - Series: Update progListSeries match string pattern
 
 # See changelog.txt for previous history
 ########################################################################
@@ -232,7 +232,7 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
 
     for i in range(0, len(match)):
         # Video & Series titles need different routines
-        if name == '电影': mode = '2'
+        if name == '电影': mode = '10'
         else: mode = '3'
 
         match1 = re.compile('<a class="but" href="(.+?)" title="播放" target="PPS_PLAY">播放</a>').findall(match[i])
@@ -343,7 +343,7 @@ def progListSeries(name, url, thumb, episodeSel):
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     
     # fetch and build the video series list / related info list
-    match = re.compile('<ul class="scroll-panel new-p-list10 p-list.+?tag = "'+str(epsel)+'">(.+?)</ul>').findall(link)  
+    match = re.compile('<ul class="scroll-panel.+?">(.+?)</ul>').findall(link)  
     if match:
         matchp = re.compile('<li class="p-item(.+?)</li>').findall(match[0])                  
         totalItems = len(matchp)
@@ -351,14 +351,15 @@ def progListSeries(name, url, thumb, episodeSel):
             match1 = re.compile('href="(.+?)"').findall(matchp[i])
             p_url = match1[0]
             
-            match1 = re.compile('<img src="(.+?)"').findall(matchp[i])
+            match1 = re.compile('<img.+?src="(.+?)"').findall(matchp[i])
             p_thumb = match1[0]
 
-            match1 = re.compile('<a title=.+?>(.+?)</a>').findall(matchp[i])           
-            p_list = p_name = match1[0].strip()
+            match1 = re.compile('<div class="t"><a href=".+?">(.+?)</a>').findall(matchp[i])           
+            match2 = re.compile('<div class="des">(.+?)</div>').findall(matchp[i])           
+            p_list = p_name = match1[0].strip()+": "+match2[0]
                         
-            match1 = re.compile('class="status">([:0-9]+)</span>').findall(matchp[i])
-            if match1: p_list+=' ['+match1[0]+'] '          
+            match1 = re.compile('class="status">([\s:0-9]+)</span>').findall(matchp[i])
+            if match1: p_list+=' ['+match1[0].strip()+'] '          
   
             li = xbmcgui.ListItem(str(i+1)+'. '+p_list, iconImage='', thumbnailImage=p_thumb)
             u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)

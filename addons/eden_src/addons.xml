@@ -205,7 +205,7 @@
 
 <addon id="plugin.video.ppstream"
     name="PPS网络电视(PPStream)"
-    version="2.1.4"
+    version="2.1.5"
     provider-name="Robinttt/cmeng">
     <extension
         point="xbmc.python.pluginsource"

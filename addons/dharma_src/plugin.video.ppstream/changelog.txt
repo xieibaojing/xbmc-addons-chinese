@@ -1,6 +1,10 @@
 ﻿########################################################################
 # PPStream 网络电视
 ########################################################################
+# Version 2.1.5 2012-12-22 (cmeng)
+# - Movie: bypass getMovie(2) sub-meu and goes straight to PlayVideo(10)
+# - Series: Update progListSeries match string pattern
+
 # Version 2.1.4 2012-09-09 (cmeng)
 # - Enhance video link search algorithm in playVideo()
 # - take care other web page design variants
