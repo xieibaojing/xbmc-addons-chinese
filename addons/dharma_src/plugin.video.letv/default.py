@@ -701,30 +701,35 @@ def progListUgc(name, url):
     u = sys.argv[0] + "?mode=8&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
  
+    playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
+    playlist.clear()
     for i in range(0, len(match)):
         #match1 = re.compile('<dt><a target="_blank" title="(.+?)" href="(.+?)">').search(match[i])
         match1 = re.compile('title="(.+?)"').findall(match[i])
-        p_name = p_list = match1[0]
+        p_name = match1[0]
 
         match1 = re.compile('href="(.+?)"').findall(match[i])
         p_url = match1[0]
         
         match1 = re.compile('>片长：([:0-9\s]+)*</').findall(match[i])      
-        if match1: p_list += ' [' + match1[0].strip() + ']' 
+        if match1: p_name += ' [' + match1[0].strip() + ']' 
           
         match1 = re.compile('演唱者：<span><i>(.+?)</').findall(match[i])      
-        if match1: p_list += '  [' + match1[0] + ']' 
+        if match1: p_name += '  [' + match1[0] + ']' 
 
         match1 = re.compile('时间：.+?>(.+?)</i').findall(match[i])      
-        if match1: p_list += ' [' + match1[0] + ']' 
+        if match1: p_name += ' [' + match1[0] + ']' 
 
         match1 = re.compile('<img.+?src=[ ]*"(.+?)"').findall(match[i])
         p_thumb = match1[0]
             
-        li = xbmcgui.ListItem(str(i + 1) + '. ' + p_list, iconImage='', thumbnailImage=p_thumb)
-        u = sys.argv[0] + "?mode=10&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+        p_list = str(i+1)+'. '+p_name
             
+        li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
+        u = sys.argv[0] + "?mode=20&name=" + urllib.quote_plus(p_list) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+        playlist.add(p_url, li)            
+
     # Fetch and build user selectable page number 
     matchp = re.compile('<div class="page">(.+?)</div>').findall(link)
     if len(matchp): matchp1 = re.compile('<a href="(.+?)">([0-9]+)</a>').findall(matchp[0])      
@@ -846,7 +851,7 @@ def letvSearchList(name, url, page):
 # Extract all the video list and start playing first found valid link
 # User may press <SPACE> bar to select video resolution for playback
 ##################################################################################
-def PlayVideoLetv(name,url):
+def playVideoLetv(name,url):
     VIDEO_CODE=[['bHY=','bHY/'],['dg==','dj9i'],['dg==','dTgm'],['Zmx2','Zmx2']]
     videoRes = int(__addon__.getSetting('video_resolution'))
     link = getHttpData(url)
@@ -913,7 +918,7 @@ def PlayVideoLetv(name,url):
             ok = dialog.ok(__addonname__, '无法播放：需收费，请选择其它视频')
         else:
             ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请选择其它视频')
- 
+
 ##################################################################################
 def playVideo(name,url,videoRes):
     p_url = "http://www.flvcd.com/parse.php?kw="+url+"&format="+str(videoRes)
@@ -940,7 +945,59 @@ def playVideo(name,url,videoRes):
         elif link.find('解析失败，请确认视频是否被删除')>0:
             dialog = xbmcgui.Dialog()
             ok = dialog.ok(__addonname__, '无法播放：该视频或为收费节目')
+
+##################################################################################
+# Continuous Player start playback from user selected video
+# User backspace to previous menu will not work - playlist = last selected
+##################################################################################
+def playVideoUgc(name,url,thumb):
+    videoRes = int(__addon__.getSetting('video_resolution'))
+    videoplaycont = __addon__.getSetting('video_vplaycont')
+
+    playlistA=xbmc.PlayList(0)
+    playlist=xbmc.PlayList(1)
+    playlist.clear()
+
+    v_pos = int(name.split('.')[0])-1
+    psize = playlistA.size()
+    k=0
+    
+    for x in range(psize):
+        if x < v_pos: continue
+        p_item=playlistA.__getitem__(x)
+        p_url=p_item.getfilename(x)
+        p_list =p_item.getdescription(x)
+
+        #li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = thumb)
+        li = xbmcgui.ListItem(p_list)
+        li.setInfo(type = "Video", infoLabels = {"Title":p_list})  
+        
+        if re.search('http://www.letv.com/', p_url):  #fresh search
+            f_url = "http://www.flvcd.com/parse.php?kw="+p_url+"&format="+str(videoRes)
+            for i in range(10): # Retry specified trials before giving up (seen 9 trials max)
+                try: # stop xbmc from throwing error to prematurely terminate video search
+                    link = getHttpData(f_url)
+                    v_url=re.compile('下载地址：\s*<a href="(.+?)" target="_blank" class="link"').findall(link)
+                    if len(v_url):
+                        v_url = v_url[0] 
+                        break
+                except:
+                    pass   
+
+            if v_url == None: continue
+            print "url: ", v_url
+            playlistA.remove(p_url) # remove old url
+            playlistA.add(v_url, li, x)  # keep a copy of v_url in Audio Playlist
+        else:
+            v_url = p_url
             
+        playlist.add(v_url, li, k)
+        k +=1 
+
+        if k == 1:
+            xbmc.Player(1).play(playlist)
+        if videoplaycont == 'false': break
+           
 ##################################################################################    
 # Routine to extra parameters from xbmc
 ##################################################################################
@@ -1052,7 +1109,9 @@ elif mode == 6:
 elif mode == 8:
     progListUgc(name, url)    
 elif mode == 10:
-    PlayVideoLetv(name,url)
+    playVideoLetv(name,url)
+elif mode == 20:
+    playVideoUgc(name,url,thumb)
   
 elif mode == 11:
     progListVariety(name, url, page, year, month)
