@@ -7,10 +7,8 @@ import ChineseKeyboard
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.2.4 2012-08-09
-# - add found zero item massage in letvSearchList()
-# - allow 10 trails to fetch video url
-# - allow 3 trails to fetch general url data
+# Version 1.2.5 2012-12-23 (cmeng)
+# - Update pattern match in ugc video list search
 
 # See changelog.txt for previous history
 ########################################################################
@@ -271,7 +269,7 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
     for i in range(0, len(match)):
-        # Movie, Video, Series & Variety titles need different routines
+        # Movie, Video, Series, Variety & Music titles need different routines
         if name == '电视剧':
             mode = '5'
         elif name == '动漫':
@@ -280,7 +278,7 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
             mode = '10'
         elif name == '综艺':
             mode = '11'
-        
+
         match1 = re.compile('<dt><a href="(.+?)"[ ]*title="(.+?)" target="_blank">').search(match[i])
         p_url = match1.group(1)
         p_name = p_list = match1.group(2)    
@@ -570,7 +568,7 @@ def progListStar(name, url, page, alphabet, area, prof, gender):
     for i in range(0, len(match)):
         match1 = re.compile('<img src="(.+?)"').search(match[i])
         p_thumb = match1.group(1)
-        match1 = re.compile('<dd class="tit"><a href="(.+?)".+?>(.+?)</a>').search(match[i])
+        match1 = re.compile('<dd class="tit">.+?href="(.+?)".+?>(.+?)</a>').search(match[i])
         p_url = match1.group(1)
         p_name = p_list = match1.group(2)    
         match1 = re.compile('<dd>职业：(.+?)</dd>').search(match[i])
@@ -689,26 +687,39 @@ def progListStarVideo(name, url, thumb):
 ##################################################################################
 def progListUgc(name, url):
     link = getHttpData(url)
-    match = re.compile('<div class="soyall">(.+?)<div class="clear">').findall(link)
-    currpage = re.compile('.+?_p([0-9]+).html').findall(url)[0]
-        
+    match = re.compile('<div class="soyall">(.+?)</div>').findall(link)
+    currpage = re.compile('.+?_p([0-9]+).html').findall(url)
+    if len(currpage):
+        currpage = currpage[0]
+    else:
+        currpage = '1'
+             
     # Fetch & build ugc list for user selection      
-    match = re.compile('<dl class="tvinfo2 top10">(.+?)</dl>').findall(match[0])
+    match = re.compile('<dl class="[tvinfo2|m_dl].+?">(.+?)</dl>').findall(match[0])
     totalItems = len(match)   
     li = xbmcgui.ListItem(name + '（第' + str(currpage) + '页）[COLOR FF00FFFF]【' + name + '】[/COLOR]')
     u = sys.argv[0] + "?mode=8&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
  
     for i in range(0, len(match)):
-        match1 = re.compile('<dt><a target="_blank" title="(.+?)" href="(.+?)">').search(match[i])
-        p_name = p_list = match1.group(1)
-        p_url = match1.group(2)
+        #match1 = re.compile('<dt><a target="_blank" title="(.+?)" href="(.+?)">').search(match[i])
+        match1 = re.compile('title="(.+?)"').findall(match[i])
+        p_name = p_list = match1[0]
+
+        match1 = re.compile('href="(.+?)"').findall(match[i])
+        p_url = match1[0]
         
-        match1 = re.compile('<dd>(片长：[:0-9]+)[ ]*</dd>').search(match[i])      
-        if match1: p_list += '  [' + match1.group(1) + ']' 
+        match1 = re.compile('>片长：([:0-9\s]+)*</').findall(match[i])      
+        if match1: p_list += ' [' + match1[0].strip() + ']' 
           
-        match1 = re.compile('<img alt=.+?src="(.+?)"></a></dt>').search(match[i])
-        p_thumb = match1.group(1)
+        match1 = re.compile('演唱者：<span><i>(.+?)</').findall(match[i])      
+        if match1: p_list += '  [' + match1[0] + ']' 
+
+        match1 = re.compile('时间：.+?>(.+?)</i').findall(match[i])      
+        if match1: p_list += ' [' + match1[0] + ']' 
+
+        match1 = re.compile('<img.+?src=[ ]*"(.+?)"').findall(match[i])
+        p_thumb = match1[0]
             
         li = xbmcgui.ListItem(str(i + 1) + '. ' + p_list, iconImage='', thumbnailImage=p_thumb)
         u = sys.argv[0] + "?mode=10&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
@@ -726,8 +737,8 @@ def progListUgc(name, url):
                 u = sys.argv[0] + "?mode=8&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url)
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems) 
     xbmcplugin.setContent(int(sys.argv[1]), 'movie')
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
-  
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))  
+    
 #################################################################################
 # Get user input for LeTV site search
 ##################################################################################
@@ -1039,7 +1050,7 @@ elif mode == 5:
 elif mode == 6:
     updateListSeriess(name, id, thumb, page)
 elif mode == 8:
-    progListUgc(name, url)
+    progListUgc(name, url)    
 elif mode == 10:
     PlayVideoLetv(name,url)
   
