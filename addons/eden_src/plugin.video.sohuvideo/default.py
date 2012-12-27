@@ -898,17 +898,19 @@ def PlayVideoUgc(name,url,thumb):
 # Sohu 电视直播 Menu List
 ##################################################################################
 def LiveChannel(name):
-    url = 'http://live.tv.sohu.com'
+    url = 'http://tvimg.tv.itc.cn/live/stations.jsonp'
     link = getHttpData(url)
-    match = re.compile('var data1 = ({.+?});').findall(link)
+    match = re.compile('var par=({.+?});').findall(link)
     if match:
         parsed_json = simplejson.loads(match[0])
-        totalItems = len(parsed_json['data'])
+        totalItems = len(parsed_json['STATIONS'])
         i = 0
-        for item in parsed_json['data']:
-            p_name = item['name'].encode('utf-8')
-            p_thumb = item['bigPic'].encode('utf-8')
-            id = str(item['tvId'])
+        for item in parsed_json['STATIONS']:
+            if item['IsSohuSource'] <> 1:
+                continue
+            p_name = item['STATION_NAME'].encode('utf-8')
+            p_thumb = item['STATION_PIC'].encode('utf-8')
+            id = str(item['STATION_ID'])
             i += 1
             li = xbmcgui.ListItem(str(i)+ '. ' + p_name, iconImage = '', thumbnailImage = p_thumb)
             u = sys.argv[0] + "?mode=11&name=" + urllib.quote_plus(p_name) + "&id=" + urllib.quote_plus(id)+ "&thumb=" + urllib.quote_plus(p_thumb)
