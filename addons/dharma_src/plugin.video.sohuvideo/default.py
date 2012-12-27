@@ -824,27 +824,14 @@ def PlayVideo(name,url,thumb):
         
         # http://newflv.sohu.ccgslb.net/|623|116.14.234.161|Googu7gm-8WjRTd5ZfBVPIfrtRtLE5Cn|1|0
         key=link.split('|')[3]
-        url=link.split('|')[0].rstrip("/")+newpaths[i]+'?key='+key
+        if site == 0:
+            url = link.split('|')[0].rstrip("/")+newpaths[i]+'?key='+key
+        else:
+            url = 'http://new.sohuv.dnion.com'+newpaths[i]+'?key='+key
         title = name+" 第"+str(i+1)+"/"+str(len(paths))+"节"
         listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":title})
         #print 'i, link, key, url, title', i, link, key, url, title
-        
-        for trial in range(10): # give 10 trials to retrive Location on busy network
-           if site == 0:
-                parsedurl = urlparse.urlparse(url)
-                httpConn = httplib.HTTPConnection(parsedurl[1])
-                httpConn.connect()
-                httpConn.request('HEAD', parsedurl[2])
-           else:
-                httpConn = httplib.HTTPConnection("new.sohuv.dnion.com")
-                httpConn.request('HEAD', newpaths[i]+'?key='+key)
-                
-           response = httpConn.getresponse()
-           #print 'trial, site, urlheader', trial, site, response.getheaders()
-           if response.getheader('Location') <> None: break
-           else: site = not site # try the other site if failed
-        httpConn.close()
         playlist.add(url, listitem)
         if i == 0: 
             xbmc.Player().play(playlist)
@@ -896,26 +883,13 @@ def PlayVideoUgc(name,url,thumb):
             link = getHttpData(p_url)
         
             key=link.split('|')[3]
-            url=link.split('|')[0].rstrip("/")+newpaths[i]+'?key='+key
+            if site == 0:
+                url = link.split('|')[0].rstrip("/")+newpaths[i]+'?key='+key
+            else:
+                url = 'http://new.sohuv.dnion.com'+newpaths[i]+'?key='+key
             title = name+" 第"+str(i+1)+"/"+str(len(paths))+"节"
             listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
             listitem.setInfo(type="Video",infoLabels={"Title":title})
-        
-            for trial in range(10): # give 10 trials to retrive Location on busy network
-               if site == 0:
-                    parsedurl = urlparse.urlparse(url)
-                    httpConn = httplib.HTTPConnection(parsedurl[1])
-                    httpConn.connect()
-                    httpConn.request('HEAD', parsedurl[2])
-               else:
-                    httpConn = httplib.HTTPConnection("new.sohuv.dnion.com")
-                    httpConn.request('HEAD', newpaths[i]+'?key='+key)
-                
-               response = httpConn.getresponse()
-               if response.getheader('Location') <> None: break
-               else: site = not site # try the other site if failed
-            httpConn.close()
-
         playlist.add(url, listitem)
         if i == 0: 
             xbmc.Player().play(playlist)
