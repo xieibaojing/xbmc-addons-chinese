@@ -5,10 +5,9 @@ import os, sys, re, string, gzip, StringIO
 import ChineseKeyboard
 
 ########################################################################
-# PPStream 网络电视 by robintttt/cmeng
-# Version 2.1.5 2012-12-22 (cmeng)
-# - Movie: bypass getMovie(2) sub-meu and goes straight to PlayVideo(10)
-# - Series: Update progListSeries match string pattern
+# PPStream 网络电视 by cmeng
+# Version 2.1.6 2012-12-30 (cmeng)
+# - Add support for continuous playback on ugc video list
 
 # See changelog.txt for previous history
 ########################################################################
@@ -422,26 +421,32 @@ def progListUgc(name, id, page, cat, year, order):
     li = xbmcgui.ListItem('[COLOR FFFF00FF]'+name+'[/COLOR]（第'+str(page)+'页）【[COLOR FFFFFF00]'+year+'[/COLOR]/[COLOR FF00FFFF]'+order+'[/COLOR]】（按此选择）')
     u = sys.argv[0]+"?mode=12&name="+urllib.quote_plus(name)+"&id="+id+"&cat="+cat+"&year="+year+"&order="+order
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    
+    playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
+    playlist.clear()    
     for i in range(0, len(match)):
         match1 = re.compile('<a href="(.+?)"').findall(match[i])
         p_url = 'http://v.pps.tv'+match1[0]
         
         match1 = re.compile('<a href.+?title="(.+?)".*?>').findall(match[i])
-        p_name = p_list = match1[0]
+        p_name = match1[0]
 
         match1 = re.compile('<span class="status">([:0-9]+)</span>').findall(match[i])      
-        if match1: p_list += ' ['+match1[0]+'] '
+        if match1: p_name += ' ['+match1[0]+'] '
         
         match1 = re.compile('<span class="nm">播放：</span>([0-9]+)<a.+?').findall(match[i])      
-        if match1: p_list += ' [播放: '+match1[0]+']' #+' ('+p_url+')'  
+        if match1: p_name += ' [播放: '+match1[0]+']' #+' ('+p_url+')'  
           
         match1 = re.compile('class="imgm" src="(.+?)">').findall(match[i])
         p_thumb = match1[0]
+        
+        p_list = str(i+1)+'. '+p_name
             
-        li = xbmcgui.ListItem(str(i+1)+'. '+p_list, iconImage='', thumbnailImage=p_thumb)
-        u = sys.argv[0]+"?mode=14&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+        li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
+        u = sys.argv[0]+"?mode=14&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
-            
+        playlist.add(p_url, li)
+
     # Fetch and build user selectable page number 
     matchp = re.compile('<div class="pagenav">(.+?)</div>').findall(link)
     if len(matchp):
@@ -548,7 +553,58 @@ def PlayVideo(name, url):
 # http://dp.ppstream.com/get_play_url_rate.php?sid=30NG77&flash_type=1&type=0
 # http://dp.ugc.pps.tv/get_play_url_rate.php?sid=30NG77&flash_type=1&type=0
 ##################################################################################
-def playVideoUgc(name, url, thumb): 
+def playVideoUgc(name, url, thumb):
+    videoplaycont = __addon__.getSetting('video_vplaycont')
+    
+    playlistA=xbmc.PlayList(0)
+    playlist=xbmc.PlayList(1)
+    playlist.clear()
+
+    v_pos = int(name.split('.')[0])-1
+    psize = playlistA.size()
+    k=0
+    
+    for x in range(psize):
+        if x < v_pos: continue
+        p_item=playlistA.__getitem__(x)
+        p_url=p_item.getfilename(x)
+        p_list =p_item.getdescription(x)
+
+        #li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = thumb)
+        li = xbmcgui.ListItem(p_list)
+        li.setInfo(type = "Video", infoLabels = {"Title":p_list})
+    
+        match = re.compile('play_(.+?).html').findall(url)
+        if len(match):
+             #videolink = 'http://dp.ppstv.com/get_play_url_rate.php?sid='+match[0]+'&flash_type=1&type=0'
+             videolink = 'http://dp.ppstream.com/get_play_url_cdn.php?sid='+match[0]+'&flash_type=1&type=0'
+             for i in range(10): # Retry specified trials before giving up (seen 9 trials max)
+                try: # stop xbmc from throwing error to prematurely terminate video search
+                    link = getHttpData(videolink)
+                    v_url = re.compile('(.+?)\?hd=').findall(link)
+                    if len(v_url):
+                        v_url = v_url[0] 
+                        break                        
+                except:
+                    pass                     
+        else:
+            v_url = p_url
+ 
+        playlist.add(v_url, li, k)
+        k +=1 
+        if k == 1:
+            xbmc.Player(1).play(playlist)
+        if videoplaycont == 'false': break   
+
+##################################################################################
+# Routine to play ugc embedded swf video file
+# fetch the swf file directly using one of the hardcoded link below
+# http://dp.ppstream.com/get_play_url_cdn.php?sid=30NG77&flash_type=1&type=0&region=%E6%96%B0%E5%8A%A0%E5%9D%A1&operator=%E6%9C%AA%E7%9F%A5
+# http://dp.ppstv.com/get_play_url_rate.php?sid=30NG77&flash_type=1&type=0
+# http://dp.ppstream.com/get_play_url_rate.php?sid=30NG77&flash_type=1&type=0
+# http://dp.ugc.pps.tv/get_play_url_rate.php?sid=30NG77&flash_type=1&type=0
+##################################################################################
+def playVideoUgcX(name, url, thumb): 
     match = re.compile('play_(.+?).html').findall(url)
     #videolink = 'http://dp.ppstv.com/get_play_url_rate.php?sid='+match[0]+'&flash_type=1&type=0'
     videolink = 'http://dp.ppstream.com/get_play_url_cdn.php?sid='+match[0]+'&flash_type=1&type=0'
@@ -564,7 +620,7 @@ def playVideoUgc(name, url, thumb):
     else:
         dialog = xbmcgui.Dialog()
         ok = dialog.ok(__addonname__,'您当前观看的视频暂不能播放，请选择其它节目')        
-          
+            
 ##################################################################################
 # Get user input for PPS site search
 ##################################################################################
