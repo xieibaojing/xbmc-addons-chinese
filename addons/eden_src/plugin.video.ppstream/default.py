@@ -6,8 +6,8 @@ import ChineseKeyboard
 
 ########################################################################
 # PPStream 网络电视 by cmeng
-# Version 2.1.6 2012-12-30 (cmeng)
-# - Add support for continuous playback on ugc video list
+# Version 2.1.7 2012-12-30 (cmeng)
+# - Fix continuous playback error
 
 # See changelog.txt for previous history
 ########################################################################
@@ -574,7 +574,7 @@ def playVideoUgc(name, url, thumb):
         li = xbmcgui.ListItem(p_list)
         li.setInfo(type = "Video", infoLabels = {"Title":p_list})
     
-        match = re.compile('play_(.+?).html').findall(url)
+        match = re.compile('play_(.+?).html').findall(p_url)
         if len(match):
              #videolink = 'http://dp.ppstv.com/get_play_url_rate.php?sid='+match[0]+'&flash_type=1&type=0'
              videolink = 'http://dp.ppstream.com/get_play_url_cdn.php?sid='+match[0]+'&flash_type=1&type=0'

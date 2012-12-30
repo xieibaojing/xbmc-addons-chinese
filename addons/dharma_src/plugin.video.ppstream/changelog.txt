@@ -1,6 +1,9 @@
 ﻿########################################################################
 # PPStream 网络电视
 ########################################################################
+# Version 2.1.7 2012-12-30 (cmeng)
+# - Fix continuous playback error
+
 # Version 2.1.6 2012-12-30 (cmeng)
 # - Add support for continuous playback on ugc video list
 
