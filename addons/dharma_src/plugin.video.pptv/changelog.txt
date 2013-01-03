@@ -1,6 +1,9 @@
 ﻿########################################################################
 # # PPTV视频 for XBMC by Uranus Zhou, 2012
 ########################################################################
+# Version 1.1.5 2013-01-03 (cmeng)
+# - fix TV broadcast stream video start time
+
 # Version 1.1.4 2013-01-01 (cmeng)
 # - Update TV broadcast link decode algorithm
 

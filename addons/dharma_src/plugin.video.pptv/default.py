@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, gzip
+import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, gzip, random
 try:
     import json
 except:
@@ -48,8 +48,8 @@ PPTV_VIDEO_IPAD = 4
 ########################################################################
 # # PPTV视频 for XBMC by Uranus Zhou, 2012
 ########################################################################
-# Version 1.1.4 2013-01-01 (cmeng)
-# - Update TV broadcast link decode algorithm
+# Version 1.1.5 2013-01-03 (cmeng)
+# - fix TV broadcast stream video start time
 
 ##### Common functions #####
 dbg = False
@@ -472,13 +472,25 @@ def GetPPTVVideoURL(url, quality):
         ind = fts.index(str(quality))
     except: # if specified quality is not in qualities list, use the last existing one
         ind = -1
-    url_list = []    
+    url_list = []
+        
     # construct video link
     # http://127.0.0.1:9000/playlive.flv?
     # url=http://az408395.vo.msecnd.net:80/live/&bakhost=117.135.161.14&channelid=887d4d23ee894ceb8f5f457fa24f3e97&rid=887d4d23ee894ceb8f5f457fa24f3e97
     # &datarate=400&replay=0&start=1356940420&interval=5&BWType=0&source=31&uniqueid=1356940456389&type=web&o=0'
+
+    #http://127.0.0.1:9000/playlive.flv?url=
+    # http://az408395.vo.msecnd.net:80/live/&bakhost=117.135.161.14&channelid=e4c8a2dc060b4f729bb8ce73df08c0d9&rid=e4c8a2dc060b4f729bb8ce73df08c0d9
+    # &datarate=400&replay=0&start=1357174830&interval=5&BWType=0&source=31&uniqueid=1357175007243&type=web&o=0
+
+    # http://az408395.vo.msecnd.net/live/e4c8a2dc060b4f729bb8ce73df08c0d9/1357175325.block?type=web&vvid=b9093012-9245-39b4-9e87-fdeef464b751&o=0
+    
+    tstart = str(((int(ts[0]) - 45) // 10) * 10)
+    uid =  str(int(ts[0])*1000 + random.randint(1000,9999))
+    # print "tstart, uid: ", tstart, uid, ts[0]
+    
     s_url = 'http://127.0.0.1:9000/playlive.flv?url=http://' + shes[ind].encode('utf-8') + '/live/&bakhost=' + bhost[0] + '&channelid=' + rids[0] +'&rid=' + rids[0]
-    s_url += '&datarate=' + brate[0] + '&replay=0&start=1356940420&interval=5&BWType=0&source=31&uniqueid=' + ts[0] + '&type=web&o=0'
+    s_url += '&datarate=' + brate[0] + '&replay=0&start='+ tstart + '&interval=5&BWType=0&source=31&uniqueid=' + uid + '&type=web&o=0'
     url_list.append(s_url)
     return url_list
 
