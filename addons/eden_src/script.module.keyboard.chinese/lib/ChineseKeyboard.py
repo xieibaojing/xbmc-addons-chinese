@@ -6,6 +6,10 @@ import xbmc, xbmcgui
 from xbmcaddon import Addon
 import urllib2, urllib, httplib, time
 #import cookielib
+if sys.version_info < (2, 7):
+    import simplejson
+else:
+    import json as simplejson
 
 ##############################################################################
 # Chinese Keyboard Addon Module Change History
@@ -161,7 +165,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
                     self.getControl(CTRL_ID_CODE).setLabel(s)
                     self.getChineseWord(s)
                 elif controlID>=48 and controlID<=57:#0-9
-                    i = self.nowpage*self.wordperpage+(controlID-48)
+                    i = self.nowpage*(self.wordperpage+1)+(controlID-48)
                     hanzi = self.words[i]
                     self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+ hanzi)
                     self.getControl(CTRL_ID_CODE).setLabel('')
@@ -308,15 +312,16 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         # else: # last resort to use constant cookie if earlier cookie request failed
         req.add_header('Cookie', self.cookie)
 
+        # httpdata: [[["\u822a\u7a7a\u6bcd\u8230",4,{"type":"IMEDICT"}],["\u6d77\u53e3\u6ee1\u8bb0",4,{"type":"NEWWORD"}]],"h'k'm'j"]
         response = urllib2.urlopen(req)
         httpdata = response.read()
         response.close()
         words = []
-        match = re.compile('\["(.+?)",[^\]]+\]').findall(httpdata)
-        wordcnt = len(match[0].split("\\"))-2
+        jsondata = simplejson.loads(httpdata)
+        wordcnt = len(jsondata[0][0][0])-1
         self.wordperpage = WORD_PER_PAGE[wordcnt]
-        for word in match:
-            words.append(eval('u"'+word+'"').encode('utf-8'))
+        for word in jsondata[0]:
+            words.append(word[0].encode('utf-8'))
         #print match, words
         return words    
 
