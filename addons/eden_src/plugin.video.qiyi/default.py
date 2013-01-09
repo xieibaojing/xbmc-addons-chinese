@@ -13,8 +13,6 @@ else:
 __addonname__ = "奇艺视频(QIYI)"
 __addonid__   = "plugin.video.qiyi"
 __addon__     = xbmcaddon.Addon(id=__addonid__)
-__cwd__       = xbmc.translatePath(__addon__.getAddonInfo('path'))
-__icon__      = os.path.join( __cwd__, 'icon.png' )
 
 CHANNEL_LIST = [['电影','1'], ['电视剧','2'], ['纪录片','3'], ['动漫','4'], ['音乐','5'], ['综艺','6'], ['娱乐','7'], ['旅游','9'], ['片花','10'], ['时尚','13']]
 ORDER_LIST = [['2','最新更新'], ['3','最近热播'], ['6 ','最新上映'], ['4','最受好评']]
@@ -31,7 +29,12 @@ def GetHttpData(url):
         charset = response.headers.getparam('charset')
         response.close()
     except:
-        print 'GetHttpData Error: %s' % url
+        xbmc.log( "%s: %s (%d) [%s]" % (
+            __addonname__,
+            sys.exc_info()[ 2 ].tb_frame.f_code.co_name,
+            sys.exc_info()[ 2 ].tb_lineno,
+            sys.exc_info()[ 1 ]
+            ), level=xbmc.LOGERROR)
         return ''
     match = re.compile('<meta http-equiv=["]?[Cc]ontent-[Tt]ype["]? content="text/html;[\s]?charset=(.+?)"').findall(httpdata)
     if len(match)>0:
@@ -275,6 +278,29 @@ def seriesList(name,url,thumb):
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
+def selResolution(items):
+    ratelist = []
+    for i in range(0,len(items)):
+        if items[i] == 96: ratelist.append([4, '极速', i])    # 清晰度设置值, 清晰度, match索引
+        if items[i] == 1: ratelist.append([3, '流畅', i])
+        if items[i] == 2: ratelist.append([2, '高清', i])
+        if items[i] == 3: ratelist.append([1, '超清', i])
+    ratelist.sort()
+    if len(ratelist) > 1:
+        resolution = int(__addon__.getSetting('resolution'))
+        if resolution == 0:    # 每次询问点播视频清晰度
+            dialog = xbmcgui.Dialog()
+            list = [x[1] for x in ratelist]
+            sel = dialog.select('清晰度（低网速请选择低清晰度）', list)
+            if sel == -1:
+                return -1
+        else:
+            sel = 0
+            while sel < len(ratelist)-1 and resolution > ratelist[sel][0]: sel =  sel + 1
+    else:
+        sel = 0
+    return ratelist[sel][2]
+
 def PlayVideo(name,url,thumb):
     link = GetHttpData(url)
     match1 = re.compile('<script\s*type="text/javascript">\s*var info\s*=(.*?)</script>', re.DOTALL).findall(link)
@@ -285,6 +311,7 @@ def PlayVideo(name,url,thumb):
             pid = json_response['pid'].encode('utf-8')
             ptype = json_response['ptype'].encode('utf-8')
             videoId = json_response['videoId'].encode('utf-8')
+            tvId = json_response['tvId'].encode('utf-8')
         except:
             dialog = xbmcgui.Dialog()
             ok = dialog.ok(__addonname__, '未能解析视频地址')
@@ -293,54 +320,53 @@ def PlayVideo(name,url,thumb):
         dialog = xbmcgui.Dialog()
         ok = dialog.ok(__addonname__, '未能解析视频地址')
         return
-    url = 'http://cache.video.qiyi.com/v/' + videoId + '/' + pid + '/' + ptype + '/'
-    link = GetHttpData(url)
-    match1 = re.compile('<data version="(\d+)">([^<]+)</data>').findall(link)
-    ratelist = []
-    for i in range(0,len(match1)):
-        if match1[i][0] == '96': ratelist.append([4, '极速', i])    # 清晰度设置值, 清晰度, match索引
-        if match1[i][0] == '1': ratelist.append([3, '流畅', i])
-        if match1[i][0] == '2': ratelist.append([2, '高清', i])
-        if match1[i][0] == '3': ratelist.append([1, '超清', i])
-    ratelist.sort()
-    if len(ratelist)>1:
-        resolution = int(__addon__.getSetting('resolution'))
-        if resolution == 0:    # 每次询问点播视频清晰度
-            dialog = xbmcgui.Dialog()
-            list = [x[1] for x in ratelist]
-            sel = dialog.select('清晰度（低网速请选择低清晰度）', list)
+
+    playmode = int(__addon__.getSetting('playmode'))
+    if playmode == 0:   # 连续播放模式
+        url = 'http://cache.video.qiyi.com/m/' + tvId + '/' + videoId + '/'
+        link = GetHttpData(url)
+        match1 = re.compile('var ipadUrl=({.*})', re.DOTALL).search(link)
+        if match1:
+            data = unicode(match1.group(1), 'utf-8', errors='ignore')
+            json_response = simplejson.loads(data)
+            mtl = json_response['data']['mtl']
+            sel = selResolution([x['vd'] for x in mtl])
             if sel == -1:
                 return
-        else:
-            sel = 0
-            while sel < len(ratelist)-1 and resolution > ratelist[sel][0]: sel =  sel + 1
-    else:
-        sel = 0
-    if match1[ratelist[sel][2]][1] != videoId:
-        url = 'http://cache.video.qiyi.com/v/' + match1[ratelist[sel][2]][1] + '/' + pid + '/' + ptype + '/'
+            listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
+            xbmc.Player().play(mtl[sel]['m3u'], listitem)
+    else:               # 分段播放模式
+        url = 'http://cache.video.qiyi.com/v/' + videoId + '/' + pid + '/' + ptype + '/'
         link = GetHttpData(url)
+        match1 = re.compile('<data version="(\d+)">([^<]+)</data>').findall(link)
+        sel = selResolution([int(x[0]) for x in match1])
+        if sel == -1:
+            return
+        if match1[sel][1] != videoId:
+            url = 'http://cache.video.qiyi.com/v/' + match1[sel][1] + '/' + pid + '/' + ptype + '/'
+            link = GetHttpData(url)
 
-    match=re.compile('<file>(.+?)</file>').findall(link)
-    playlist=xbmc.PlayList(1)
-    playlist.clear()
-    listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
-    listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(1)+"/"+str(len(match))+" 节"})
-    filepart = '/'.join(match[0].split('/')[-3:])
-    if urlExists('http://qiyi.soooner.com/videos2/'+filepart):
-        baseurl = 'http://qiyi.soooner.com/videos2/'
-    elif urlExists('http://qiyi.soooner.com/videos/'+filepart):
-        baseurl = 'http://qiyi.soooner.com/videos/'
-    else:
-        dialog = xbmcgui.Dialog()
-        ok = dialog.ok(__addonname__, '未能获取视频地址')
-        return
-    playlist.add(baseurl+filepart, listitem = listitem)
-    for i in range(1,len(match)):
-        listitem=xbmcgui.ListItem(name, thumbnailImage = thumb)
-        listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
-        filepart = '/'.join(match[i].split('/')[-3:])
+        match=re.compile('<file>(.+?)</file>').findall(link)
+        playlist=xbmc.PlayList(1)
+        playlist.clear()
+        listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
+        listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(1)+"/"+str(len(match))+" 节"})
+        filepart = '/'.join(match[0].split('/')[-3:])
+        if urlExists('http://qiyi.soooner.com/videos2/'+filepart):
+            baseurl = 'http://qiyi.soooner.com/videos2/'
+        elif urlExists('http://qiyi.soooner.com/videos/'+filepart):
+            baseurl = 'http://qiyi.soooner.com/videos/'
+        else:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '未能获取视频地址')
+            return
         playlist.add(baseurl+filepart, listitem = listitem)
-    xbmc.Player().play(playlist)
+        for i in range(1,len(match)):
+            listitem=xbmcgui.ListItem(name, thumbnailImage = thumb)
+            listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
+            filepart = '/'.join(match[i].split('/')[-3:])
+            playlist.add(baseurl+filepart, listitem = listitem)
+        xbmc.Player().play(playlist)
 
 def performChanges(name,id,listpage,cat,area,year,order,paytype):
     change = False

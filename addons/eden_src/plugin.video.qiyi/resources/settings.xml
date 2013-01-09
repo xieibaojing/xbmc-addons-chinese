@@ -1,4 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf8" standalone="yes"?>
 <settings>
 	<setting id="resolution" type="enum" label="点播视频清晰度" values="每次询问|超清|高清|流畅|极速" default="0"/>
+	<setting id="playmode" type="enum" label="播放模式" values="连续播放|分段播放" default="0"/>
 </settings>
