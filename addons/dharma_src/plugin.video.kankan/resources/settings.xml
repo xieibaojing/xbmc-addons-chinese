@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf8" standalone="yes"?>
+<settings>
+	<setting id="movie_res" type="enum" label="最高播放清晰度" values="标清|高清" default="1"/>
+</settings>
