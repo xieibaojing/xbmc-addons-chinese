@@ -1,6 +1,6 @@
 #summary xbmc-addons-chinese 中文扩展功能库
 
-= Introduction =
+= 项目介绍 =
 本项目是为XBMC媒体中心软件提供中文脚本、插件、皮肤等扩展功能支持的一个开源项目。
 {{{
  * 项目站点：http://code.google.com/p/xbmc-addons-chinese/
