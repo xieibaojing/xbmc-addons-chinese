@@ -73,53 +73,55 @@
 == 针对9.11 camelot版XBMC ==
 
 === 视频插件 ===
- * CNTV - Chinese Net TV (Chinese)
- * NETITV - internat tv and movies from CHINA TELECOM (Chinese)
- * OpenV - internat tv and movies from http://hd.openv.com/ (Chinese)
- * SohuVideo - internat tv and movies from tv.sohu.com (Chinese)
- * TV365 - internat live tv (Chinese)
+ * CNTV - 中国网络电视台
+ * NETITV - 观看www.netitv.com在线视频（已失效）
+ * OpenV - 观看hd.openv.com在线视频（已失效）
+ * SohuVideo - 观看tv.sohu.com在线视频
+ * TV365 - 观看www.tv365w.com在线视频
 
 === 音乐插件 ===
- * BaiduRadio - Baidu online radio (Chinese)
- * KuwoBox - kuwobox online music (Chinese)
+ * BaiduRadio - 百度电台联盟音乐插件
+ * KuwoBox - 酷我音乐盒
 
 === 程序插件 ===
- * MyStocks -  Chinese stock market (Chinese)
- * RSSreader - rss reader for sina.com, sohu.com, ifeng.com (Chinese)
+ * MyStocks -  中国股市行情插件
+ * RSSreader - rss阅读插件，支持新浪、搜狐、凤凰网
 
 === 脚本 ===
- * LRC Lyrics - lrc lyrics script (multi-language)
- * shooterSub - get movie subtitle from shooter.cn (Chinese) 
+ * LRC Lyrics - lrc歌词脚本（多国语言支持）
+ * shooterSub - 射手字幕脚本，从射手网获取电影字幕
 
 = 如何安装本项目插件 =
 
-To install the plugin, you need to download the latest repository zip file appropriately for your XBMC version from the following site.
+安装中文扩展功能库插件，需要到下面的地址下载与你的XBMC版相应的最新zip安装包：
 {{{
  * http://code.google.com/p/xbmc-addons-chinese/downloads/list
 }}}
 
 == For Linux, Mac OSX and Windows ===
- * Launch XBMC
- * Navigate to System | Settings | Add-ons 
+ * 运行XBMC
+ * 进入“系统设置”->“扩展功能”
 
-If you have an old xbmc-addons-chinese installation, you must uninstall it following the steps below:
+如果你安装了旧版本的xbmc-addons-chinese扩展功能库插件，应该先按以下步骤卸载旧版：
 
 {{{
- * Get Add-ons
- * Right click on Chinese Add-on Repository
- * SelectAdd-on Information
- * Click Unistall
+ * 选择“获取扩展功能”
+ * 在“Chinese Add-on Repository”点鼠标右键
+ * 选择“扩展功能信息”
+ * 点击“卸载”
 }}}
 
- * Select Install from zip file
- * Browse to the directory where the new downloaded zip file is being stored.
- * Select OK
- * Click Get Add-ons
- * Select Chinese Add-on Repository
- * Select the appropriate Add-ons from the display categories
- * Click to install the Add-on
+然后安装新版扩展功能库插件：
 
-= Reporting a bug =
+ * 选择“从zip文件安装”
+ * 浏览目录找到你下载的中文扩展功能库zip安装文件
+ * 点击“确定”
+ * 选择“获取扩展功能”
+ * 选择“Chinese Add-on Repository”
+ * 从列出的插件分类中选择你需要的插件
+ * 点击安装相应插件
+
+= 错误报告 =
 If you are having problems with the plugin or just have a query please do read the documentation and do a search on the XBMC plugin forum thread before posting. 
 
 If you believe you have found a bug or would like to request a feature then create a new issue in the link below.
