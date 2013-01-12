@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf8" standalone="yes"?>
 <settings>
 	<setting id="movie_quality" type="enum" label="视频质量" values="流畅|高清|超清|蓝光|iPad超清" default="1"/>
+	<setting id="ppsap_en" type="bool" label="PPS 网络加速器" default="false"/>
 	<setting label="注：直播及iPad超清视频需XBMC系统可正常播放m3u m3u8类型网络媒体" type="lsep"/>
+	<setting label="注：PPS网络加速器 needs PPTV INST & incompatible with Linux" type="lsep"/>
 </settings>

@@ -48,8 +48,8 @@ PPTV_VIDEO_IPAD = 4
 ########################################################################
 # # PPTV视频 for XBMC by Uranus Zhou, 2012
 ########################################################################
-# Version 1.1.5 2013-01-03 (cmeng)
-# - fix TV broadcast stream video start time
+# Version 1.1.6 2013-01-03 (cmeng)
+# - PPSAP option added (default disabled - v1.1.3 streaming method)
 
 ##### Common functions #####
 dbg = False
@@ -446,7 +446,7 @@ def GetPPTVVideoURL_Flash(url, quality):
         url_list.append('http://' + shes[ind].encode('utf-8') + '/' + sgm.encode('utf-8') + '/' + files[ind].encode('utf-8') + '?type=fpp&' + key)
     return url_list
 
-def GetPPTVVideoURL(url, quality):
+def GetPPTVVideoURL_ppsap(url, quality):
     data = GetHttpData(url, UserAgent_IE)
     # get video ID
     vid = CheckValidList(re.compile(',\s*["\']vid["\']\s*:\s*(\d+)\s*,').findall(data))
@@ -491,10 +491,11 @@ def GetPPTVVideoURL(url, quality):
     
     s_url = 'http://127.0.0.1:9000/playlive.flv?url=http://' + shes[ind].encode('utf-8') + '/live/&bakhost=' + bhost[0] + '&channelid=' + rids[0] +'&rid=' + rids[0]
     s_url += '&datarate=' + brate[0] + '&replay=0&start='+ tstart + '&interval=5&BWType=0&source=31&uniqueid=' + uid + '&type=web&o=0'
+    # s_url = 'http://az408395.vo.msecnd.net/live/661496c1495e4d1a936dc8e4ce149189/1357259925.block?type=web&vvid=12ac3d7e-5a64-36e4-e430-02ff974ddb06&o=0'
     url_list.append(s_url)
     return url_list
 
-def GetPPTVVideoURLx(url, quality):
+def GetPPTVVideoURL(url, quality):
     # check whether is PPTV video
 
     if not re.match('^http://v\.pptv\.com/.*$', url):
@@ -666,6 +667,7 @@ def listVideo(name, url, list_ret):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def playVideo(name, url, thumb):
+    ppsap_en = __addon__.getSetting('ppsap_en')
     ppurls = []
 
     # if live page without video link, try to get video link from search result
@@ -674,7 +676,10 @@ def playVideo(name, url, thumb):
 
     if len(url) > 0:
         quality = int(__addon__.getSetting('movie_quality'))
-        ppurls = GetPPTVVideoURL(url, quality)
+        if ppsap_en == 'false':
+            ppurls = GetPPTVVideoURL(url, quality)
+        else:    
+            ppurls = GetPPTVVideoURL_ppsap(url, quality)
 
     if len(ppurls) > 0:
         playlist = xbmc.PlayList(1)
