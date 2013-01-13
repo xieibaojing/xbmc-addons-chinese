@@ -32,8 +32,12 @@ def GetHttpData(url):
                ))
         return ''
     match = re.compile('<meta http-equiv=["]?[Cc]ontent-[Tt]ype["]? content="text/html;[\s]?charset=(.+?)"').findall(httpdata)
-    if len(match)>0:
+    if match:
         charset = match[0]
+    else:
+        match = re.compile('<meta charset="(.+?)"').findall(httpdata)
+        if match:
+            charset = match[0]
     if charset:
         charset = charset.lower()
         if (charset != 'utf-8') and (charset != 'utf8'):
@@ -157,7 +161,7 @@ def progList(name,type,genre,area,year,order,page):
     u = sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name)+"&type="+urllib.quote_plus(type)+"&genre="+urllib.quote_plus(genre)+"&area="+urllib.quote_plus(area)+"&year="+urllib.quote_plus(year)+"&order="+urllib.quote_plus(order)+"&page="+urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     for i in range(0,len(match)):
-        match1 = re.compile('<a ref="post" href="(http://vod.kankan.com/v/\d+/\d+.shtml)" title="([^"]+)"').search(match[i])   
+        match1 = re.compile('<a ref="post" href="(http://[^"]+)" title="([^"]+)"').search(match[i])   
         p_url = match1.group(1)
         p_name = match1.group(2)
         match1 = re.compile('<img src="[^"]+" _src="([^"]+)"').search(match[i])

@@ -172,7 +172,7 @@
 
 <addon id="plugin.video.kankan"
     name="迅雷看看(KanKan)"
-    version="1.0.0"
+    version="1.0.1"
     provider-name="Taxigps">
     <extension
         point="xbmc.python.pluginsource"
