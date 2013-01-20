@@ -189,9 +189,14 @@ def PlayVideo(name,url,thumb):
     match = re.compile('<br>下载地址：(.*?)<br>花费时间：', re.DOTALL).findall(link)
     if match:
         match = re.compile('<a href="(http://.+?)" target="_blank"').findall(match[0])
-        listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
-        #listitem.setInfo(type = "Video", infoLabels = {"Title":name, "Director":director, "Plot":plot, "Year":int(year)})
-        xbmc.Player().play(match[0]+'|User-Agent='+UserAgent, listitem)
+        playlist=xbmc.PlayList(1)
+        playlist.clear()
+        for i in range(0,len(match)):
+            title = name+" 第"+str(i+1)+"/"+str(len(match))+"节"
+            listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
+            listitem.setInfo(type="Video",infoLabels={"Title":title})
+            playlist.add(match[i], listitem)
+        xbmc.Player().play(playlist)
     else:
         match = re.compile('<br/>提示：\s*(.*?)</td>', re.DOTALL).findall(link)
         dialog = xbmcgui.Dialog()
