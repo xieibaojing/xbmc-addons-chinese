@@ -2,27 +2,40 @@
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon
 import urllib2, urllib, httplib, time
 import os, sys, re, string, gzip, StringIO
+import cookielib
 import ChineseKeyboard
+
+if sys.version_info < (2, 7):
+    import simplejson
+else:
+    import json as simplejson
 
 ########################################################################
 # PPStream 网络电视 by cmeng
-# Version 2.1.7 2012-12-30 (cmeng)
-# - Fix continuous playback error
-
+# Version 2.2.0 2013-02-20 (cmeng)
+# - Update per lastest site design changes
+# - Update site link creation algorithm
+# - Update movie url link fetch
+# - Update video series list fetching method (json)
+# - Update video series category selection list creation
+# - add cookie support
+ 
 # See changelog.txt for previous history
 ########################################################################
 # Plugin constants 
-__addonname__     = "PPS 网络电视"
-__addonid__       = "plugin.video.ppstream"
-__settings__      = xbmcaddon.Addon(id=__addonid__)
-__cwd__           = xbmc.translatePath( __settings__.getAddonInfo('path') )
+__addonname__ = "PPS 网络电视"
+__addonid__   = "plugin.video.ppstream"
 __addon__ = xbmcaddon.Addon(id=__addonid__)
 __addonicon__ = os.path.join( __addon__.getAddonInfo('path'), 'icon.png' )
+__settings__  = xbmcaddon.Addon(id=__addonid__)
+__profile__   = xbmc.translatePath( __settings__.getAddonInfo('profile') )
+__cwd__       = xbmc.translatePath( __settings__.getAddonInfo('path') )
+cookieFile = __profile__ + 'cookies.ppstream'
 
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
-VIDEO_LIST = [['tv','电视剧'],['movie','电影'],['fun','综艺'],['anime','动漫']]
+VIDEO_LIST = [['c_tv','电视剧'],['c_movie','电影'],['c_zy','综艺'],['c_anime','动漫']]
 UGC_LIST = [['c10','原创'],['c11','音乐'],['c9','娱乐'],['c14','生活'],['c4','焦点'],['c12','游戏'],['c5','财经'],['c6','体育'],['c7','汽车'],['c8','科技'],['c15','时尚'],['c16','旅游'],['c18','母婴'],['c19','教育'],['c20','搞笑'],['c21','女性'],['c22','其它'],['c24','达人秀'],['c17','美食']]
-SORT_LIST = [['sum_online_num','按观众数'],['vote_num','按评分']]
+SORT_LIST = [['','播放最多'],['_o_2','评分最高'],['_o_3','最近更新']]
 COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]','[COLOR FFFF00FF]']
 MPLAYER_LIST = [['10','PPS'],['99','SMG'],['43','优酷'],['44','土豆'],['45','奇艺'],['46','搜狐'],['47','新浪'],['48','乐视']]
 VIDEO_RES = [["标清",'sd'],["高清",'hd'],["普通",''],["未注","null"]] 
@@ -37,24 +50,31 @@ orderlist = [['o1','最新发布'],['o2','最多播放'],['o3','最多评论'],[
 # - translate to utf8
 ##################################################################################
 def getHttpData(url):
-    print "getHttpData: "+url
+    print "getHttpData: " + url
+    # setup proxy support
     proxy = __addon__.getSetting('http_proxy')
     type = 'http'
     if proxy <> '':
         ptype = re.split(':', proxy)
         if len(ptype)<3:
             # full path requires by Python 2.4
-            proxy = type+'://'+proxy 
+            proxy = type + '://' + proxy 
         else: type = ptype[0]
         httpProxy = {type: proxy}
     else:
         httpProxy = {}
     proxy_support = urllib2.ProxyHandler(httpProxy)
-    #proxy_auth_handler = urllib2.ProxyBasicAuthHandler()
-    #proxy_auth_handler.add_password('realm', 'host', 'username', 'password')
-    opener = urllib2.build_opener(proxy_support)
-    #urllib2.install_opener(opener)
+
+    # setup cookie support
+    cj = cookielib.MozillaCookieJar(cookieFile)
+    if os.path.isfile(cookieFile):
+        cj.load(ignore_discard=True, ignore_expires=True)
+    else:
+        if not os.path.isdir(os.path.dirname(cookieFile)):
+            os.makedirs(os.path.dirname(cookieFile))
     
+    # create opener for both proxy and cookie
+    opener = urllib2.build_opener(proxy_support, urllib2.HTTPCookieProcessor(cj))
     req = urllib2.Request(url)
     req.add_header('User-Agent', UserAgent)
     
@@ -68,9 +88,11 @@ def getHttpData(url):
         else:
             httpdata = response.read()
             response.close()
+            cj.save(cookieFile, ignore_discard=True, ignore_expires=True)
+            for cookie in cj:
+                print cookie
             break
-        
-    #print 'httpdata', k, httpdata[:1000]
+
     httpdata = re.sub('\r|\n|\t', '', httpdata)
     match = re.compile('<meta.+?charset=["]*(.+?)"').findall(httpdata)
     if len(match):
@@ -99,46 +121,17 @@ def fetchID(dlist, idx):
 # - 按年份 (Year)
 ##################################################################################
 def getList(listpage):
-    match0 = re.compile('<dt>按类型</dt>(.+?)</ul>').findall(listpage)
-    match1 = re.compile('<a href="/.+?/(.+?)/(.+?)/.+?>(.+?)</a></li>').findall(match0[0])
-    catlist=[]
-    for typex, idx, cat in match1:
-        type = typex.split(',')
-        id = idx.split(',')
-        catid=''
-        for i in range(len(type)):
-            if type[i]=='genre':
-                catid = id[i]
-                break
-        catlist.append([catid,cat])
-            
-    match0 = re.compile('<dt>按国家/地区</dt>(.+?)</ul>').findall(listpage)
-    match1 = re.compile('<a href="/.+?/(.+?)/(.+?)/.+?>(.+?)</a></li>').findall(match0[0])
-    arealist=[]
-    for typex, idx, area in match1:
-        type = typex.split(',')
-        id = idx.split(',')
-        areaid=''
-        for i in range(len(type)):
-            if type[i]=='area':
-                areaid = id[i]
-                break
-        arealist.append([areaid,area])
+    catlist = arealist = yearlist = []
+    match = re.compile('<dt>按类型：</dt>(.+?)</ul>').findall(listpage)
+    catlist = re.compile('href="/v_list/c_[a-z]+([_st]*.*?)[_.]+.+?ml">(.+?)</a>').findall(match[0])
     
-    match0 = re.compile('<dt>按年份</dt>(.+?)</ul>').findall(listpage)
-    match1 = re.compile('<a href="/.+?/(.+?)/(.+?)/.+?>(.+?)</a></li>').findall(match0[0])
-    yearlist=[]
-    for typex, idx, year in match1:
-        type = typex.split(',')
-        id = idx.split(',')
-        yearid=''
-        for i in range(len(type)):
-            if type[i]=='year':
-                yearid = id[i]
-                break
-        yearlist.append([yearid,year])
+    match = re.compile('<dt>按地区：</dt>(.+?)</ul>').findall(listpage)
+    arealist = re.compile('href="/v_list/c_[a-z]+([_sa]*.*?)[_.]+.+?ml">(.+?)</a>').findall(match[0])
+ 
+    match = re.compile('<dt>按年份：</dt>(.+?)</ul>').findall(listpage)
+    yearlist = re.compile('href="/v_list/c_[a-z]+([_sy]*.*?)[_.]+.+?ml">(.+?)</a>').findall(match[0])
 
-    #print 'catlist...', catlist, arealist, yearlist
+    #print 'list...', catlist, arealist, yearlist
     return catlist, arealist, yearlist
 
 ##################################################################################
@@ -158,14 +151,14 @@ def mainMenu():
     for id, name in VIDEO_LIST:
         i = i+1
         li = xbmcgui.ListItem(str(i)+'. '+name)
-        u = sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&id="+id+"&page=1"+"&cat=全部"+"&area=全部"+"&year=全部"+"&order=按观众数"
+        u = sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&id="+id+"&page=1"+"&cat=全部"+"&area=全部"+"&year=全部"+"&order=播放最多"
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     
     # fetch the url for ugc channels, exclude those already in VIDEO_LIST 
     for cat, name in UGC_LIST:
         i = i+1
         li = xbmcgui.ListItem(str(i)+'. '+name)
-        u = sys.argv[0]+"?mode=11&name="+urllib.quote_plus(name)+"&id=ugc"+"&page=1"+"&cat="+cat+"&year=本周"+"&order=最多播放"
+        u = sys.argv[0]+"?mode=11&name="+urllib.quote_plus(name)+"&id=ugc"+"&page=1"+"&cat="+cat+"&year=本周"+"&order=最新发布"
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))  
@@ -176,13 +169,13 @@ def mainMenu():
 # - video items list
 # - user selectable pages
 #
-# http://v.pps.tv/type/area,genre,year,orderby_field,asc_desc/,,,sum_online_num,desc/page.html
-# type: video ID 电影类型
-# area: area 按国家/地区
-# genre: category 按类型
-# year: period 按年份
-# orderby: filter 排序方式: 众数 按评分 
-# asc_desc: sorting order
+# http://v.pps.tv/v_list/c_tv_st_%B0%AE%C7%E9_sa_%C4%DA%B5%D8_sy_2011_p_2.html
+# c_tv: video ID 电影类型
+# _st_: category 按类型
+# _sa_: area 按地区
+# _sy_year: period 按年份
+# _o_: filter 排序方式: 众数 按评分 
+#
 ##################################################################################
 #def progListMovie(name, id, page, cat, area, year, order):
 def progListMovie(name, id, page, cat, area, year, order, listpage):
@@ -190,35 +183,27 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
     p_url = ''
     catID = areaID = yearID = ''
     if listpage is None:  # first entry
-        p_url='http://v.pps.tv/'+id+'/area,genre,year,orderby_field,asc_desc/,,,sum_online_num,desc/1.html'
+        p_url='http://v.pps.tv/v_list/'+id+'_p_1.html'
         link = getHttpData(p_url)
-        #match = re.compile('<div class="m cf">(.+?)<div class="content mod_box ">').findall(link)
         
         # Extract filter list for user selection - list order valid on first entry only
-        cname = name
-        if cname =='综艺': cname = '娱乐' # take care ppstream inconsistent in listpage  
-        match = re.compile('<!--classification '+cname+'-->(.+?)<!--/classification-->').findall(link)
+        match = re.compile('<dl class="cate-panel">(.+?)</dl>').findall(link)
         listpage = match[0]
     catlist, arealist, yearlist = getList(listpage)   
-           
-    catstr = fetchID(catlist, cat)+','
-    if catstr != None: catID = 'genre,'
-    areastr = fetchID(arealist, area)+','
-    if areastr != None: areaID = 'area,'
-    yearstr = fetchID(yearlist, year)+','
-    if yearstr != None: yearID = 'year,'
-    sortID = fetchID(SORT_LIST, order)+','    
-    if sortID == ',': sortID = 'sum_online_num,'  
+ 
+    catID = fetchID(catlist, cat)
+    areaID = fetchID(arealist, area)
+    yearID = fetchID(yearlist, year)
+    sortID = fetchID(SORT_LIST, order)    
     videoID = fetchID(VIDEO_LIST, name)    
-    if videoID == '': videoID = 'movie'
                    
     # construct url based on user elected filter ID's
-    url = 'http://v.pps.tv/'+videoID+'/'+areaID+catID+yearID+'orderby_field,asc_desc/'+areastr+catstr+yearstr+sortID+'desc/'+page
+    url = 'http://v.pps.tv/v_list/'+videoID+catID+areaID+yearID+sortID+'_p_'+page
     url += '.html'
     if p_url <> url: # fetch http data if not first entry
         link = getHttpData(url)
 
-    match = re.compile('<li class="mv-item lrBx">(.+?)</dd>').findall(link)                  
+    match = re.compile('<li class="p-item list-item">(.+?)</ul></li>').findall(link)                  
     totalItems = len(match)
     if re.search(cat,'全部'): cat = '全部类型'
     if re.search(area,'全部'): area = '全部地区'
@@ -231,25 +216,33 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
 
     for i in range(0, len(match)):
         # Video & Series titles need different routines
-        if name == '电影': mode = '10'
-        else: mode = '3'
+        if name == '电影':
+            mode = '10'
+            match1 = re.compile('<a class="ico-item btn-syp" target="_blank" href="(.+?)">').findall(match[i])
+        else:
+            mode = '3'
+            match1 = re.compile('<a target="_blank" href="(.+?)">').findall(match[i])
 
-        match1 = re.compile('<a class="but" href="(.+?)" title="播放" target="PPS_PLAY">播放</a>').findall(match[i])
         # skip if no playback button for playing video
         if match1 == None: continue
         p_url = match1[0]
-        if not re.search('http:',p_url):
+        if not re.search('http:', p_url):
             p_url = 'http://v.pps.tv'+p_url
-                               
-        match1 = re.compile('.+?<img src="(.+?)" class="imgs".+?').findall(match[i])
-        p_thumb = match1[0]
-        match1 = re.compile('<dt class="t"><a href=".+?".+?title="(.+?)".+?</a></dt>').findall(match[i])
-        p_name = p_list = match1[0]
         
-        match1 = re.compile('<span class="score">(.+?)</span>').findall(match[i])
+        match1 = re.compile('<img class="thumb" alt="(.+?)".+?src="(.+?)"').findall(match[i])
+        p_thumb = match1[0][1]
+        p_name = p_list = match1[0][0]
+        
+        match1 = re.compile('<span class="status tr">[更新至]*(.*?)</span>').findall(match[i])
+        if len(match1[0].strip()) > 0: p_list += ' [COLOR AA00FFFF]['+match1[0].strip()+'][/COLOR]'
+
+        match1 = re.compile('<.+?class="score">(.+?)</').findall(match[i])
         if match1: p_list += ' ['+match1[0]+']'
+              
+        match1 = re.compile('<span class="clarity-HD">(.+?)</span>').findall(match[i])
+        if match1: p_list += ' [COLOR FF00FF00]['+match1[0]+'][/COLOR]'             
                
-        match1 = re.compile('<li>播放人次:<span class="rc">([0-9]+)</span></li>').findall(match[i])
+        match1 = re.compile('播放次数：(.+?)</span></li>').findall(match[i])
         if match1: p_list += ' [播放: '+match1[0]+']' #+ ' ('+p_url+')'
   
         li = xbmcgui.ListItem(str(i+1)+'. '+p_list, iconImage='', thumbnailImage=p_thumb)
@@ -313,22 +306,23 @@ def updateListMovie(name, id, page, cat, area, year, order, listpage):
 # - selected page & filters (user selectable)
 # - Video series list
 # - user selectable pages
+
+# ustr.decode('unicode-escape').encode('utf-8') 
 ##################################################################################
 def progListSeries(name, url, thumb, episodeSel):
-    link = getHttpData(url)
-    #episodeList = re.compile('<ul class="rv-inner">(.+?)</ul>').findall(link)
-    #listpage = episodeList[0]
-
-    epSet = re.compile('<span class="rv">(.+?)[\s]+?').findall(link)
-    if not epSet:
-        epSet = re.compile('<a href="#tag-[0-9]+">(.+?)</a>').findall(link)
+    # url = http://v.pps.tv/splay_156449.html
+    sid = re.compile('.+?_(.+?).html').findall(url)[0]
+    s_url = 'http://v.pps.tv/ugc/ajax/aj_newlongvideo.php?sid=' + sid + '&type=splay'
+    link = getHttpData(s_url)   #.replace('\\/','/')
+    jsd = simplejson.loads(link)
     
-    listpage=''  
-    for x in epSet: listpage += x + ','
-    listpage = listpage[:-1]
+    # let user select series option if more than 1 series option i.e. language, HD, related info etc
+    listpage = epSet = []
+    for opt in jsd['series_type']:
+        epSet.append(opt.encode('utf-8'))
+    if len(epSet) > 1:
+        episodeSel=updateListSeries(name,'1',thumb,listpage)
 
-    # let user select series option if on first time entry i.e. language, HD, related info etc
-    if episodeSel=='1' and len(epSet)>1: episodeSel=updateListSeries(name,'1',thumb,listpage)
     epsel = 0 
     eList = ''
     for i in range(0, len(epSet)):
@@ -336,60 +330,56 @@ def progListSeries(name, url, thumb, episodeSel):
         if epSet[i]==episodeSel: epsel = i
     if epSet: episodeSel=epSet[epsel]
     else: episodeSel=''
-        
-    li = xbmcgui.ListItem('[COLOR FFFF00FF]'+name+'[/COLOR]: (选择:'+episodeSel+')【'+eList+'】（按此选择）', iconImage='', thumbnailImage=thumb)
-    u = sys.argv[0]+"?mode=6&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url)+"&thumb="+urllib.quote_plus(thumb)+"&listpage="+urllib.quote_plus(listpage) 
+
+    li = xbmcgui.ListItem('[COLOR FFFF00FF]'+name+'[/COLOR]: [COLOR FF00FFFF](选择:'+episodeSel+')[/COLOR]【'+eList+'】（按此选择）', iconImage='', thumbnailImage=thumb)
+    u = sys.argv[0]+"?mode=3&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url)+"&thumb="+urllib.quote_plus(thumb) 
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     
-    # fetch and build the video series list / related info list
-    match = re.compile('<ul class="scroll-panel.+?">(.+?)</ul>').findall(link)  
-    if match:
-        matchp = re.compile('<li class="p-item(.+?)</li>').findall(match[0])                  
-        totalItems = len(matchp)
-        for i in range(0, len(matchp)):
-            match1 = re.compile('href="(.+?)"').findall(matchp[i])
-            p_url = match1[0]
-            
-            match1 = re.compile('<img.+?src="(.+?)"').findall(matchp[i])
-            p_thumb = match1[0]
+    # fetch and build the video series episode list
+    vlist = jsd['content'][epsel]
+    totalItems = len(vlist)
+    if jsd['have_time'] == "yes":
+        for tdate in sorted(vlist.iterkeys(), reverse=True):
+            alist = vlist[tdate]
+            #print 'date: ' + tdate
+            for i in range(0, len(alist)):
+                v_url = alist[i]['url_key']
+                p_thumb =  alist[i]['cover']
+                p_title =  alist[i]['title'].encode('utf-8')
+                p_time = alist[i]['video_time'].encode('utf-8')
+                date = alist[i]['d_echo'].encode('utf-8')
+                
+                p_list = p_name = date + ': ' + p_title
+                p_url = 'http://v.pps.tv/play_' + v_url + '.html#from_splay'
+                p_list += ' [' + p_time + '] '
 
-            match1 = re.compile('<div class="t"><a href=".+?">(.+?)</a>').findall(matchp[i])           
-            match2 = re.compile('<div class="des">(.+?)</div>').findall(matchp[i])           
-            p_list = p_name = match1[0].strip()+": "+match2[0]
-                        
-            match1 = re.compile('class="status">([\s:0-9]+)</span>').findall(matchp[i])
-            if match1: p_list+=' ['+match1[0].strip()+'] '          
-  
-            li = xbmcgui.ListItem(str(i+1)+'. '+p_list, iconImage='', thumbnailImage=p_thumb)
+                li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
+                u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems) 
+    else:
+        for i in range(0, len(vlist)):
+            v_url = vlist[i]['url_key']
+            p_thumb = vlist[i]['cover']
+            p_title = vlist[i]['title'].encode('utf-8')
+            p_time = vlist[i]['video_time'].encode('utf-8')
+            p_list = p_name = '第 ' + vlist[i]['order'].encode('utf-8') + ' 集: ' + p_title
+
+            p_url = 'http://v.pps.tv/play_' + v_url + '.html#from_splay'
+            p_list += ' [' + p_time + '] '
+       
+            li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
             u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
 
-    else:
-        match=re.compile('<div id="tag-'+str(epsel+1)+'" class="dra-version">(.+?)</ul>').findall(link)
-        if match:
-            matchp = re.compile(' <li id=(.+?)</li>').findall(match[0])                  
-            totalItems = len(matchp)
-            for i in range(0, len(matchp)):
-                match1 = re.compile('href="(.+?)"').findall(matchp[i])
-                p_url = 'http://v.pps.tv'+match1[0]
- 
-                match1 = re.compile('title="(.+?)"[\s]*>(.+?)</a>').findall(matchp[i])           
-                p_list = p_name = match1[0][1].strip() +': '+match1[0][0]
-             
-                li = xbmcgui.ListItem(str(i+1)+'. '+p_list, iconImage='', thumbnailImage='')
-                u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
-
     xbmcplugin.setContent(int(sys.argv[1]), '电视剧')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-           
+
 ##################################################################################
 # Routine to update video series list as per user selections
 # - 剧集列表 (Series Options)
 ##################################################################################
 def updateListSeries(name, url, thumb, listpage):
-    #elist = re.compile('<span class="rv">(.+?)[\s]+?').findall(listpage)
-    elist = listpage.split(',')
+    elist = listpage
     dialog = xbmcgui.Dialog()
     sel = dialog.select('剧集列表', elist)
     if sel != -1:
@@ -413,10 +403,10 @@ def progListUgc(name, id, page, cat, year, order):
     # Construct url based on filter ID's & selected page           
     url = 'http://v.pps.tv/'+id+'/list-'+cat+'-'+dateID+'-'+orderID+'-p'+page+'.html'
     link = getHttpData(url)
-    match = re.compile('<!--ugc-tag-list-->(.+?)<!--/ugc-tag-list-->').findall(link)
+    match = re.compile('<ul class="ugc-list">(.+?)<div class="page-nav">').findall(link)
              
     # Fetch & build ugc list for user selection, highlight user selected filter      
-    match = re.compile('<li class="ugc-item">(.+?)</ul>').findall(match[0])
+    match = re.compile('<li class="ugc-item">(.+?)</ul></li>').findall(match[0])
     totalItems = len(match)   
     li = xbmcgui.ListItem('[COLOR FFFF00FF]'+name+'[/COLOR]（第'+str(page)+'页）【[COLOR FFFFFF00]'+year+'[/COLOR]/[COLOR FF00FFFF]'+order+'[/COLOR]】（按此选择）')
     u = sys.argv[0]+"?mode=12&name="+urllib.quote_plus(name)+"&id="+id+"&cat="+cat+"&year="+year+"&order="+order
@@ -437,7 +427,7 @@ def progListUgc(name, id, page, cat, year, order):
         match1 = re.compile('<span class="nm">播放：</span>([0-9]+)<a.+?').findall(match[i])      
         if match1: p_name += ' [播放: '+match1[0]+']' #+' ('+p_url+')'  
           
-        match1 = re.compile('class="imgm" src="(.+?)">').findall(match[i])
+        match1 = re.compile('<img src="(.+?)"').findall(match[i])
         p_thumb = match1[0]
         
         p_list = str(i+1)+'. '+p_name
@@ -526,7 +516,8 @@ def getMovie(name, url, thumb):
 ##################################################################################
 def PlayVideo(name, url):
     link = getHttpData(url)
-    match = re.compile('p2p_src:[\s]+"(.*?)"').findall(link)
+    match = re.compile('p2p_src.+?"(.+?)"').findall(link)
+    #match =["pps://hwshzjoqednezs5t2aqh2lrzslica.pps/f98cfd0eee8fae402f874577a4b3dad27fb48bf2.pfv?maingen=内地剧场"]
     if not match: # try second method to fetch pps video link
         matchp = re.compile('play_(.+?).html').findall(url)
         p_url = 'http://active.v.pps.tv/check_play_'+matchp[0]+'.js' 

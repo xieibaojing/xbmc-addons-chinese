@@ -1,6 +1,15 @@
 ﻿########################################################################
 # PPStream 网络电视
 ########################################################################
+# PPStream 网络电视 by cmeng
+# Version 2.2.0 2013-02-20 (cmeng)
+# - Update per lastest site design changes
+# - Update site link creation algorithm
+# - Update movie url link fetch
+# - Update video series list fetching method (json)
+# - Update video series category selection list creation
+# - add cookie support
+
 # Version 2.1.7 2012-12-30 (cmeng)
 # - Fix continuous playback error
 
