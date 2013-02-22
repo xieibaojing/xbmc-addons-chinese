@@ -2,6 +2,10 @@
 # PPStream 网络电视
 ########################################################################
 # PPStream 网络电视 by cmeng
+# Version 2.2.1 2013-02-22 (cmeng)
+# - Fixed missing page # selection
+# - Fixed video search function
+
 # Version 2.2.0 2013-02-20 (cmeng)
 # - Update per lastest site design changes
 # - Update site link creation algorithm
