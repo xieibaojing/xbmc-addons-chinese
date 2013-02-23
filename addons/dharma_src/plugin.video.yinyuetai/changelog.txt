@@ -1,6 +1,11 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.6.0 2013-02-23 (cmeng)
+# - Update per site design changes
+# - Update 音悦台 - V榜 video list generation
+# - Fixed 全部MV search filter to '排序方式:最新发布' 
+
 # Version 1.5.10 2012-12-08 (cmeng)
 # - Fix video link search for listFocusMV webpage
 
