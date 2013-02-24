@@ -1,38 +1,18 @@
 ﻿########################################################################
-# # PPTV视频 for XBMC by Uranus Zhou, 2012
+# PPS网络电视(PPS客户端)
 ########################################################################
-# Version 1.1.6 2013-01-03 (cmeng)
-# - PPSAP option added (default disabled - v1.1.3 streaming method)
+# Version 1.0.2 2012-08-04 (cmeng)
+# - add sort to menu listing (keeping numbering) 
+# - replace ElementTree deprecated function getiterator()
+# - correct script error in (year)-cause items list filtering
 
-# Version 1.1.5 2013-01-03 (cmeng)
-# - fix TV broadcast stream video start time
+# Version 1.0.1 2012-07-28 (cmeng)
+# - change default.py text string to utf-8 for non-Chinese OS display
+# - clean up python syntax error
+# - clean up xbmc deprecated function call
+# - add in chinese keyboard support
+# - change search url querry string
 
-# Version 1.1.4 2013-01-01 (cmeng)
-# - Update TV broadcast link decode algorithm
-
-# Version 1.1.3 2012-10-31 (Uranus Zhou)
-# - Update ternary expression for Python 2.x
-# - Use simplejson instead of json in Python 2.4/2.5 (like Xbox)
-
-# Version 1.1.2 2012-10-30 (Uranus Zhou)
-# - Replace ternary 'if else' with normal 'if else'
-# - Let this work in XBMC system with Python lower than 2.5 (like Xbox)
-
-# Version 1.1.1 2012-10-25 (Uranus Zhou)
-# - Fix incorrect live video list bug
-# - If a live video doesn't have direct video link, search to get link
-# - PPTV m3u8 may still doesn't play well in some XBMC system
-
-# Version 1.1 2012-10-25 (Uranus Zhou)
-# - Support searching PPTV videos using XBMC Chinese Keyboard
-# - If searched video is not provided by PPTV, give user a tip message
-# - Give user a tip message if try to play PPTV VIP video
-# - Fix can't load some TV series video list bug
-
-# Version 1.0 2012-10-23 (Uranus Zhou)
-# - Initial cross-platform release (include live stream support)
-# - Support differnt video qualities : normal/hd/full hd/blue-ray/iPad
-# - Set default video quality to : hd, you can change this in settings
-# - Support iPad live stream (m3u8) and non-live stream (m3u)
-# - Your XBMC system need m3u and m3u8 support for iPad streams
+# Version 1.0.0 2012-07-23 (yxnr)
+# - initial release
 ########################################################################
