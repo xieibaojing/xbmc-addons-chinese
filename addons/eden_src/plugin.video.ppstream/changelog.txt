@@ -1,6 +1,9 @@
 ﻿########################################################################
 # PPStream 网络电视
 ########################################################################
+# Version 2.2.2 2013-02-27 (cmeng)
+# - Use single item playback for search ugc video
+
 # PPStream 网络电视 by cmeng
 # Version 2.2.1 2013-02-22 (cmeng)
 # - Fixed missing page # selection

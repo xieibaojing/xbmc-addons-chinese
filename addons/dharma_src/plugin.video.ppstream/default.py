@@ -735,7 +735,7 @@ def ppsSearchList(name, url, page):
         p_thumb = match1[0]
         
         li = xbmcgui.ListItem(str(n+i)+". "+p_list, iconImage="", thumbnailImage=p_thumb)
-        u = sys.argv[0]+"?mode=14&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+        u = sys.argv[0]+"?mode=15&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
             
     # Fetch and build user selectable page number 
@@ -1130,6 +1130,8 @@ elif mode == 12:
     updateListUgc(name, id, cat, year, order) 
 elif mode == 14:
     playVideoUgc(name, url, thumb)    
+elif mode == 15:
+    playVideoUgcX(name, url, thumb)    
     
 elif mode == 21:
     getInfo(name, id, thumb)
