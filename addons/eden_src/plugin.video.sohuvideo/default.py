@@ -576,7 +576,7 @@ def performChanges(name,id,cat,area,year,p5,p6,p11,order,listpage):
             sel = dialog.select('年份', list)
             if sel != -1:
                 if sel == 0:
-                    year = '-1'
+                    year = ''
                 else:
                     year = yearlist[sel][0]
                 change = True
