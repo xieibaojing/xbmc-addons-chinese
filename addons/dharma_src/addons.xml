@@ -395,7 +395,7 @@
 
 <addon id="plugin.video.sohuvideo"
     name="搜狐视频(SoHu)"
-    version="2.3.3"
+    version="2.3.4"
     provider-name="Taxigps">
     <requires>
         <import addon="script.module.keyboard.chinese" version="1.0.0"/>

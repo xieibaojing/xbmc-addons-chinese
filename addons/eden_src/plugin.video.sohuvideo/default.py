@@ -28,8 +28,8 @@ __profile__   = xbmc.translatePath( __settings__.getAddonInfo('profile') )
 cookieFile    = __profile__ + 'cookies.sohu'
 
 RATE_LIST = [['超清','3'], ['高清','2'], ['普通','1'], ]
-CHANNEL_LIST = [['电影','100'],['电视剧','101'],['动漫','115'],['综艺','106'],['纪录片','107'],['音乐','121'],['教育','119'],['新闻 ','122'],['娱乐 ','112'],['搞笑 ','133'],['游戏','128'],['原创','124'],['体育','125'],['汽车','126'],['旅游','131'],['星尚 ','130']]
-ORDER_LIST = [['','相关程度'],['5','日播放最多'],['7','周播放最多'],['1','总播放最多'],['3','最新发布'],['4','评分最高']]
+CHANNEL_LIST = [['电影','100'],['电视剧','101'],['动漫','115'],['综艺','106'],['纪录片','107'],['音乐','121'],['教育','119'],['新闻 ','122'],['娱乐 ','112'],['星尚 ','130']]
+ORDER_LIST = [['7','周播放最多'],['5','日播放最多'],['1','总播放最多'],['3','最新发布'],['4','评分最高']]
 
 LIVEID_URL = 'http://live.tv.sohu.com/live/player_json.jhtml?lid=%s&af=1&bw=531&type=1&g=8'
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
@@ -112,54 +112,44 @@ def searchDict(dlist,idx):
 # - etc
 ##################################################################################
 def getcatList(listpage):
-    match = re.compile('<li><span>类型：</span></li>.+?全部</a></li>(.+?)</ul>', re.DOTALL).findall(listpage)
-    catlist = re.compile('p2(.+?)_p3.+?>(.+?)</a></li>', re.DOTALL).findall(match[0])
-    if len(catlist)>0: catlist.insert(0,['0','全部'])
+    match = re.compile('<dt>类型：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
+    catlist = re.compile('p2(.*?)_p3.+?>(.+?)</a>', re.DOTALL).findall(match[0])
     return catlist
 
 def getareaList(listpage):
-    match = re.compile('<li><span>产地：</span></li>.+?全部</a></li>(.+?)</ul>', re.DOTALL).findall(listpage)
-    arealist = re.compile('p3(_.+?)_p4.+?>(.+?)</a></li>', re.DOTALL).findall(match[0])
-    if len(arealist)>0: arealist.insert(0,['0','全部'])
+    match = re.compile('<dt>产地：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
+    arealist = re.compile('p3(.*?)_p4.+?>(.+?)</a>', re.DOTALL).findall(match[0])
     return arealist
 
 def getyearList(listpage):    
-    match = re.compile('<li><span>年份：</span></li>.+?全部</a></li>(.+?)</ul>', re.DOTALL).findall(listpage)
-    yearlist = re.compile('p4(.+?)_p5.+?>(.+?)</a></li>', re.DOTALL).findall(match[0])
-    if len(yearlist)>0: yearlist.insert(0,['0','全部'])
+    match = re.compile('<dt>年份：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
+    yearlist = re.compile('p4(.*?)_p5.+?>(.+?)</a>', re.DOTALL).findall(match[0])
     return yearlist
 
 def getlabelList(listpage): # label & area share the same _P3   
-    match = re.compile('<li><span>标签：</span></li>.+?全部</a></li>(.+?)</ul>', re.DOTALL).findall(listpage)
-    arealist = re.compile('p3(_.+?)_p4.+?>(.+?)</a></li>', re.DOTALL).findall(match[0])
-    if len(arealist)>0: arealist.insert(0,['0','全部'])
-    return arealist
+    match = re.compile('<dt>标签：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
+    catlist = re.compile('p2(.*?)_p3.+?>(.+?)</a>', re.DOTALL).findall(match[0])
+    return catlist
 
 def getList16(listpage):    
-    match = re.compile('<li><span>篇幅：</span></li>.+?全部</a></li>(.+?)</ul>', re.DOTALL).findall(listpage)
-    pflist = re.compile('p5(.+?)_p6.+?>(.+?)</a></li>', re.DOTALL).findall(match[0])
-    if len(pflist)>0: pflist.insert(0,['0','全部'])
-    match = re.compile(' <li><span>年龄：</span></li>.+?全部</a></li>(.+?)</ul>', re.DOTALL).findall(listpage)
-    nllist = re.compile('p6(.+?)_p7.+?>(.+?)</a></li>', re.DOTALL).findall(match[0])
-    if len(nllist)>0: nllist.insert(0,['0','全部'])
+    match = re.compile('<dt>篇幅：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
+    pflist = re.compile('p5(.*?)_p6.+?>(.+?)</a>', re.DOTALL).findall(match[0])
+    match = re.compile('<dt>年龄：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
+    nllist = re.compile('p6(.*?)_p7.+?>(.+?)</a>', re.DOTALL).findall(match[0])
     return pflist,nllist
            
 def getList24(listpage):
-    match = re.compile('<li><span>类型：</span></li>.+?全部</a></li>(.+?)</ul>', re.DOTALL).findall(listpage)
-    lxlist = re.compile('p5(.+?)_p6.+?html">(.+?)</a></li>', re.DOTALL).findall(match[0])
-    if len(lxlist)>0: lxlist.insert(0,['0','全部'])
-    match = re.compile('<li><span>歌手：</span></li>.+?全部</a></li>(.+?)</ul>', re.DOTALL).findall(listpage)
-    gslist = re.compile('p6(.+?)_p7.+?html">(.+?)</a></li>', re.DOTALL).findall(match[0])
-    if len(gslist)>0: gslist.insert(0,['0','全部'])
-    match = re.compile('<li><span>语言：.+?全部</a></li>(.+?)</ul>', re.DOTALL).findall(listpage)
-    yylist = re.compile('_p101_p11(.+?).html">(.+?)</a></li>', re.DOTALL).findall(match[0])
-    if len(yylist)>0: yylist.insert(0,['0','全部'])
-    match = re.compile('<li><span>地区：</span></li>.+?全部</a></li>(.+?)</ul>', re.DOTALL).findall(listpage)
-    arealist = re.compile('p3(_.+?)_p4.+?>(.+?)</a></li>', re.DOTALL).findall(match[0])
-    if len(arealist)>0: arealist.insert(0,['0','全部'])
-    match = re.compile('<li><span>风格：</span></li>.+?全部</a></li>(.+?)</ul>', re.DOTALL).findall(listpage)
-    fglist = re.compile('p2(.+?)_p3.+?>(.+?)</a></li>', re.DOTALL).findall(match[0])
-    if len(fglist)>0: fglist.insert(0,['0','全部'])
+    match = re.compile('<dt>类型：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
+    lxlist = re.compile('p5(.*?)_p6.+?html">(.+?)</a>', re.DOTALL).findall(match[0])
+    match = re.compile('<dt>歌手：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
+    gslist = re.compile('p6(.*?)_p7.+?html">(.+?)</a>', re.DOTALL).findall(match[0])
+    match = re.compile('<dt>语言：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
+    yylist = re.compile('_p101_p11(.+?).html">(.+?)</a>', re.DOTALL).findall(match[0])
+    if len(yylist)>0: yylist.insert(0,['','全部'])
+    match = re.compile('<dt>地区：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
+    arealist = re.compile('p3(.*?)_p4.+?>(.+?)</a>', re.DOTALL).findall(match[0])
+    match = re.compile('<dt>风格：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
+    fglist = re.compile('p2(.*?)_p3.+?>(.+?)</a>', re.DOTALL).findall(match[0])
     return lxlist,gslist,yylist,arealist,fglist
 
 ##################################################################################
@@ -187,10 +177,10 @@ def rootList():
     i = 1
     for name, id in CHANNEL_LIST:
         i += 1
-        if id in ('125','130','131','133'): order = '3'
-        else: order = ''        
+        if id in ('130'): order = '1'
+        else: order = '7'
         li=xbmcgui.ListItem(str(i) + '. ' + name)
-        u=sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&page=1"+"&cat="+"&area="+"&year=-1"+"&p5="+"&p6="+"&p11="+"&order="+order 
+        u=sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&page=1"+"&cat="+"&area="+"&year="+"&p5="+"&p6="+"&p11="+"&order="+order 
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -223,30 +213,30 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
 
     currpage = int(page)
     link = getHttpData(url)
-    match = re.compile('共有 <span>(.+?)</span> 个符合条件', re.DOTALL).findall(link)
+    match = re.compile('共有<span.*?>(.+?)</span> 个符合条件', re.DOTALL).findall(link)
     if match[0]=='0':
         dialog = xbmcgui.Dialog()
         ok = dialog.ok(__addonname__, '没有符合此条件的视频！')
     else:
-        match = re.compile('c.+?[1-9]+/([0-9]+)<a href=').findall(link)
-        if len(match) == 0:
-            match = re.compile('c.+?[1-9]+/([0-9]+)下一页</div>').findall(link)
-        totalpages = int(match[0])
-            
-        match = re.compile('<div class="seaKey bord clear" id="seaKey">(.+?)<div class="jumpA clear">', re.DOTALL).findall(link)
+        totalpages = int(round((float(match[0]) / 20) + 0.5))
+        if totalpages>200:
+            totalpages = 200
+        match = re.compile('<div class="mod-con">(.+?)</div>', re.DOTALL).findall(link)
         if len(match):
             listpage = match[0]
         else:
             listpage = ''
 
-        # match = re.compile('<div class="vInfo">(.+?)</em></p>', re.DOTALL).findall(link)
-        match = re.compile('<div class="vInfo">(.+?)播 放</a>', re.DOTALL).findall(link)
+        match = re.compile('<li class="clear">(.+?)</li>', re.DOTALL).findall(link)
         totalItems = len(match) + 1
         if currpage > 1: totalItems = totalItems + 1
         if currpage < totalpages: totalItems = totalItems + 1
         lxstr=''
-        if id not in ('121','124','125','126','128','130','131','133'):
-            catlist= getcatList(listpage)
+        if id not in ('121'):
+            if id in ('130'):
+                catlist= getlabelList(listpage)
+            else:
+                catlist= getcatList(listpage)
             lxstr += '[COLOR FFFF0000]'
             if cat:
                 lxstr += searchDict(catlist,cat)
@@ -254,16 +244,7 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
                 lxstr += '全部类型'
             lxstr += '[/COLOR]'
 
-        if id in ('124','125','126','128','130','131','133'):
-            arealist = getlabelList(listpage)
-            lxstr += '/[COLOR FF00FF00]'
-            arealist= getlabelList(listpage)
-            if area:
-                lxstr += searchDict(arealist,area)
-            else:
-                lxstr += '全部标签'
-            lxstr += '[/COLOR]'
-        elif id in ('100','101','106'):          
+        if id in ('100','101','106'):          
             lxstr += '/[COLOR FF00FF00]'
             arealist= getareaList(listpage)
             if area:
@@ -318,7 +299,7 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
         if id in ('100','101','115','121'):
             lxstr += '/[COLOR FF5555FF]'
             yearlist = getyearList(listpage)
-            if year=='-1':
+            if year=='':
                 lxstr += '全部年份'
             elif year in ('80','90'):
                 lxstr += year+'年代'
@@ -333,73 +314,46 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
         for i in range(0,len(match)):
-            match1 = re.compile('<a href="(.+?)" target="_blank">\s*<img src="(.+?)".+? target="_blank">(.+?)</a>', re.DOTALL).search(match[i])
-            p_url = match1.group(1)
-            p_thumb = match1.group(2)
-            p_name = match1.group(3)
-            match1 = re.compile('<span class="commet">\(([0-9]+)人评价\)</span><span class="grade"><font>([0-9]*)</font>([\.0-9]*).*?</span>').search(match[i])
+            match1 = re.compile('<a target="_blank" title="(.+?)" href="(.+?)">', re.DOTALL).search(match[i])
+            p_name = match1.group(1)
+            p_url = match1.group(2)
+            match1 = re.compile('<img src="(.+?)"', re.DOTALL).search(match[i])
+            p_thumb = match1.group(1)
+            p_rating = 0
+            p_votes = ''
+            p_director = ''
+            p_genre = ''
+            match1 = re.compile('<p class="desc">(.+?)</p>').search(match[i])
             if match1:
-                p_rating = float(match1.group(2) + match1.group(3))
-                p_votes = match1.group(1)
-            else:
-                p_rating = 0
-                p_votes = ''
-            match1 = re.compile('导演：.+?</font>(.+?)</a>').search(match[i])
-            if match1:
-                p_director = match1.group(1)
-            else:
-                p_director = ''
-            match1 = re.compile('<span class="show">类型：(.+?</span>)').search(match[i])
-            if match1:
-                match0 = re.compile('<font class="highlight"></font>([^<]+)').findall(match1.group(1))
-                p_genre = ' / '.join(match0)
-            else:
-                p_genre = ''
-            match1 = re.compile('<p class="detail">(.+?)(</p>|</b>)').search(match[i])
-            if match1:
-                p_plot = re.sub('<b id=.*?>','',match1.group(1))
+                p_plot = match1.group(1)
             else:
                 p_plot = ''
-            match1 = re.compile('<font>年份：<a href="\?c=1&year=([0-9]+)">').search(match[i])
-            if match1:
-                p_year = int(match1.group(1))
-            else:
-                p_year = 0
+            p_year = 0
  
-            if id in ('101','115'):
+            if id in ('101','115','106','107','119'):
                 p_dir = True
                 mode = 2
-            elif id == '119': # 教育 category contains both series and movie link
-                if re.search('http://tv.sohu.com/', p_url):
-                    p_dir = True
-                    mode = 2
-                else:
-                    p_dir = False
-                    mode=5
-            elif id in ('124','125','126','128','130','131','133'):
-                p_dir = False
-                mode=5
             else:
                 p_dir = False
                 mode = 3
-            
-            if match[i].find('<span class="cq_ico">')>0:
-                p_name1 = p_name + ' [超清]'
-                p_res = 2
-            elif match[i].find('<span class="gq_ico">')>0:
-                p_name1 = p_name + ' [高清]'
-                p_res = 1
+
+            match1 = re.compile('<span></span><i>(.+?)</i>').search(match[i])
+            if match1:
+                p_name1 = p_name + ' [' + match1.group(1) + ']'
             else:
                 p_name1 = p_name
+            if match[i].find('<em class="super"')>0:
+                p_name1 += ' [超清]'
+                p_res = 2
+            elif match[i].find('<em class="op"')>0:
+                p_name1 += ' [高清]'
+                p_res = 1
+            else:
                 p_res = 0
                 
-            match1 = re.compile('<div class="label"><i></i><em>(.+?)</em></div>').search(match[i])
+            match1 = re.compile('<em class="pay">').search(match[i])
             if match1:
-                label = match1.group(1)
-                if '分' in label:
-                    label = re.sub('分',':',label)[:-3]
-                p_name1 += ' [' + label.strip(' ') + ']'
-            
+                p_name1 += ' [会员]'
             
             li = xbmcgui.ListItem(str(i + 1) + '. ' + p_name1, iconImage = '', thumbnailImage = p_thumb)
             u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)+"&id="+urllib.quote_plus(str(i))
@@ -407,17 +361,14 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, p_dir, totalItems)
     
         # Fetch and build user selectable page number
-        matchp = re.compile('<div class="jumpB clear">(.+?)</div>', re.DOTALL).findall(link)
+        matchp = re.compile('<div class="page">(.+?)</div>', re.DOTALL).findall(link)
         if len(matchp): 
-            matchp1 = re.compile('<a href=".+?">([1-9]+)</a>', re.DOTALL).findall(matchp[0])
+            matchp1 = re.compile('<a href=".+?>([0-9]+)</a>', re.DOTALL).findall(matchp[0])
             if len(matchp1):
-                plist=[str(currpage)]
                 for num in matchp1:
-                    if num not in plist:
-                        plist.append(num)
-                        li = xbmcgui.ListItem("... 第" + num + "页")
-                        u=sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&id="+id+"&page="+str(num)+"&cat="+cat+"&area="+area+"&year="+year+"&p5="+p5+"&p6="+p6+"&p11="+p11+"&order="+order 
-                        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)        
+                    li = xbmcgui.ListItem("... 第" + num + "页")
+                    u=sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&id="+id+"&page="+str(num)+"&cat="+cat+"&area="+area+"&year="+year+"&p5="+p5+"&p6="+p6+"&p11="+p11+"&order="+order 
+                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)        
         xbmcplugin.setContent(int(sys.argv[1]), 'movies')
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -524,8 +475,11 @@ def seriesList(name, id,url,thumb):
 def performChanges(name,id,cat,area,year,p5,p6,p11,order,listpage):
     change = False
     dialog = xbmcgui.Dialog()
-    if id not in ('121','124','125','126','128','130','131','133'):
-        catlist= getcatList(listpage)
+    if id not in ('121'):
+        if id in ('130'):
+            catlist= getlabelList(listpage)
+        else:
+            catlist= getcatList(listpage)
         if len(catlist)>0:
             list = [x[1] for x in catlist]
             sel = dialog.select('类型', list)
@@ -536,18 +490,7 @@ def performChanges(name,id,cat,area,year,p5,p6,p11,order,listpage):
                     cat = catlist[sel][0]
                 change = True
             
-    if id in ('124','125','126','128','130','131','133'):
-        arealist= getlabelList(listpage)
-        if len(arealist)>0:
-            list = [x[1] for x in arealist]
-            sel = dialog.select('标签', list)
-            if sel != -1:
-                if sel == 0:
-                    area = ''
-                else:
-                    area = arealist[sel][0]
-                change = True       
-    elif id in ('100','101','106'):
+    if id in ('100','101','106'):
         arealist=getareaList(listpage)
         if len(arealist)>0:
             list = [x[1] for x in arealist]
