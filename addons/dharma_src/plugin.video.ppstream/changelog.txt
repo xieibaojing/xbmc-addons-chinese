@@ -1,6 +1,10 @@
 ﻿########################################################################
 # PPStream 网络电视
 ########################################################################
+# Version 2.2.3 2013-03-16 (cmeng)
+# - update pps video link search algorithm 
+# - Use ugc playback for ppstream video on Linux system
+
 # Version 2.2.2 2013-02-27 (cmeng)
 # - Use single item playback for search ugc video
 

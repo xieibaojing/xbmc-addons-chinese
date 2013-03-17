@@ -12,9 +12,9 @@ else:
 
 ########################################################################
 # PPStream 网络电视 by cmeng
-# Version 2.2.1 2013-02-22 (cmeng)
-# - Fixed missing page # selection
-# - Fixed video search function
+# Version 2.2.3 2013-03-16 (cmeng)
+# - update pps video link search algorithm 
+# - Use ugc playback for ppstream video on Linux system
  
 # See changelog.txt for previous history
 ########################################################################
@@ -512,22 +512,36 @@ def getMovie(name, url, thumb):
 #    match = ['pps://hwqmupwqeb6oiief2aqh2lrid7ica.pps/8bcd8aa4e01c87164d99f315a7c5b5f11c848767.pfv']
 ##################################################################################
 def PlayVideo(name, url):
+    pps4xbmc_en = __addon__.getSetting('pps4xbmc_en')
+    if (pps4xbmc_en == 'false' or os.name != 'nt'):   
+        playVideoUgcX(name, url, 'None')    
+        return
+    
     link = getHttpData(url)
-    match = re.compile('p2p_src.+?"(.+?)"').findall(link)
-    #match =["pps://hwshzjoqednezs5t2aqh2lrzslica.pps/f98cfd0eee8fae402f874577a4b3dad27fb48bf2.pfv?maingen=内地剧场"]
-    if not match: # try second method to fetch pps video link
+    match = re.compile('p2p_src.+?"(.*?)"').findall(link)
+    # match= "pps://hwshzjoqednezs5t2aqh2lrzslica.pps/f98cfd0eee8fae402f874577a4b3dad27fb48bf2.pfv?maingen=内地剧场"
+
+    if match[0]=='': # null - try second method to fetch pps video link
         matchp = re.compile('play_(.+?).html').findall(url)
-        p_url = 'http://active.v.pps.tv/check_play_'+matchp[0]+'.js' 
+
+#        method not working since 14/03/2013
+#        p_url = 'http://active.v.pps.tv/check_play_'+matchp[0]+'.js' 
+#        link = getHttpData(p_url)
+#        match = re.compile('var src="(.*?)"').findall(link)
+
+        # http://dp.ppstream.com/get_play_url_cdn.php?sid=31K53L&flash_type=1&region=%E6%96%B0%E5%8A%A0%E5%9D%A1&operator=%E6%9C%AA%E7%9F%A5
+        # link = 'http://vurl.ppstv.com/ugc/b/78/b10ceb16db9af51664f70ce29a7afae482677f6f/b10ceb16db9af51664f70ce29a7afae482677f6f.pfv?hd=0&all=0&title=新妓生传国语版-01&vtypeid=1&fd=1&ct=2869&sha=b10ceb16db9af51664f70ce29a7afae482677f6f&fid=UMJ4L7DL5DBVZQDWPYMJ6NDOK5HYZCXA&bip=http://bip.ppstream.com/U/UM/UMJ4L7DL5DBVZQDWPYMJ6NDOK5HYZCXA/UMJ4L7DL5DBVZQDWPYMJ6NDOK5HYZCXA.bip&sbest=vurl.pps.tv&tip=0&tracker=118.194.167.14,118.194.167.12'
+        p_url = 'http://dp.ppstream.com/get_play_url_cdn.php?sid='+matchp[0]+'&flash_type=1&type=0'
         link = getHttpData(p_url)
-        match = re.compile('var src="(.*?)"').findall(link)
-        if match: match[0]=match[0].decode("gbk").encode("utf8")
+        match = re.compile('(.+?)\?hd=').findall(link)
+        #if match: match[0]=match[0].decode("gbk").encode("utf8")
 
     if match:
         v_url = match[0]
         if v_url == '':  # pps link not found, try ugc playback 
-            playVideoUgc(name, url, 'None')
+            playVideoUgcX(name, url, 'None')
         else:
-            print "videolink: "+v_url
+            print "videolink: " + v_url
             xbmc.executebuiltin('System.ExecWait(\\"'+__cwd__+'\\resources\\player\\pps4xbmc\\" '+v_url+')')
     else: # exhausted all attempts
         dialog = xbmcgui.Dialog()
