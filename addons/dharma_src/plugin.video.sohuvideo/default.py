@@ -756,7 +756,6 @@ def PlayVideo(name,url,thumb):
             url = 'http://new.sohuv.dnion.com'+newpaths[i]+'?key='+key
         urls.append(url)
     stackurl = 'stack://' + ' , '.join(urls)
-    print stackurl
     listitem = xbmcgui.ListItem(name,thumbnailImage=thumb)
     listitem.setInfo(type="Video",infoLabels={"Title":name})
     xbmc.Player().play(stackurl, listitem)
