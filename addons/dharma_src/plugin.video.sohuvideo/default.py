@@ -3,22 +3,6 @@ import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, urlparse, httplib,
 import cookielib, time
 import ChineseKeyboard
        
-############################################################
-# 搜狐视频(SoHu) by taxigps, 2011
-############################################################
-# Version 2.3.0 (2012-07-12 - cmeng)
-# - Add & Update CHANNEL_LIST latest Categories and ID
-# - Improve PlayVideo Reliability
-# - Added new PlayVideoUgc
-# - Provide video search function
-# - Include Cookie support (needed by certain categories) 
-# - Include Proxy support (must be transparent for video link - header)
-
-# Version 2.1.4 (2011)
-# Modified by wow1122/wht9000@gmail.com
-# Modified by fxfboy@gmail.com
-############################################################
-
 # Plugin constants 
 __addonname__ = "搜狐视频(SoHu)"
 __addonid__   = "plugin.video.sohuvideo"
@@ -759,8 +743,7 @@ def PlayVideo(name,url,thumb):
        return
     newpaths = match[0].split('","')
     
-    playlist = xbmc.PlayList(1)
-    playlist.clear()
+    urls = []
     for i in range(0,len(paths)):
         p_url = 'http://data.vod.itc.cn/?prot=2&file='+paths[i].replace('http://data.vod.itc.cn','')+'&new='+newpaths[i]
         link = getHttpData(p_url)
@@ -771,71 +754,12 @@ def PlayVideo(name,url,thumb):
             url = link.split('|')[0].rstrip("/")+newpaths[i]+'?key='+key
         else:
             url = 'http://new.sohuv.dnion.com'+newpaths[i]+'?key='+key
-        title = name+" 第"+str(i+1)+"/"+str(len(paths))+"节"
-        listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
-        listitem.setInfo(type="Video",infoLabels={"Title":title})
-        #print 'i, link, key, url, title', i, link, key, url, title
-        playlist.add(url, listitem)
-        if i == 0: 
-            xbmc.Player().play(playlist)
-
-##################################################################################
-# Sohu Video Link Decode Algorithm & Player
-# Extract all the video list and start playing first found valid link
-# User may press <SPACE> bar to select video resolution for playback
-# Only one video resoluton is provided
-#
-# http://my.tv.sohu.com/u/vw/26542854  
-# http://my.tv.sohu.com/videinfo.jhtml?m=viewnew&vid=26542854&af=1&bw=722&g=8&referer=http://my.tv.sohu.com/u/vw/26542854&t=0.2265001619234681  
-# http://61.135.183.46/?prot=2&file=g17.f.video.sohu.com/88868f4eae2219b1f9a25647ea2096cf0edd71e6c7e0ca374ab14196b3a7f556bf224dbb2f617a53.mp4&new=/196/48/VVPoipyoBwvOyxtNf3MNj7.mp4&t=0.30849113827571273
-# http://newflv.sohu.ccgslb.net/196/238/YNWLzmwirSzs4IOUZM80Z.mp4?key=lyaN5VbuiPJ0ZzhxmcnKugDllMHEkGpX
-# http://127.0.0.1:8828/notify_buffer?uuid=3d168a12-6299-62c7-d197-79f38ede6b9e&r=0.7472089589573443
-##################################################################################
-def PlayVideoUgc(name,url,thumb):
-    site = int(__addon__.getSetting('videosite'))
-    p_vid = url.split('/')[-1]
-      
-    p_url = 'http://my.tv.sohu.com/videinfo.jhtml?m=viewnew&vid='+ p_vid
-    link = getHttpData(p_url)
- 
-    match = re.compile('"clipsURL"\:\["(.+?)"\]').findall(link)
-    paths = match[0].split('","')
-    match = re.compile('"su"\:\["(.*?)"\]').findall(link)
-    if not match:
-       dialog = xbmcgui.Dialog()
-       ok = dialog.ok(__addonname__,'您当前选择的视频: ['+ name +'] 暂不能播放，请选择其它视频')       
-       return
-    newpaths = match[0].split('","')
-    
-    match = re.compile('"allot":"(.+?)"').findall(link)
-    if match and len(match[0]) > 5:
-        p_url = 'http://' + match[0]+ '/?prot=2&file='
-    else: # link contains direct item to play
-        url = 'http://'
-    
-    playlist = xbmc.PlayList(1)
-    playlist.clear()
-    for i in range(0,len(paths)):
-        if newpaths[i] == '':
-            url += paths[i]
-            title = name+" 第"+str(i+1)+"/"+str(len(paths))+"节"
-            listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
-            listitem.setInfo(type="Video",infoLabels={"Title":title})
-        else:
-            p_url += paths[i]+'&new='+newpaths[i]
-            link = getHttpData(p_url)
-        
-            key=link.split('|')[3]
-            if site == 0:
-                url = link.split('|')[0].rstrip("/")+newpaths[i]+'?key='+key
-            else:
-                url = 'http://new.sohuv.dnion.com'+newpaths[i]+'?key='+key
-            title = name+" 第"+str(i+1)+"/"+str(len(paths))+"节"
-            listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
-            listitem.setInfo(type="Video",infoLabels={"Title":title})
-        playlist.add(url, listitem)
-        if i == 0: 
-            xbmc.Player().play(playlist)
+        urls.append(url)
+    stackurl = 'stack://' + ' , '.join(urls)
+    print stackurl
+    listitem = xbmcgui.ListItem(name,thumbnailImage=thumb)
+    listitem.setInfo(type="Video",infoLabels={"Title":name})
+    xbmc.Player().play(stackurl, listitem)
 
 ##################################################################################
 # Sohu 电视直播 Menu List
@@ -974,8 +898,6 @@ elif mode == 3:
     PlayVideo(name,url,thumb)
 elif mode == 4:
     performChanges(name,id,cat,area,year,p5,p6,p11,order,listpage)
-elif mode == 5:
-    PlayVideoUgc(name,url,thumb)
 
 elif mode == 10:
     LiveChannel(name)
