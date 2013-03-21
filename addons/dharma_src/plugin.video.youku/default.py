@@ -1,14 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
 
-########################################################################
-# 优酷视频(YouKu) by taxigps, 2011
-# Version 2.1.2 2012-08-20 (cmeng)
-# - add multi-pages selection for easy access
-# - add segment numbering in playlist for reference
-
-# See changelog.txt for previous history
-########################################################################
 # Plugin constants 
 __addonname__ = "优酷视频(YouKu)"
 __addonid__ = "plugin.video.youku"
@@ -326,14 +318,10 @@ def PlayVideo(name,url,thumb,res):
     link = GetHttpData("http://www.flvcd.com/parse.php?kw="+url+"&format="+RES_LIST[res])
     match = re.compile('"(http://f.youku.com/player/getFlvPath/.+?)" target="_blank"').findall(link)
     if len(match)>0:
-        playlist=xbmc.PlayList(1)
-        playlist.clear()
-        for i in range(0,len(match)):
-            title = name+" 第"+str(i+1)+"/"+str(len(match))+"节"
-            listitem=xbmcgui.ListItem(title,thumbnailImage=thumb)
-            listitem.setInfo(type="Video",infoLabels={"Title":title})
-            playlist.add(match[i], listitem)
-        xbmc.Player().play(playlist)
+        stackurl = 'stack://' + ' , '.join(match)
+        listitem=xbmcgui.ListItem(name,thumbnailImage=thumb)
+        listitem.setInfo(type="Video",infoLabels={"Title":name})
+        xbmc.Player().play(stackurl, listitem)
     else:
         if link.find('该视频为加密视频')>0:
             dialog = xbmcgui.Dialog()
