@@ -1,6 +1,13 @@
 ﻿########################################################################
-# PPS网络电视(PPS客户端)
+# PPS影音(PPS.tv)
 ########################################################################
+# Version 1.1.0 2013-03-24 (cmeng)
+# - Complete script rewrite to support filtering
+# - User defined sort order in addon settings
+# - Enhance menu display inforomation
+# - Add thumb images display
+# - Rename PPS网络电视(PPS客户端) to PPS影音(PPS.tv) per site provider
+
 # Version 1.0.2 2012-08-04 (cmeng)
 # - add sort to menu listing (keeping numbering) 
 # - replace ElementTree deprecated function getiterator()

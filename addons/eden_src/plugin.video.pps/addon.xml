@@ -1,17 +1,18 @@
-﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.pps"
-    name="PPS网络电视(PPS客户端)"
-    version="1.0.2"
-    provider-name="yxnr">
+    name="PPS影音(PPS.tv)"
+    version="1.1.0"
+    provider-name="cmeng (originator: yxnr)">
     <extension
         point="xbmc.python.pluginsource"
-        library="default.py">
+        library="default.py">x
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary lang="en">PPStream video plugin</summary>
-        <summary lang="zh">PPS网络电视(客户端)</summary>
-        <description lang="zh">观看PPStream在线影视节目</description>
-        <platform>windx wingl</platform>
-    </extension>
+        <summary lang="en">PPStream Network TV</summary>
+        <summary lang="zh">PPS影音</summary>
+        <description lang="en">PPStream Network TV:[CR]Shortcut Key Map for PPS影音 F8-Mute/F9-VolumeDown/F10-VolumeUp/[-ZoomIn/]-ZoomOut/SPACE-Pause/x-Exit.[CR]Run KeypmapSet.exe program to custom Shortcut Key map for external player, file path: plugin.video.pps\resources\player\KeymapSet.exe[CR]On the non-PRC OS environment, you need to do the following settings:[CR]On Windows 7 (similar for Windows XP):[CR]Go to "Control Panel"=>"Region and Language"=>Select Tab "Administrative"[CR]Click button "Change system locale" to "Chinese (Simplified, PRC)"[CR]Restart machine as instructed.</description>
+        <description lang="zh">使用PPS影音收看影视节目，清晰流畅更新快。PPS网络电视是全球第一家集P2P直播点播于一身的网络电视软件。PPS网络电视播放流畅、完全免费，PPS网络电视是网民喜爱的装机必备软件。</description>
+        <platform>windx wingl</platform>xx
+    </extension>xx
 </addon>
