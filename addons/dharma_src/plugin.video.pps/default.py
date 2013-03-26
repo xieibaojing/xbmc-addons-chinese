@@ -190,7 +190,7 @@ def menu_sub(name,id,category,text):
         
         p_list='[COLOR FF00FF00]'+name+'[/COLOR][COLOR FF00FFFF] ['+str(on)+'][/COLOR]'
         if vm: p_list += '[COLOR FFFF00FF]['+str(vm)+'][/COLOR]'
-        if not catType: p_list += '[COLOR FFFFFF00]['+tag+'][/COLOR]'
+        if not catType and tag: p_list += '[COLOR FFFFFF00]['+tag+'][/COLOR]'
                 
         if image_en == 'true':
             p_thumb=''
@@ -242,7 +242,6 @@ def menu_ch(name,id,category,rating,thumb):
                 sfltr.append(item)
         eList = eList[:-1]       
 
-    #vlist = []
     i = 0
     image_en = __addon__.getSetting('image_en')
     for node in elemroot:
@@ -347,6 +346,110 @@ def updateFilter(category):
 # Routine to search PPS based on user input string
 ##################################################################################
 def Search(mname):
+    keyboard = ChineseKeyboard.Keyboard('','输入所查影片中文信息-拼音或简拼(拼音首字母)')
+    xbmc.sleep(1500)
+    keyboard.doModal()
+    keyword=keyboard.getText()
+    
+    url="http://listso.ppstream.com/search.php?acp=936&w="+urllib.quote_plus(keyword)
+    text = getHttpData(url)
+    text = unicode(text, 'gb18030','replace').encode('utf8')
+    text = text.replace('gb18030', 'utf-8')
+    text = text.replace('GB18030', 'utf-8')
+
+    image_en = __addon__.getSetting('image_en')
+    root = ElementTree.fromstring(text)
+    #文件
+    i = 0
+    elemroot = root.iter("Ch")
+    for node in elemroot:
+        CHON=0
+        CHBKID=""
+        CHBKVM='0.0'
+        year='1990'
+
+        elemtop = node.find('ID')
+        CHID=elemtop.attrib['ID']
+
+        try: CHON=int(node.attrib['ON'])               
+        except: pass
+        try: p_url = elemtop.attrib['image']
+        except: p_url=''
+        try: CHBKID=elemtop.attrib['BKID']
+        except: pass
+        try: CHBKVM=float(elemtop.attrib['VM'])
+        except: pass
+
+        try:
+            cs=elemtop.attrib['search']
+            yy=re.compile('.+?:.+?:.+?:(.+?);').findall(cs)
+            if yy: year=yy[0]
+        except: pass
+            
+        elemtop = node.find("Name")
+        CHName = elemtop.text
+        if CHBKVM: CHName += ' [COLOR FFFF00FF]['+str(CHBKVM)+'][/COLOR]'
+        elemtop = node.find("URL")
+        CHURL = elemtop.text
+                  
+        if image_en == 'true':
+            p_thumb=''
+            if p_url: p_thumb = "http://image1.webscache.com/baike/haibao/navi/" + p_url
+            li=xbmcgui.ListItem(CHName, iconImage='', thumbnailImage=p_thumb)
+        else:
+            li=xbmcgui.ListItem(CHName)
+        
+        try: # some contains no CHURL
+            li.setInfo( type="Video", infoLabels={"Title":CHName, "count": CHON, "Rating":CHBKVM, "CODE":CHBKID,"Year":year})
+            u=sys.argv[0]+"?mode=ch&name="+CHName+"&id="+CHID+"&url="+urllib.quote_plus(CHURL.encode('gb18030'))
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,False)       
+            i+=1 # increment only if everything is OK
+        except: pass
+            
+    #次目录
+    j = 0
+    elemroot = root.iter("Gen")
+    for elemx in elemroot:
+        title = elemx.attrib['name']
+        if re.search(ListOmit, title.encode('utf-8')): continue
+        elemsub = elemx.iter("Sub")
+        for elem in elemsub:
+            j+=1
+            name = elem.attrib['name']
+            id = elem.attrib['id']
+            cnt = elem.attrib['op']
+        
+            try: p_url = elem.attrib['image']
+            except: p_url=''
+            try: tag = elem.attrib['tags']
+            except: tag = ''
+            try: on = int(get_params2(cnt)['on'])
+            except: on = 1
+            try: vm = float(get_params2(cnt)['vm'])
+            except: vm = ''
+        
+            catType = ''
+            p_list=title+': '+'[COLOR FF00FF00]'+name+'[/COLOR][COLOR FF00FFFF] ['+str(on)+'][/COLOR]'
+            if vm: p_list += '[COLOR FFFF00FF]['+str(vm)+'][/COLOR]'
+                
+            if image_en == 'true':
+                p_thumb=''
+                if p_url: p_thumb = "http://image1.webscache.com/baike/haibao/navi/" + p_url
+                li=xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
+            else:
+               li=xbmcgui.ListItem(p_list)
+  
+            li.setInfo( type="Video", infoLabels={"Title":name, "count":on, "Rating":vm})
+            u=sys.argv[0]+"?mode=sub&name="+name+"&id="+id+"&rating="+str(vm)+"&category="+urllib.quote_plus(catType)+"&thumb="+p_thumb
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RATING)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_LABEL)
+
+##################################################################################
+# Routine to search PPS based on user input string
+##################################################################################
+def Searchx(mname):
     if (mname == "PPS搜索"):
         #kb=xbmc.Keyboard('','输入所查影片中文信息-拼音或简拼(拼音首字母)',False)
         keyboard = ChineseKeyboard.Keyboard('','输入所查影片中文信息-拼音或简拼(拼音首字母)')
@@ -358,6 +461,7 @@ def Search(mname):
         url ='http://video.soso.com/smart.php?w='+keyword
         link = getHttpData(url)
         link = link.decode('GB18030').encode('UTF-8')
+        print link
 
         #match=re.compile("    (.+?)    ").findall(link)
         match=re.compile("[0-9]+[,0-9]*[,0-9]*(.+?)0").findall(link)
@@ -370,73 +474,6 @@ def Search(mname):
             xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)        
     else:
         url="http://listso.ppstream.com/search.php?acp=936&w="+urllib.quote_plus(mname)
-        text = getHttpData(url)
-##        file=open('aa.txt','w')
-##        file.write(mname)
-##        file.close()
-        text = text.decode('GB18030').encode('UTF-8')
-        text = text.replace('gb18030', 'utf-8')
-        text = text.replace('GB18030', 'utf-8')
-
-        root = ElementTree.fromstring(text)
-        #文件
-        elemroot = root.iter("Ch")
-        i = 0
-        for node in elemroot:
-            try: 
-            #for j in range(1):    
-                CHON=0
-                CHBKID=""
-                CHBKVM='0.0'
-                year='1990'
-
-                elemtop = node.find('ID')
-                CHID=elemtop.attrib['ID']
-
-                try: CHON=int(node.attrib['ON'])               
-                except: pass
-                try: CHBKID=elemtop.attrib['BKID']
-                except: pass
-                try: CHBKVM=float(elemtop.attrib['VM'])
-                except: pass
-
-                try:
-                    cs=elemtop.attrib['search']
-                    yy=re.compile('.+?:.+?:.+?:(.+?);').findall(cs)
-                    if yy: year=yy[0]
-                except: pass
-            
-                elemtop = node.find("Name")
-                CHName = elemtop.text
-                elemtop = node.find("URL")
-                CHURL = elemtop.text
-                  
-                li=xbmcgui.ListItem(CHName)
-                li.setInfo( type="Video", infoLabels={"Title":CHName, "count": CHON, "Rating":CHBKVM, "CODE":CHBKID,"Year":year})
-                u=sys.argv[0]+"?mode=ch&name="+CHName+"&id="+CHID+"&url="+urllib.quote_plus(CHURL.encode('gb18030'))
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,False)       
-                i+=1 # increment only if everything is OK
-            except: pass
-            
-        #次目录
-        elemroot = root.iter("Sub")
-        vlist = []
-
-        for elem in elemroot:
-            name = elem.attrib['name']
-            id = elem.attrib['id']
-            cnt = elem.attrib['op']
-            vlist.append([name, id, cnt])
-        # vlist.sort()
-        
-        j=0
-        for name, id, cnt in vlist:
-            j+=1
-            li=xbmcgui.ListItem('[COLOR FF00FF00]'+ str(j)+'. ['+name+'][/COLOR]')
-            try: li.setInfo( type="Video", infoLabels={"Title":name, "count": int(get_params2(cnt)["on"])})
-            except: pass
-            u=sys.argv[0]+"?mode=sub&name="+urllib.quote_plus(name.encode('gb18030'))+"&id="+id
-            xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)            
         
 ##################################################################################
 # Routine to play video
@@ -538,11 +575,6 @@ elif mode=="ch":
     KankanPlay(url)
 elif mode=="search":
     Search(name)
-
-# xbmcplugin.addSortMethod(int(sys.argv[1]), 1)  #1 名称  
-# xbmcplugin.addSortMethod(int(sys.argv[1]), 18) #18 评价 
-# xbmcplugin.addSortMethod(int(sys.argv[1]), 17) #16 年份 
-# xbmcplugin.addSortMethod(int(sys.argv[1]), 20) #20 播放次数 
 
 xbmcplugin.setPluginCategory(int(sys.argv[1]), name )
 xbmcplugin.endOfDirectory(int(sys.argv[1]))

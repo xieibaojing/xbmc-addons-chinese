@@ -1,6 +1,10 @@
 ﻿########################################################################
 # PPS影音(PPS.tv)
 ########################################################################
+# PPS影音(PPS.tv)
+# Version 1.1.1 2013-03-26 (cmeng)
+# - Update search function
+
 # Version 1.1.0 2013-03-24 (cmeng)
 # - Complete script rewrite to support filtering
 # - User defined sort order in addon settings
