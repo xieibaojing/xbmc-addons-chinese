@@ -6,12 +6,11 @@ import ChineseKeyboard
 
 ########################################################################
 # PPS影音(PPS.tv)
-# Version 1.1.0 2013-03-24 (cmeng)
-# - Complete script rewrite to support filtering
-# - User defined sort order in addon settings
-# - Enhance menu display inforomation
-# - Add thumb images display
-# - Rename PPS网络电视(PPS客户端) to PPS影音(PPS.tv) per site provider
+# Version 1.1.2 2013-03-30 (cmeng)
+# - Ported pps4xbmc to VB 2010
+# - Set PPS player focus to accept user input by default
+# - Change Fast FWD/PREV to smaller step 0.1 > 0.025
+# - Auto unmute when changing audio volume level
 
 # See changelog.txt for previous history
 ########################################################################
