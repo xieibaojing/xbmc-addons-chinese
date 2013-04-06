@@ -28,6 +28,7 @@ Partial Class frmPPS
         Me.LB = New System.Windows.Forms.Label()
         Me.Cmd = New System.Windows.Forms.TextBox()
         Me.PowerPlayer1 = New AxPowerPlayerULib.AxPowerPlayerU()
+        Me.TextBox_TCP = New System.Windows.Forms.TextBox()
         CType(Me.PowerPlayer1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -41,39 +42,52 @@ Partial Class frmPPS
         Me.LB.BackColor = System.Drawing.Color.Black
         Me.LB.Font = New System.Drawing.Font("Microsoft Sans Serif", 18.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.LB.ForeColor = System.Drawing.SystemColors.ControlLightLight
-        Me.LB.Location = New System.Drawing.Point(-76, 10)
+        Me.LB.Location = New System.Drawing.Point(33, -1)
         Me.LB.Name = "LB"
-        Me.LB.Size = New System.Drawing.Size(603, 29)
+        Me.LB.Size = New System.Drawing.Size(556, 29)
         Me.LB.TabIndex = 0
         Me.LB.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
         '
         'Cmd
         '
-        Me.Cmd.Location = New System.Drawing.Point(562, 10)
+        Me.Cmd.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Cmd.ForeColor = System.Drawing.SystemColors.MenuHighlight
+        Me.Cmd.Location = New System.Drawing.Point(2, -1)
         Me.Cmd.Name = "Cmd"
-        Me.Cmd.Size = New System.Drawing.Size(19, 20)
+        Me.Cmd.Size = New System.Drawing.Size(25, 20)
         Me.Cmd.TabIndex = 1
         '
         'PowerPlayer1
         '
         Me.PowerPlayer1.Enabled = True
-        Me.PowerPlayer1.Location = New System.Drawing.Point(17, 42)
+        Me.PowerPlayer1.Location = New System.Drawing.Point(52, 65)
         Me.PowerPlayer1.Name = "PowerPlayer1"
         Me.PowerPlayer1.OcxState = CType(resources.GetObject("PowerPlayer1.OcxState"), System.Windows.Forms.AxHost.State)
         Me.PowerPlayer1.Size = New System.Drawing.Size(510, 178)
         Me.PowerPlayer1.TabIndex = 2
         '
+        'TextBox_TCP
+        '
+        Me.TextBox_TCP.Location = New System.Drawing.Point(595, -1)
+        Me.TextBox_TCP.Name = "TextBox_TCP"
+        Me.TextBox_TCP.Size = New System.Drawing.Size(30, 20)
+        Me.TextBox_TCP.TabIndex = 3
+        Me.TextBox_TCP.Visible = False
+        '
         'frmPPS
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.BackColor = System.Drawing.SystemColors.GradientActiveCaption
         Me.ClientSize = New System.Drawing.Size(624, 315)
         Me.Controls.Add(Me.LB)
         Me.Controls.Add(Me.PowerPlayer1)
+        Me.Controls.Add(Me.TextBox_TCP)
         Me.Controls.Add(Me.Cmd)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None
         Me.Name = "frmPPS"
         Me.Text = "Form1"
+        Me.TopMost = True
         CType(Me.PowerPlayer1, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
@@ -83,5 +97,6 @@ Partial Class frmPPS
     Friend WithEvents LB As System.Windows.Forms.Label
     Friend WithEvents Cmd As System.Windows.Forms.TextBox
     Friend WithEvents PowerPlayer1 As AxPowerPlayerULib.AxPowerPlayerU
+    Friend WithEvents TextBox_TCP As System.Windows.Forms.TextBox
 
 End Class
