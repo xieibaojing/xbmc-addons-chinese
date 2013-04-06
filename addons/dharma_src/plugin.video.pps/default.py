@@ -6,11 +6,14 @@ import ChineseKeyboard
 
 ########################################################################
 # PPS影音(PPS.tv)
-# Version 1.1.2 2013-03-30 (cmeng)
-# - Ported pps4xbmc to VB 2010
-# - Set PPS player focus to accept user input by default
-# - Change Fast FWD/PREV to smaller step 0.1 > 0.025
-# - Auto unmute when changing audio volume level
+# Version 1.1.3 2013-04-06 (cmeng)
+# - Add video display info for narrowing next time search 
+# - Set PPS Player window to top most and locked its position 
+# - Enable mouse pointer when player in pause mode
+# - Change Fast FWD/PREV to smaller step 0.02 of video length
+# - Correct resolution display error (vb6 twip to pixel)
+# - Add support to control player via remote control
+# - Player window auto-centering
 
 # See changelog.txt for previous history
 ########################################################################
@@ -181,6 +184,12 @@ def menu_sub(name,id,category,text):
         try: vm = float(get_params2(cnt)['vm'])
         except: vm = ''
         
+        catShow=''
+        types = catType.decode('utf-8').split(';')
+        for i in range(0, len(types)-2):
+            catShow += types[i].split(':')[1]+';'
+        catShow = catShow[:-1]
+            
         catType = ''
         try:
             if elem.attrib['enableSearch2'] =='1':
@@ -190,6 +199,7 @@ def menu_sub(name,id,category,text):
         p_list='[COLOR FF00FF00]'+name+'[/COLOR][COLOR FF00FFFF] ['+str(on)+'][/COLOR]'
         if vm: p_list += '[COLOR FFFF00FF]['+str(vm)+'][/COLOR]'
         if not catType and tag: p_list += '[COLOR FFFFFF00]['+tag+'][/COLOR]'
+        p_list += ' '+catShow
                 
         if image_en == 'true':
             p_thumb=''
@@ -227,7 +237,8 @@ def menu_ch(name,id,category,rating,thumb):
     elemroot = root.iter("Ch")
     
     # Fetch & build video titles list for user selection, highlight user selected filter  
-    eList='[COLOR FF00FF00]类型:全部[/COLOR]'
+    #eList='[COLOR FF00FF00]类型:全部[/COLOR]'
+    eList='[COLOR FF00FF00]'+name+'[/COLOR]'
     if category:
         catFilter = updateFilter(category)
         eList = ''
@@ -274,6 +285,8 @@ def menu_ch(name,id,category,rating,thumb):
         except: pass
         try: CHBKVM=float(elemtop.attrib['VM'])
         except: pass
+        try: Tag=elemtop.attrib['tag'].encode('utf-8')
+        except: Tag=''
 
         try:
             cs=elemtop.attrib['search']
@@ -284,6 +297,10 @@ def menu_ch(name,id,category,rating,thumb):
             
         elemtop = node.find("Name")
         CHName = elemtop.text
+        if re.search('高清', Tag): CHName = '[COLOR FF00FFFF]['+CHName+'][/COLOR]'
+        elif re.search('国语', Tag) or re.search('粤语', Tag):
+             CHName = '[COLOR FFFFFF00]['+CHName+'][/COLOR]'
+        #else: CHName = '[COLOR FF00FF00]['+CHName+'][/COLOR]'
         if CHBKVM: CHName += ' [COLOR FFFF00FF]['+str(CHBKVM)+'][/COLOR]'
         elemtop = node.find("URL")
         CHURL = elemtop.text
@@ -304,7 +321,7 @@ def menu_ch(name,id,category,rating,thumb):
         
     li = xbmcgui.ListItem('[COLOR FFFF00FF]选择[/COLOR]:'+str(i)+'【'+eList+'】（按此选择）')
     li.setInfo( type="Video", infoLabels={"Title":" ", "count":1000000, "Rating":10.0})
-    u=sys.argv[0]+"?mode=sub&id="+id+"&category="+category+"&rating="+rating+"&thumb="+thumb
+    u=sys.argv[0]+"?mode=sub&name="+name+"&id="+id+"&category="+category+"&rating="+rating+"&thumb="+thumb
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
 
     if p_order == 1000:
