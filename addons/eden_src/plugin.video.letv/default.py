@@ -4,11 +4,17 @@ import math, os.path, httplib, time
 import cookielib
 import ChineseKeyboard
 
+if sys.version_info < (2, 7):
+    import simplejson
+else:
+    import json as simplejson
+
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.2.5 2012-12-23 (cmeng)
-# - Update pattern match in ugc video list search
+# Version 1.2.7 2013-04-07 (cmeng)
+# - fix script error in progListVariety (use simplejson)
+# - enhance menu list information display
 
 # See changelog.txt for previous history
 ########################################################################
@@ -284,17 +290,29 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
         p_name = p_list = match1.group(2)    
         match1 = re.compile('<imgsrc="(.+?)"alt').search(match[i])
         p_thumb = match1.group(1)
+        
+        p_list = '[COLOR FF00FF00]' + str(i + 1) + '. ' + p_list +'[/COLOR]'
+        match1 = re.compile('<dd>评分：<span class="sorce2"><i>([.0-9]+)</i>').search(match[i])
+        if match1: p_list += ' [COLOR FFFF00FF][' +  match1.group(1) + '][/COLOR]'
+
         match1 = re.compile('<b class="(.+?)"></b>').search(match[i])
         if match1:
             p_res = match1.group(1)
             p_res = fetchID(VIDEO_RES, p_res)
-            p_list += ' [' +  p_res + ']'
+            p_list += ' [COLOR FF00FFFF][' +  p_res + '][/COLOR]'
         if re.search('yuanxian', p_url):    
-            p_list += ' [收费]'
-        match1 = re.compile('<dd>评价：<span class="sorce2"><i>([.0-9]+)</i>').search(match[i])
-        if match1: p_list += ' [评价: ' +  match1.group(1) + ']'
+            p_list += ' [COLOR FFFF0000][收费][/COLOR]'
+
+        match0 = re.compile('<dd>[主演：|主持人：](.+?)</dd>').findall(match[i])
+        if match0:
+            match1 = re.compile('a.+?>(.+?)</a>').findall(match0[0])
+            if match1:
+                p_list += ' ['
+                for actor in match1:
+                    p_list +=  actor + ' '
+                p_list = p_list[:-1] + ']'
   
-        li = xbmcgui.ListItem(str(i + 1) + '. ' + p_list, iconImage='', thumbnailImage=p_thumb)
+        li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
         u = sys.argv[0] + "?mode=" + mode + "&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
@@ -444,36 +462,40 @@ def progListVariety(name, url, page, year, month):
     # &s=20: item per page
     # &o=-1
     # &_=1340358261096:ts_sessiontime + xxxx
+    if re.search(month,'全部'): month = '全部月份'
     
     # construct url based on user selected filter ID's
     p_url = 'http://hot.vrs.letv.com/vlist?callback=LETV.App.Detail.List.paintList' + fltrYear + '&f=1&p=1' + fltrMonth + fltrPid +  fltrPage + '&s=20&o=-1&_=1340358261096'
     link = getHttpData(p_url)
-    if re.search(month,'全部'): month = '全部月份'
+    link = re.compile('LETV.App.Detail.List.paintList\((.+?)\)').findall(link)[0]
+    jsd = simplejson.loads(link)
 
-    match = re.compile('{"description".+?"name":"(.+?)".+?"viewpic":"(.+?)".+?"url":"(.+?)"').findall(link)
-    totalItems = len(match)
+    # fetch and build the video series episode list
+    vlist = jsd['videoObject']['videoInfo']
+    totalItems = len(vlist)
 
     # Fetch & build video titles list for user selection, highlight user selected filter  
     li = xbmcgui.ListItem(name + '（第' + page + '页）【[COLOR FFFF0000]' + year + '[/COLOR] - [COLOR FF00FF00]' + month + '[/COLOR]】（按此选择）')
     u = sys.argv[0] + "?mode=12&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url) + "&page=" + page + "&year=" + year + "&month=" + month + "&listpage=" + urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
-   
-    # if len(match):
-    for i in range(0, len(match)):
-        p_name = p_list = match[i][0]
-        p_img = match[i][1]
-        p_url = match[i][2]
-        p_list = str(i + 1) + '. ' + p_list         
+    
+    for i in range(0, len(vlist)):
+        #p_actor = vlist[i]['actor']
+        p_name = p_list = vlist[i]['name'].encode('utf-8')
+        p_thumb = vlist[i]['viewPic']
+        p_time = str(int(vlist[i]['duration'])/60) #.encode('utf-8')
+        p_url = vlist[i]['url']
+        p_list = str(i + 1) + '. ' + p_list + ' [COLOR FF00FFFF][' + p_time + '分][/COLOR]'        
 
-        li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_img)
+        li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
         u = sys.argv[0] + "?mode=10&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
                                     
     # Fetch and build user selectable page number
-    matchp = re.compile('LETV.App.Detail.List.paintList\({"b":([1-9]+?),"count":([0-9]+?),.+?"s":([0-9]+?),').findall(link)[0]
-    page  = int(matchp[0])
-    tsize = int(matchp[1])
-    psize = int(matchp[2])
+    page = jsd['b']
+    tsize = jsd['count']
+    psize = jsd['s']
+    
     if tsize > psize:
         pages = int(math.ceil(1.0 * tsize/psize))
         plist=[page]
@@ -486,7 +508,7 @@ def progListVariety(name, url, page, year, month):
 
     xbmcplugin.setContent(int(sys.argv[1]), name)
     xbmcplugin.endOfDirectory(int(sys.argv[1])) 
-    
+      
 ##################################################################################
 # Routine to update video list as per user selected filters
 # - for 综艺
@@ -576,12 +598,13 @@ def progListStar(name, url, page, alphabet, area, prof, gender):
         match1 = re.compile('<dd>国籍：(.+?)</dd>').search(match[i])
         p_area = match1.group(1)
  
+        p_list = '[COLOR FF00FF00]' + str(i + 1) + '. ' + p_list +'[/COLOR]'
         p_title=''
         match1 = re.compile('<a href=.+?title=.+?target=.+?>(《.+?》)</a>').findall(match[i])
         for title in match1: p_title += title
-        p_list += ' ~ [' + p_prof + ': ' + p_area +']' + p_title
+        p_list += ' ~ [COLOR FF00FFFF][' + p_prof + ': ' + p_area +'][/COLOR][COLOR FFFFFF00]' + p_title +'[/COLOR]'
  
-        li = xbmcgui.ListItem(str(i + 1) + '. ' + p_list, iconImage='', thumbnailImage=p_thumb)
+        li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
         u = sys.argv[0] + "?mode=23" + "&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
@@ -711,22 +734,29 @@ def progListUgc(name, url):
         match1 = re.compile('href="(.+?)"').findall(match[i])
         p_url = match1[0]
         
+        p_name = str(i+1)+'. '+p_name
+        p_list = '[COLOR FF00FF00]' + p_name +'[/COLOR]'
+        
         match1 = re.compile('>片长：([:0-9\s]+)*</').findall(match[i])      
-        if match1: p_name += ' [' + match1[0].strip() + ']' 
+        if match1: p_list += ' [COLOR FFFF00FF][' + match1[0].strip() + '][/COLOR]' 
           
+        match1 = re.compile('<b class="(.+?)"></b>').search(match[i])
+        if match1:
+            p_res = match1.group(1)
+            p_res = fetchID(VIDEO_RES, p_res)
+            p_list += ' [COLOR FF00FFFF][' +  p_res + '][/COLOR]'
+        
         match1 = re.compile('演唱者：<span><i>(.+?)</').findall(match[i])      
-        if match1: p_name += '  [' + match1[0] + ']' 
+        if match1: p_list += ' [COLOR FFFFFF00][' + match1[0] + '][/COLOR]' 
 
         match1 = re.compile('时间：.+?>(.+?)</i').findall(match[i])      
-        if match1: p_name += ' [' + match1[0] + ']' 
+        if match1: p_list += ' [' + match1[0] + ']' 
 
         match1 = re.compile('<img.+?src=[ ]*"(.+?)"').findall(match[i])
         p_thumb = match1[0]
             
-        p_list = str(i+1)+'. '+p_name
-            
         li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
-        u = sys.argv[0] + "?mode=20&name=" + urllib.quote_plus(p_list) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
+        u = sys.argv[0] + "?mode=20&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
         playlist.add(p_url, li)            
 

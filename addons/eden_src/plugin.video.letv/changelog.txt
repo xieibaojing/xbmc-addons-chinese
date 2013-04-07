@@ -1,6 +1,10 @@
 ﻿########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
+# Version 1.2.7 2013-04-07 (cmeng)
+# - fix script error in progListVariety (use simplejson)
+# - enhance menu list information display
+
 # Version 1.2.6 2012-12-23 (cmeng)
 # - Add support for continuous playback on ugc video list
 
