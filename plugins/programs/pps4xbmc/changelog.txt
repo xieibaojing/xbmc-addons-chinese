@@ -1,14 +1,6 @@
 ﻿######################################################
 # pps4xbmc player
 ######################################################
-' Version 2.0.1 2013-04-06 (cmeng)
-' - Set PPS Player window to top most and locked its position 
-' - Enable mouse pointer when player in pause mode
-' - Change Fast FWD/PREV to smaller step 0.02 of video length
-' - Correct resolution display error (vb6 twip to pixel)
-' - Add support to control player via remote control
-' - Player window auto-centering
-
 ' Version 2.0.0 2013-03-30 (cmeng)
 ' Ported pps4xbmc to VB 2010
 ' Set PPS player focus to accept user input by default

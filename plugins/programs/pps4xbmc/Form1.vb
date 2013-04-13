@@ -1,13 +1,8 @@
 ﻿' pps4xbmc
 '=============
 ' 开源代码，随意修改，原作者不承担因此引起的法律纠纷。robinttt,2009-12-2
-' Version 2.0.1 2013-04-06 (cmeng)
-' - Set PPS Player window to top most and locked its position 
-' - Enable mouse pointer when player in pause mode
-' - Change Fast FWD/PREV to smaller step 0.02 of video length
-' - Correct resolution display error (vb6 twip to pixel)
-' - Add support to control player via remote control
-' - Player window auto-centering
+' Version 2.0.2 2013-04-13 (cmeng)
+' - Regain focus when PPS notification pop up
 
 Imports VB = Microsoft.VisualBasic
 Imports System.Text
@@ -41,7 +36,7 @@ Public Class frmPPS
     Private Const SWP_NOSIZE = &H1
     Private Const SWP_NOMOVE = &H2 'Retains the current position (ignores X and Y parameters).
     Private Const SWP_SHOWWINDOW = &H40
-    Private Const HWND_TOPMOST = -1 'Places the window at the topmost of the Z order
+    Private Const HWND_TOPMOST = -1 'Places the window at the top of the Z order
 
     Private mobjClient As TcpClient
     Private marData(1024) As Byte
@@ -212,15 +207,12 @@ Public Class frmPPS
         If Url <> "" Then
             Me.Top = 0
             Me.Left = 0
-            Me.Width = My.Computer.Screen.Bounds.Width
-            Me.Height = My.Computer.Screen.Bounds.Height
 
             ShowCursor(False)
             LB.Visible = False
             PowerPlayer1.src = Url
             PowerPlayer1.Play()
             Cmd.Focus()
-            'Me.Show()
             SetWindowPos(Me.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)  '置顶
             ShowWindow(Me.Handle, SW_SHOWMAXIMIZED) ' Also prevent window being move
 
@@ -293,9 +285,20 @@ Public Class frmPPS
         KeyAscii = 0
     End Sub
 
+    Private Sub Form1_Deactivate(sender As Object, e As EventArgs) Handles Me.Deactivate
+        If Cmd.Visible = True Then ' raising form to topmost only if it not in exit mode
+            LB.Text = "Regaining Control ..."
+            LB.Visible = True
+            Timer2.Enabled = True
+        End If
+    End Sub
+
     Private Sub Timer2_Tick(sender As System.Object, e As System.EventArgs) Handles Timer2.Tick
         If LB.Visible = True Then
             LB.Visible = False
+            Me.Focus()
+            Cmd.Focus()
+            SetWindowPos(Me.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)  '置顶
         End If
     End Sub
 
