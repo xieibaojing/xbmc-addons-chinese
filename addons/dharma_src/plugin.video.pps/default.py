@@ -6,33 +6,30 @@ import ChineseKeyboard
 
 ########################################################################
 # PPS影音(PPS.tv)
-# Version 1.1.3 2013-04-06 (cmeng)
-# - Add video display info for narrowing next time search 
-# - Set PPS Player window to top most and locked its position 
-# - Enable mouse pointer when player in pause mode
-# - Change Fast FWD/PREV to smaller step 0.02 of video length
-# - Correct resolution display error (vb6 twip to pixel)
-# - Add support to control player via remote control
-# - Player window auto-centering
+# Version 1.1.4 2013-04-13 (cmeng)
+# - Fixed script error
+# - Remove text buffering - faster to do direct online fetch
+# - Regain focus when PPS notification pop up
 
 # See changelog.txt for previous history
 ########################################################################
 
 # Plugin constants 
-__addonname__     = "PPS影音(PPS.tv)"
-__addonid__       = "plugin.video.pps"
-__settings__      = xbmcaddon.Addon(id=__addonid__)
-__cwd__           = xbmc.translatePath( __settings__.getAddonInfo('path') )
+__addonname__ = "PPS影音(PPS.tv)"
+__addonid__   = "plugin.video.pps"
 __addon__ = xbmcaddon.Addon(id=__addonid__)
 __addonicon__ = os.path.join( __addon__.getAddonInfo('path'), 'icon.png' )
-UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
-COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]','[COLOR FFFF00FF]']
-ListOmit ="爱频道 - 我的频道"
+__settings__  = xbmcaddon.Addon(id=__addonid__)
+__cwd__       = xbmc.translatePath( __settings__.getAddonInfo('path') )
 
 RESOURCES_PATH = os.path.join(__cwd__ , "resources" )
 sys.path.append( os.path.join( RESOURCES_PATH, "lib" ) )
 import etree as etree
 from etree import ElementTree
+
+UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
+COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]','[COLOR FFFF00FF]']
+ListOmit ="爱频道 - 我的频道"
 
 #REMOTE_DBG = True
 #
@@ -138,8 +135,8 @@ def menu_main(id,category=''):
 ##################################################################################
 # 次目录
 ##################################################################################
-def menu_sub(name,id,category,text):
-    if text=='': text = read_xml(id,1)
+def menu_sub(name,id,category):
+    text = read_xml(id,1)
     root = ElementTree.fromstring(text)
 
     # Fetch & build video titles list for user selection, highlight user selected filter  
@@ -172,7 +169,7 @@ def menu_sub(name,id,category,text):
 
         j+=1
         name = elem.attrib['name']
-        id = elem.attrib['id']
+        p_id = elem.attrib['id']
         cnt = elem.attrib['op']
         
         try: p_url = elem.attrib['image']
@@ -185,10 +182,11 @@ def menu_sub(name,id,category,text):
         except: vm = ''
         
         catShow=''
-        types = catType.decode('utf-8').split(';')
-        for i in range(0, len(types)-2):
-            catShow += types[i].split(':')[1]+';'
-        catShow = catShow[:-1]
+        if category:
+            types = catType.decode('utf-8').split(';')
+            for i in range(0, len(types)-2):
+                catShow += types[i].split(':')[1]+';'
+            catShow = catShow[:-1]
             
         catType = ''
         try:
@@ -209,12 +207,12 @@ def menu_sub(name,id,category,text):
             li=xbmcgui.ListItem(p_list)
   
         li.setInfo( type="Video", infoLabels={"Title":name, "count":on, "Rating":vm})
-        u=sys.argv[0]+"?mode=sub&name="+name+"&id="+id+"&rating="+str(vm)+"&category="+urllib.quote_plus(catType)+"&thumb="+p_thumb
+        u=sys.argv[0]+"?mode=sub&name="+name+"&id="+p_id+"&rating="+str(vm)+"&category="+urllib.quote_plus(catType)+"&thumb="+p_thumb
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
 
     li = xbmcgui.ListItem('[COLOR FFFF00FF]选择[/COLOR]:'+str(j)+'【'+eList+'】（按此选择）')
     li.setInfo( type="Video", infoLabels={"Title":name, "count":1000000000, "Rating":10.0})
-    u=sys.argv[0]+"?mode=gen&id="+id+"&category="+category+"&text="+urllib.quote_plus(text)
+    u=sys.argv[0]+"?mode=gen&id="+id+"&category="+category
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     
     #sort = [名称|评价|播放次数]
@@ -477,7 +475,7 @@ def Searchx(mname):
         url ='http://video.soso.com/smart.php?w='+keyword
         link = getHttpData(url)
         link = link.decode('GB18030').encode('UTF-8')
-        print link
+        #print link
 
         #match=re.compile("    (.+?)    ").findall(link)
         match=re.compile("[0-9]+[,0-9]*[,0-9]*(.+?)0").findall(link)
@@ -564,10 +562,6 @@ try:
 except:
     pass
 try:
-    text=urllib.unquote_plus(params["text"])
-except:
-    pass
-try:
     thumb=urllib.unquote_plus(params["thumb"])
 except:
     pass
@@ -584,7 +578,7 @@ if mode==None:
     name = "pps"
     menu_main("generas")
 elif mode=="gen":
-    menu_sub(name,id,category,text)
+    menu_sub(name,id,category)
 elif mode=="sub":
     menu_ch(name,id,category,rating,thumb)
 elif mode=="ch":

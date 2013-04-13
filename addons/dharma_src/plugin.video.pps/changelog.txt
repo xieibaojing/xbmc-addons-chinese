@@ -2,6 +2,11 @@
 # PPS影音(PPS.tv)
 ########################################################################
 # PPS影音(PPS.tv)
+# Version 1.1.4 2013-04-13 (cmeng)
+# - Fixed script error
+# - Remove text buffering - faster to do direct online fetch
+# - Regain focus when PPS notification pop up
+
 # Version 1.1.3 2013-04-06 (cmeng)
 # - Add video display info for narrowing next time search 
 # - Set PPS Player window to top most and locked its position 
