@@ -12,10 +12,8 @@ else:
 
 ########################################################################
 # PPStream 网络电视 by cmeng
-# Version 2.2.4 2013-04-20 (cmeng)
-# Update scripts per site latest change
-# Clean up search routine
-# Use new pps4xbmc (VB2010) with enhanced features
+# Version 2.2.5 2013-04-20 (cmeng)
+# Remove test code
  
 # See changelog.txt for previous history
 ########################################################################
@@ -681,7 +679,6 @@ def searchPPS():
     if (keyboard.isConfirmed()):
         keyword = keyboard.getText()
 
-        keyword = "恋爱季节"
         url='http://so.pps.tv/search?k='+urllib.quote(keyword)+'&from=1'
         ppsSearchList(keyword,url,'1')
     else: return

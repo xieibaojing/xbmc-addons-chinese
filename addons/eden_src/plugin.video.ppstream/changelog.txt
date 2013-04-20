@@ -1,7 +1,9 @@
 ﻿########################################################################
 # PPStream 网络电视
 ########################################################################
-# Version 2.2.4 2013-04-15 (cmeng)
+# Version 2.2.5 2013-04-20 (cmeng)
+# Remove test code
+
 # Version 2.2.4 2013-04-20 (cmeng)
 # Update scripts per site latest change
 # Clean up search routine
