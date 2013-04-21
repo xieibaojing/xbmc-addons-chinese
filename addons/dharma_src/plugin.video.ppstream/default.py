@@ -233,23 +233,35 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
         if not re.search('http:', p_url):
             p_url = 'http://v.pps.tv'+p_url
         
-        match1 = re.compile('<img class="thumb" alt="(.+?)".+?src="(.+?)"').findall(match[i])
-        p_thumb = match1[0][1]
-        p_name = p_list = match1[0][0]
+        match1 = re.compile('<img class="thumb".+?src="(.+?)"').findall(match[i])
+        p_thumb = match1[0]
+
+        match1 = re.compile('<a target="_blank" title=.+?>(.+?)</a>').findall(match[i])
+        p_name = match1[0]
+        p_list = '[COLOR FF00FF00]'+str(i+1)+'. '+p_name+'[/COLOR]'
         
         match1 = re.compile('<span class="status tr">[更新至]*(.*?)</span>').findall(match[i])
-        if len(match1[0].strip()) > 0: p_list += ' [COLOR AA00FFFF]['+match1[0].strip()+'][/COLOR]'
+        if len(match1[0].strip()) > 0: p_list += ' [COLOR FFFFFF00]['+match1[0].strip()+'][/COLOR]'
 
+        match1 = re.compile('<span class="clarity-HD">(.+?)</span>').findall(match[i])
+        if match1: p_list += ' [COLOR FF00FFFF]['+match1[0]+'][/COLOR]'             
+               
         match1 = re.compile('<.+?class="score">(.+?)</').findall(match[i])
         if match1: p_list += ' [COLOR FFFF00FF]['+match1[0]+'][/COLOR]'
               
-        match1 = re.compile('<span class="clarity-HD">(.+?)</span>').findall(match[i])
-        if match1: p_list += ' [COLOR FF00FF00]['+match1[0]+'][/COLOR]'             
-               
+        match0 = re.compile('<span class="auxiliary">[主演：|主持：]+</span>(.+?)</li>').findall(match[i])
+        if match0:
+            match1 = re.compile('<a target=.+?>(.+?)</a>').findall(match0[0])
+            if match1:
+                p_actor =""
+                for k in range(0, len(match1)):
+                    p_actor += match1[k]+'/'
+                p_list += ' ('+p_actor[:-1]+')'
+
         match1 = re.compile('播放次数：(.+?)</span></li>').findall(match[i])
-        if match1: p_list += ' [播放: '+match1[0]+']' #+ ' ('+p_url+')'
+        if match1: p_list += ' [COLOR FFFF0000][播放: '+match1[0]+'][/COLOR]' #+ ' ('+p_url+')'
   
-        li = xbmcgui.ListItem(str(i+1)+'. '+p_list, iconImage='', thumbnailImage=p_thumb)
+        li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
         u = sys.argv[0]+"?mode="+mode+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
@@ -432,17 +444,21 @@ def progListUgc(name, id, page, cat, year, order):
         
         match1 = re.compile('<a href.+?title="(.+?)".*?>').findall(match[i])
         p_name = match1[0]
+        p_list = str(i+1)+'. [COLOR FF00FF00]'+p_name+'[/COLOR]'
+
+        match1 = re.compile('<span class="def-[SD|HD]+">(.+?)</span>').findall(match[i])
+        if match1: p_list += ' [COLOR FF00FFFF]['+match1[0].strip()+'][/COLOR]'  
 
         match1 = re.compile('<span class="status">([:0-9]+)</span>').findall(match[i])      
-        if match1: p_name += ' [COLOR FFFF00FF]['+match1[0]+'][/COLOR] '
+        if match1: p_list += ' [COLOR FFFF00FF]['+match1[0]+'][/COLOR] '
         
         match1 = re.compile('<span class="nm">播放：</span>([0-9]+)<a.+?').findall(match[i])      
-        if match1: p_name += ' [播放: '+match1[0]+']' #+' ('+p_url+')'  
+        if match1: p_list += ' [播放: '+match1[0]+']' #+' ('+p_url+')'  
           
         match1 = re.compile('<img src="(.+?)"').findall(match[i])
         p_thumb = match1[0]
         
-        p_list = str(i+1)+'. '+p_name
+        #p_list = str(i+1)+'. '+p_name
             
         li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
         u = sys.argv[0]+"?mode=14&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
