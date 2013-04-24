@@ -317,9 +317,16 @@ def PlayVideo(name,url,thumb):
             ok = dialog.ok(__addonname__, '未能解析视频地址')
             return
     else:
-        dialog = xbmcgui.Dialog()
-        ok = dialog.ok(__addonname__, '未能解析视频地址')
-        return
+        match1 = re.compile('<div class="videoPlay medium">\s*<div(.*?)>', re.DOTALL).findall(link)
+        if match1:
+            match = re.compile('data-player-videoid="([^"]+)"', re.DOTALL).search(match1[0])
+            videoId = match.group(1)
+            match = re.compile('data-player-tvid="([^"]+)"', re.DOTALL).search(match1[0])
+            tvId = match.group(1)
+        else:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '未能解析视频地址')
+            return
 
     playmode = int(__addon__.getSetting('playmode'))
     if playmode == 0:   # 连续播放模式
@@ -336,14 +343,16 @@ def PlayVideo(name,url,thumb):
             listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
             xbmc.Player().play(mtl[sel]['m3u'], listitem)
     else:               # 分段播放模式
-        url = 'http://cache.video.qiyi.com/v/' + videoId + '/' + pid + '/' + ptype + '/'
+        #url = 'http://cache.video.qiyi.com/v/' + videoId + '/' + pid + '/' + ptype + '/'
+        url = 'http://cache.video.qiyi.com/v/' + tvId + '/' + videoId
         link = GetHttpData(url)
         match1 = re.compile('<data version="(\d+)">([^<]+)</data>').findall(link)
         sel = selResolution([int(x[0]) for x in match1])
         if sel == -1:
             return
         if match1[sel][1] != videoId:
-            url = 'http://cache.video.qiyi.com/v/' + match1[sel][1] + '/' + pid + '/' + ptype + '/'
+            #url = 'http://cache.video.qiyi.com/v/' + match1[sel][1] + '/' + pid + '/' + ptype + '/'
+            url = 'http://cache.video.qiyi.com/v/' + tvId + '/' + match1[sel][1]
             link = GetHttpData(url)
 
         match=re.compile('<file>(.+?)</file>').findall(link)
