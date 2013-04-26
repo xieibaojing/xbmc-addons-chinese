@@ -94,8 +94,11 @@ spsc_binary = "sp-sc-auth"
 SPSC = os.path.join(addon_resources_path, 'sop')
 SPSC = os.path.join(SPSC,spsc_binary)
 SPSC_LIB = os.path.join(addon_resources_path, 'lib')
+SOLIB=SPSC_LIB
 SPSC_LIB_PY = os.path.join(SPSC_LIB,'libstd.py')
 SPSC_LIB = os.path.join(SPSC_LIB,'libstdc++.so.5')
+oslibpath=os.path.join(os.getcwd(),'lib')
+solib = os.path.join(os.getcwd(),'lib/libstdc++.so.5')
 sopcast_pid = "/tmp/sopcast.pid"
 spec_log = "/tmp/sopcast.log"
 wait_time = 20
@@ -154,7 +157,10 @@ def PID_CHECK(OS,spsc_binary):
 def CHK_LIB():
     if not os.path.isfile(SPSC_LIB):
         os.rename(SPSC_LIB_PY, SPSC_LIB)
-
+    if os.path.exists(oslibpath)==False :
+        os.makedirs(oslibpath)
+    if not os.path.isfile(solib):
+        shutil.copyfile(SPSC_LIB,solib) 
 
 def mylistGetAllChannel():
     channels_rt=[]
