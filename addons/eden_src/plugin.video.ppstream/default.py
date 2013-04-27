@@ -12,8 +12,8 @@ else:
 
 ########################################################################
 # PPStream 网络电视 by cmeng
-# Version 2.2.5 2013-04-20 (cmeng)
-# Remove test code
+# Version 2.2.7 2013-04-27 (cmeng)
+# Update search filter per ipd site changes
  
 # See changelog.txt for previous history
 ########################################################################
@@ -428,8 +428,8 @@ def progListUgc(name, id, page, cat, year, order):
 
     link = getHttpData(url)
     # Fetch & build ugc/ipd list for user selection, highlight user selected filter      
-    match = re.compile('<ul class="[ugc|r]+-list">(.+?)<div class="page.+?">').findall(link)
-    match = re.compile('<li class="[ugc|r]+-item"(.+?)</li>').findall(match[0])
+    matcha = re.compile('<ul class="[ugc|horn]+-list.+?>(.+?)<div class="page.+?">').findall(link)
+    match = re.compile('<li class="[ugc|p]+-item"(.+?)</li>').findall(matcha[0])
 
     totalItems = len(match)   
     li = xbmcgui.ListItem('[COLOR FFFF00FF]'+name+'[/COLOR]（第'+str(page)+'页）【[COLOR FFFFFF00]'+year+'[/COLOR]/[COLOR FF00FFFF]'+order+'[/COLOR]】（按此选择）')
