@@ -1,6 +1,9 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.6.1 2013-04-28 (cmeng)
+# - Update per latest site design changes
+
 # Version 1.6.0 2013-02-23 (cmeng)
 # - Update per site design changes
 # - Update 音悦台 - V榜 video list generation
