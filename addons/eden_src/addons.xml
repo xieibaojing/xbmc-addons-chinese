@@ -368,7 +368,7 @@ For Non-PRC OS environment (Windows7|WindowsXP):[CR]"Control Panel"|"Region and 
 
 <addon id="plugin.video.soptv"
     name="SOP电视(soptv)"
-    version="0.1.7"
+    version="0.1.8"
     provider-name="htpcyh2@gmail.com">
     <requires>
         <import addon="script.module.keyboard.chinese" version="1.0.0"/>
