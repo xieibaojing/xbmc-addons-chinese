@@ -1,4 +1,8 @@
-﻿V1.1.5 2013-05-09 (taxigps)
+﻿V1.1.6 2013-05-09 (taxigps)
+- fixed: some video can't play
+- added channels: 财富, 科技, 游戏, 搞笑, 美容, 女性, 乐活, 健康, 教育
+
+V1.1.5 2013-05-09 (taxigps)
 - update for site change
 - changed play video with playlist to stacked urls to smooth play between clips
 

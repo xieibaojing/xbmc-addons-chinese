@@ -5,10 +5,13 @@ import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, o
 __addon__     = xbmcaddon.Addon()
 __addonname__ = __addon__.getAddonInfo('name')
 
-CHANNEL_LIST = [['电影','ach22'],['电视剧','ach30'],['综艺','ach31'],['动漫','ach9']]
+CHANNEL_LIST = [['电影','ach22'],['电视剧','ach30'],['综艺','ach31'],['动漫','ach9'],['财富','ich24'],['科技','ich21'],['游戏','ich10'],['搞笑','ich5'],['美容','ich34'],['女性','ich27'],['乐活','ich3'],['健康','ich33'],['教育','ich25']]
 ORDER_LIST = [['1','人气最旺'], ['2','最新发布'], ['3','评论最多'], ['5','挖得最多']]
 ORDER_LIST2 = [['1','人气最旺'], ['2','最新发布'], ['3','评论最多'], ['4','分享最多'], ['5','挖得最多'], ['6','评分最高']]
 RES_LIST = ['high', 'super']
+TYPES1 = ('ach22', 'ach30', 'ach31') # 电影, 电视剧, 综艺
+TYPES2 = ('ich24', 'ich21', 'ich10', 'ich5', 'ich34', 'ich27', 'ich3', 'ich33', 'ich25') # 财富, 科技, 游戏, 搞笑, 美容, 女性, 乐活, 健康, 教育
+UserAgent = 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)'
 
 def log(txt):
     message = '%s: %s' % (__addonname__, txt)
@@ -17,7 +20,7 @@ def log(txt):
 def GetHttpData(url):
     log("%s::url - %s" % (sys._getframe().f_code.co_name, url))
     req = urllib2.Request(url)
-    req.add_header('User-Agent', 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)')
+    req.add_header('User-Agent', UserAgent)
     try:
         response = urllib2.urlopen(req)
         httpdata = response.read()
@@ -57,7 +60,11 @@ def getCurrent(text,list,id):
         list.append([id, match.group(1)])
 
 def getList(listpage,type,area,genre,stat,year):
-    if type in ('ach22', 'ach30', 'ach31'): # 电影、电视剧、综艺
+    arealist = []
+    genrelist = []
+    statlist = []
+    yearlist = []
+    if type in TYPES1: # 电影, 电视剧, 综艺
         match = re.compile('<h3>地区：</h3>(.+?)</div>', re.DOTALL).search(listpage)
         arealist = re.compile('<li\s*>\s*<a href="ach\d+a([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
         getCurrent(match.group(1), arealist, area)
@@ -83,11 +90,13 @@ def getList(listpage,type,area,genre,stat,year):
         match = re.compile('<h3>状态：</h3>(.+?)</div>', re.DOTALL).search(listpage)
         statlist = re.compile('<li\s*>\s*<a href="ach\d+a[\-\d]+b[\-\d]+c[\-\d]+d([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
         getCurrent(match.group(1), statlist, stat)
-    else:
-        arealist = []
-        genrelist = []
-        statlist = []
-        yearlist = []
+    elif type in TYPES2: # 财富, 科技, 游戏, 搞笑, 美容, 女性, 乐活, 健康, 教育
+        match = re.compile('<h3>类型：</h3>(.+?)</div>', re.DOTALL).search(listpage)
+        genrelist = re.compile('<li\s*>\s*<a href="ich\d+a([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
+        getCurrent(match.group(1), genrelist, genre)
+        match = re.compile('<h3>发布时间：</h3>(.+?)</div>', re.DOTALL).search(listpage)
+        yearlist = re.compile('<li\s*>\s*<a href="ich.+?so\d+pe([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
+        getCurrent(match.group(1), yearlist, year)
     return arealist,genrelist,statlist,yearlist
 
 def rootList():
@@ -98,22 +107,29 @@ def rootList():
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True,totalItems)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-#          id     a      b     c      d     so    pa
-# 电影   ach22  area  genre  stat   year  order  page
-# 电视剧 ach30  area  genre  stat   year  order  page
-# 综艺   ach31  area  genre  stat   year  order  page
-# 动漫   ach9   ver   area   genre  stat  order  page
-# 注：area/地区；type/类型；stat/状态；year/年代；ver/版本
-#　　 ver用year参数保存和传递
+#          id     a       b     c      d     so    pa    pe
+# 电影   ach22  area   genre  stat   year  order  page
+# 电视剧 ach30  area   genre  stat   year  order  page
+# 综艺   ach31  area   genre  stat   year  order  page
+# 动漫   ach9   ver    area   genre  stat  order  page
+# 财富   ich24  genre                                   time
+# 科技   ich21  genre                                   time
+# 游戏   ich10  genre                                   time
+# 搞笑   ich5   genre                                   time
+# 教育   ich25  genre                                   time
+#
+# 注：area/地区；type/类型；stat/状态；year/年代；ver/版本；time/发布时间
+#　　 ver值用year参数保存和传递
+#     time值用year参数保存和传递
 def progList(name,type,area,genre,stat,year,order,page):
-    if type in ('ach22', 'ach30', 'ach31'): # 电影、电视剧、综艺
+    para = ''
+    if type in TYPES1: # 电影, 电视剧, 综艺
         para = 'a%sb%sc%sd%se-2f-2g-2h-2i-2j-2k-2l-2m-2n-2o-2so%spe-2pa%s.html' % (area, genre, stat, year, order, page)
     elif type == 'ach9': # 动漫
         para = 'a%sb%sc%sd%se-2f-2g-2h-2i-2j-2k-2l-2m-2n-2o-2so%spe-2pa%s.html' % (year, area, genre, stat, order, page)
-    else:
-        para = ''
+    elif type in TYPES2: # 财富, 科技, 游戏, 搞笑, 美容, 女性, 乐活, 健康, 教育
+        para = 'a%sb-2c-2d-2e-2f-2g-2h-2i-2j-2k-2l-2m-2n-2o-2so%spe%spa%s.html' % (genre, order, year, page)
     url = 'http://www.tudou.com/cate/%s%s' % (type, para)
-    print url
     link = GetHttpData(url)
     match = re.compile('<div class="page-nav">(.+?)</div>', re.DOTALL).search(link)
     plist = []
@@ -125,12 +141,14 @@ def progList(name,type,area,genre,stat,year,order,page):
         totalpages = int(match1[len(match1)-1][0])
     else:
         totalpages = 1
-    match = re.compile('<div class="category-filter">(.+?)<div class="filter_more">', re.DOTALL).search(link)
+    match = re.compile('<div class="category-filter">(.+?)<div class="content">', re.DOTALL).search(link)
     if match:
         listpage = match.group(1)
     else:
         listpage = ''
     match = re.compile('<div class="pack pack_[^"]+">(.+?)<span class="ext_arrow"></span>', re.DOTALL).findall(link)
+    if not match:
+        match = re.compile('<div class="pack pack_[^"]+">(.+?)<li class="d_nums">', re.DOTALL).findall(link)
     totalItems = len(match) + 1 + len(plist)
     currpage = int(page)
 
@@ -150,6 +168,8 @@ def progList(name,type,area,genre,stat,year,order,page):
     if year == '-2':
         if type == 'ach9': # 动漫
             yearstr = '全部版本'
+        elif type in TYPES2: # 财富, 科技, 游戏, 搞笑, 美容, 女性, 乐活, 健康, 教育
+            yearstr = '全部时间'
         else:
             yearstr = '全部年份'
     else:
@@ -251,7 +271,8 @@ def PlayVideo(name,url,thumb,res):
     match = re.compile('<br>下载地址：(.*?)<br>花费时间：', re.DOTALL).findall(link)
     if match:
         match = re.compile('<a href="(http://.+?)" target="_blank"').findall(match[0])
-        stackurl = 'stack://' + ' , '.join(match)
+        urls = ['%s|User-Agent=%s' % (x, UserAgent) for x in match]
+        stackurl = 'stack://' + ' , '.join(urls)
         listitem = xbmcgui.ListItem(name,thumbnailImage=thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":name})
         xbmc.Player().play(stackurl, listitem)
