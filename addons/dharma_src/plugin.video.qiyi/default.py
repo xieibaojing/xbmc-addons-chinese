@@ -89,7 +89,7 @@ def getareaList(listpage, id):
 
 def getyearList(listpage, id):
     match = re.compile('<label>按时间：</label>(.*?)</ul>', re.DOTALL).findall(listpage)
-    yearlist = re.compile('href="http://list.iqiyi.com/www/' + id + '/\d*-\d*---------\d*-(\d*)-[^>]+>(.*?)</a>').findall(match[0])
+    yearlist = re.compile('href=["\']?http://list.iqiyi.com/www/' + id + '/\d*-\d*---------\d*-([\d_]*)-[^>]+>(.*?)</a>').findall(match[0])
     return yearlist
 
 def rootList():
