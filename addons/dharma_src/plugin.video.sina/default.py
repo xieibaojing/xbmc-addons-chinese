@@ -80,7 +80,6 @@ def progList(name,type,leftid,page,order):
     else:
         currpage = 1
     url = baseurl + '&topid='+ order + '&leftid=' + leftid + '&page=' +str(currpage) +'&liststyle=1&pagesize=20'
-    print url
     link = GetHttpData(url)
     match = re.compile('({"id".+?"})', re.DOTALL).findall(link)
     totalItems = len(match)
@@ -154,17 +153,12 @@ def progList(name,type,leftid,page,order):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def listA(name,url):
-    print name
-    print url
     link = GetHttpData(url)
     match1 = re.compile('<!-- 分集点播 begin-->(.+?)<!-- 分集点播 end-->', re.DOTALL).findall(link)
     match = re.compile('<div class="pic"><a href="(.+?)".+?<img src="(.+?)".+?rel=.+?>(.+?)</a></li>', re.DOTALL).findall(match1[0])
     totalItems=len(match)
     for p_url,p_thumb,p_name  in match:
         li = xbmcgui.ListItem(name+'-'+p_name, iconImage = '', thumbnailImage = p_thumb)
-        print p_url
-        print p_name
-        print p_thumb
         u = sys.argv[0] + "?mode=10&name="+urllib.quote_plus(name+'-'+p_name)+"&url="+urllib.quote_plus('http://video.sina.com.cn'+p_url)+"&thumb="+urllib.quote_plus(p_thumb)
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
@@ -185,9 +179,6 @@ def listB(name,type):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
         
 def PlayVideo(name,type,url,thumb):
-    print name
-    print url
-    print thumb
     link = GetHttpData(url)
     match = re.compile(' vid:\'(.+?)\'').findall(link)   
     vid=match[0]
@@ -197,13 +188,10 @@ def PlayVideo(name,type,url,thumb):
     link = GetHttpData(url)
     match = re.compile('<url><!\[CDATA\[(.+?)\]\]></url>').findall(link)
     if match:
-        playlist=xbmc.PlayList(1)
-        playlist.clear()
-        for i in range(len(match)):
-            listitem = xbmcgui.ListItem(name, thumbnailImage = __addonicon__)
-            listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
-            playlist.add(match[i], listitem)
-        xbmc.Player().play(playlist)
+        stackurl = 'stack://' + ' , '.join(match)
+        listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
+        listitem.setInfo(type="Video",infoLabels={"Title":name})
+        xbmc.Player().play(stackurl, listitem)
     else:
         dialog = xbmcgui.Dialog()
         ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请稍侯再试或联系作者')
@@ -211,7 +199,6 @@ def PlayVideo(name,type,url,thumb):
 def performChanges(name,type,id):
     change = False
     dialog = xbmcgui.Dialog()
-    print '类型选择开始'
     if id=='1':
         if type=='documentary':
             leftid='documentary-index'
@@ -269,9 +256,6 @@ def performChanges(name,type,id):
     if sel != -1:
         order = ORDER_LIST[sel][1]
         change = True    
-    print leftid
-    print order
-    print '类型选择结束'
     if change:
         progList(name,type,leftid,'1',order)
         
