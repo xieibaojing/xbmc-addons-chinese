@@ -1,4 +1,7 @@
-﻿V2.3.5 (2013-03-21)
+﻿V2.3.6 (2013-05-13)
+- fixed: can't get live video channels
+
+V2.3.5 (2013-03-21)
 - changed play video with playlist to stacked urls to smooth play between clips
 
 V2.3.4 (2013-03-03)

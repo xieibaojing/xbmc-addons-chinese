@@ -763,12 +763,12 @@ def PlayVideo(name,url,thumb):
 ##################################################################################
 # Sohu 电视直播 Menu List
 ##################################################################################
-def LiveChannel(name):
+def LiveChannel():
     url = 'http://tvimg.tv.itc.cn/live/stations.jsonp'
     link = getHttpData(url)
-    match = re.compile('var par=({.+?});').findall(link)
+    match = re.compile('var par=({.+?});', re.DOTALL).search(link)
     if match:
-        parsed_json = simplejson.loads(match[0])
+        parsed_json = simplejson.loads(match.group(1))
         totalItems = len(parsed_json['STATIONS'])
         i = 0
         for item in parsed_json['STATIONS']:
@@ -783,7 +783,7 @@ def LiveChannel(name):
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-    
+
 ##################################################################################
 # Sohu 电视直播 Player
 ##################################################################################
@@ -899,7 +899,7 @@ elif mode == 4:
     performChanges(name,id,cat,area,year,p5,p6,p11,order,listpage)
 
 elif mode == 10:
-    LiveChannel(name)
+    LiveChannel()
 elif mode == 11:
     LivePlay(name,id,thumb)
      
