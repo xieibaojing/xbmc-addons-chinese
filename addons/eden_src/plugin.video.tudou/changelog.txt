@@ -1,4 +1,7 @@
-﻿V1.1.6 2013-05-09 (taxigps)
+﻿V1.1.7 2013-05-14 (taxigps)
+- added: language selection for 国语 and 粤语
+
+V1.1.6 2013-05-09 (taxigps)
 - fixed: some video can't play
 - added channels: 财富, 科技, 游戏, 搞笑, 美容, 女性, 乐活, 健康, 教育
 

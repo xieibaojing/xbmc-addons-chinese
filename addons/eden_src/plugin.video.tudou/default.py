@@ -266,8 +266,17 @@ def seriesList(name,url,thumb,res):
             dialog = xbmcgui.Dialog()
             ok = dialog.ok(__addonname__, '没有可播放的视频')
 
-def PlayVideo(name,url,thumb,res):
-    link = GetHttpData("http://www.flvcd.com/parse.php?kw="+url+"&format="+RES_LIST[res])
+def PlayTudou(name,iid,thumb):
+    url = 'http://v2.tudou.com/v2/cdn?id=%s' % (iid)
+    link = GetHttpData(url)
+    match = re.compile('<f.+?brt="(\d+)"[^>]*>(.+?)</f>', re.DOTALL).findall(link)
+    match.sort(reverse=True)
+    listitem = xbmcgui.ListItem(name,thumbnailImage=thumb)
+    listitem.setInfo(type="Video",infoLabels={"Title":name})
+    xbmc.Player().play('%s|User-Agent=%s' % (match[0][1], UserAgent), listitem)
+
+def PlayYouku(name,url,thumb,res):
+    link = GetHttpData("http://www.flvcd.com/parse.php?kw=%s&format=%s" % (url, RES_LIST[res]))
     match = re.compile('<br>下载地址：(.*?)<br>花费时间：', re.DOTALL).findall(link)
     if match:
         match = re.compile('<a href="(http://.+?)" target="_blank"').findall(match[0])
@@ -283,6 +292,47 @@ def PlayVideo(name,url,thumb,res):
             ok = dialog.ok(__addonname__, match[0])
         else:
             ok = dialog.ok(__addonname__, '没有可播放的视频')
+
+def PlayVideo(name,url,thumb,res):
+    link = GetHttpData(url)
+    match = re.compile('itemData=\{(.+?)\};', re.DOTALL).search(link)
+    if match:
+        iid = ''
+        vcode = ''
+        #llist = ''
+        # 解析土豆视频id (iid)
+        match1 = re.compile('iid: (\d+)').search(match.group(1))
+        if match1:
+            iid = match1.group(1)
+        # 解析优酷视频id (vcode)
+        match1 = re.compile("vcode: '([^']+)'").search(match.group(1))
+        if match1:
+            vcode = match1.group(1)
+        lang_select = int(__addon__.getSetting('lang_select')) # 默认|每次选择|自动首选
+        if lang_select != 0:
+            # 解析优酷多语种id
+            match1 = re.compile("\{id: \d+, vcode: '([^']+)', lan: '([^']+)'\}").findall(link)
+            if match1:
+                #llist =  '; '.join(['%s=%s' % (x[1],x[0]) for x in match1])
+                if lang_select == 1:
+                    list = [x[1] for x in match1]
+                    sel = xbmcgui.Dialog().select('选择语言', list)
+                    if sel ==-1:
+                        return
+                    vcode = match1[sel][0]
+                    name = '%s（%s）' % (name, match1[sel][1])
+                else:
+                    lang_prefer = __addon__.getSetting('lang_prefer') # 国语|粤语
+                    for i in range(0,len(match1)):
+                        if match1[i][1] == lang_prefer:
+                            vcode = match1[i][0]
+                            name = '%s（%s）' % (name, match1[i][1])
+                            break
+        #ok = xbmcgui.Dialog().ok(__addonname__, 'iid=%s, vcode=%s' % (iid,vcode), llist)
+        if (not vcode) and iid:
+            PlayTudou(name,iid,thumb)
+            return
+    PlayYouku(name,url,thumb,res)
 
 def performChanges(name,listpage,type,area,genre,stat,year,order):
     arealist,genrelist,statlist,yearlist = getList(listpage,type,area,genre,stat,year)
