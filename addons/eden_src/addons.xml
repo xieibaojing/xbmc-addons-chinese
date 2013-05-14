@@ -415,7 +415,7 @@ For Non-PRC OS environment (Windows7|WindowsXP):[CR]"Control Panel"|"Region and 
 
 <addon id="plugin.video.tudou"
     name="土豆视频(Tudou)"
-    version="1.1.7"
+    version="1.1.8"
     provider-name="taxigps">
     <extension
         point="xbmc.python.pluginsource"

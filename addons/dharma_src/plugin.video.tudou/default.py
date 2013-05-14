@@ -332,6 +332,8 @@ def PlayVideo(name,url,thumb,res):
         if (not vcode) and iid:
             PlayTudou(name,iid,thumb)
             return
+        if vcode:
+            url = 'http://v.youku.com/v_show/id_%s.html' % (vcode)
     PlayYouku(name,url,thumb,res)
 
 def performChanges(name,listpage,type,area,genre,stat,year,order):
