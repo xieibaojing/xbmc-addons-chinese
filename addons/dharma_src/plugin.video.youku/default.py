@@ -342,10 +342,34 @@ def PlayVideo(name,id,thumb,res):
     url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % (id)
     link = GetHttpData(url)
     json_response = simplejson.loads(link)
+
+    vid = id
+    lang_select = int(__addon__.getSetting('lang_select')) # 默认|每次选择|自动首选
+    if lang_select != 0 and 'audiolang' in json_response['data'][0]['dvd']:
+        langlist = json_response['data'][0]['dvd']['audiolang']
+        if lang_select == 1:
+            list = [x['lang'] for x in langlist]
+            sel = xbmcgui.Dialog().select('选择语言', list)
+            if sel ==-1:
+                return
+            vid = langlist[sel]['vid'].encode('utf-8')
+            name = '%s %s' % (name, langlist[sel]['lang'].encode('utf-8'))
+        else:
+            lang_prefer = __addon__.getSetting('lang_prefer') # 国语|粤语
+            for i in range(0,len(langlist)):
+                if langlist[i]['lang'].encode('utf-8') == lang_prefer:
+                    vid = langlist[i]['vid'].encode('utf-8')
+                    name = '%s %s' % (name, langlist[i]['lang'].encode('utf-8'))
+                    break
+    if vid != id:
+        url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % (vid)
+        link = GetHttpData(url)
+        json_response = simplejson.loads(link)
+
     typeid, typename = selResolution(json_response['data'][0]['streamtypes'])
     if typeid:
         seed = json_response['data'][0]['seed']
-        fileId = json_response['data'][0]['streamfileids'][typeid]
+        fileId = json_response['data'][0]['streamfileids'][typeid].encode('utf-8')
         fileId = youkuDecoder().getFileId(fileId,seed)
         if typeid == 'mp4':
             type = 'mp4'
@@ -354,7 +378,7 @@ def PlayVideo(name,id,thumb,res):
         urls = []
         for i in range(len(json_response['data'][0]['segs'][typeid])): 
             no = '%02X' % i
-            k = json_response['data'][0]['segs'][typeid][i]['k']
+            k = json_response['data'][0]['segs'][typeid][i]['k'].encode('utf-8')
             urls.append('http://f.youku.com/player/getFlvPath/sid/00_00/st/%s/fileid/%s%s%s?K=%s' % (type, fileId[:8], no, fileId[10:], k))
         stackurl = 'stack://' + ' , '.join(urls)
         name = '%s[%s]' % (name, typename)
