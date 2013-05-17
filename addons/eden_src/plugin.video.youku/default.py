@@ -1,5 +1,9 @@
 ﻿# -*- coding: utf-8 -*-
-import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
+import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO, math
+if sys.version_info < (2, 7):
+    import simplejson
+else:
+    import json as simplejson
 
 # Plugin constants 
 __addon__     = xbmcaddon.Addon()
@@ -9,8 +13,30 @@ UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2
 ORDER_LIST = [['7','今日增加播放'], ['6','本周增加播放'], ['1','历史最多播放'], ['3','上映时间'], ['9','近期上映'], ['10','近期更新'], ['5','最多评论'], ['11','用户好评']]
 ORDER_LIST2 = [['1','最新发布'], ['2','最多播放'], ['3','最多评论'], ['8','最具争议'], ['4','最多收藏'], ['5','最广传播']]
 YEAR_LIST2 = [['4','不限'], ['1','今日'], ['2','本周'], ['3','本月']]
-RES_LIST = ['normal', 'high', 'super']
 UserAgent = 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)'
+
+class youkuDecoder:
+    def __init__( self ):
+        return
+
+    def getFileIDMixString(self,seed):  
+        mixed = []  
+        source = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\:._-1234567890")  
+        seed = float(seed)  
+        for i in range(len(source)):  
+            seed = (seed * 211 + 30031 ) % 65536  
+            index = math.floor(seed /65536 *len(source))  
+            mixed.append(source[int(index)])  
+            source.remove(source[int(index)])  
+        return mixed  
+
+    def getFileId(self,fileId,seed):  
+        mixed = self.getFileIDMixString(seed)  
+        ids = fileId.split('*')  
+        realId = []  
+        for i in range(0,len(ids)-1):
+            realId.append(mixed[int(ids[i])])  
+        return ''.join(realId)
 
 def log(txt):
     message = '%s: %s' % (__addonname__, txt)
@@ -180,9 +206,9 @@ def progList(name,id,page,genre,area,year,order):
 def getMovie(name,id,thumb,res):
     if len(id)==21:
         link = GetHttpData('http://www.youku.com/show_page/id_' + id + '.html')
-        match = re.compile('<a class="btnShow btnplayposi".*?href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
+        match = re.compile('<a class="btnShow btnplayposi".*?href="http://v.youku.com/v_show/id_(.+?)\.html"', re.DOTALL).search(link)
         if not match:
-            match = re.compile('<div class="btnplay">.*?href="(http://v.youku.com/v_show/id_.+?.html)"', re.DOTALL).search(link)
+            match = re.compile('<div class="btnplay">.*?href="ttp://v.youku.com/v_show/id_(.+?)\.html"', re.DOTALL).search(link)
         if match:
             # 播放正片
             PlayVideo(name, match.group(1), thumb, res)
@@ -190,10 +216,9 @@ def getMovie(name,id,thumb,res):
             # 解析预告片
             match = re.compile('class="btnShow btnplaytrailer".*?data="\{videoId:(\d+),', re.DOTALL).search(link)
             if match:
-                url = 'http://v.youku.com/v_show/id_' + match.group(1)
-                PlayVideo(name, url, thumb, res)
+                PlayVideo(name, match.group(1), thumb, res)
     else:
-        PlayVideo(name, 'http://v.youku.com/v_show/id_'+id+'.html', thumb, res)
+        PlayVideo(name, id, thumb, res)
 
 def seriesList(name,id,thumb,res):
     url = "http://www.youku.com/show_point_id_%s.html?dt=json&__rt=1&__ro=reload_point" % (id)
@@ -208,25 +233,26 @@ def seriesList(name,id,thumb,res):
     totalItems = len(match)
 
     for i in range(0,len(match)):
-        match1 = re.compile('<div class="link"><a .*?href="(http://v.youku.com/v_show/id_.+?.html)"').search(match[i])
+        match1 = re.compile('<div class="link"><a .*?href="http://v.youku.com/v_show/id_(.+?)\.html"').search(match[i])
         if match1:
-            p_url = match1.group(1)
+            p_id = match1.group(1)
         else:
             continue
         match1 = re.compile('<div class="thumb"><img .*?src="(.+?)"').search(match[i])
         p_thumb = match1.group(1)
         match1 = re.compile('<div class="title">[\s]*<a [^>]+>(.+?)</a>').search(match[i])
         p_name = match1.group(1)
+        p_name1 = p_name
         if match[i].find('<span class="ico__SD"')>0:
-            p_name += '[超清]'
+            p_name1 += '[超清]'
             p_res = 2
         elif match[i].find('<span class="ico__HD"')>0:
-            p_name += '[高清]'
+            p_name1 += '[高清]'
             p_res = 1
         else:
             p_res = 0
-        li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
-        u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)+"&res="+str(p_res)
+        li = xbmcgui.ListItem(p_name1, iconImage = '', thumbnailImage = p_thumb)
+        u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&id="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)+"&res="+str(p_res)
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
@@ -264,22 +290,23 @@ def progList2(name,id,page,genre,year,order):
     u = sys.argv[0]+"?mode=12&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&genre="+urllib.quote_plus(genre)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     for i in range(0,len(match)):
-        match1 = re.compile('<li class="v_link"><a href="(http://v.youku.com/v_show/id_.+?.html)"').search(match[i])
-        p_url = match1.group(1)
+        match1 = re.compile('<li class="v_link"><a href="http://v.youku.com/v_show/id_(.+?)\.html"').search(match[i])
+        p_id = match1.group(1)
         match1 = re.compile('<li class="v_thumb"><img src="(.+?)"').search(match[i])
         p_thumb = match1.group(1)
         match1 = re.compile('<li class="v_title"><a [^>]+>(.+?)</a>').search(match[i])
         p_name = match1.group(1).replace('&quot;','"')
+        p_name1 = p_name
         if match[i].find('<span class="ico__SD"')>0:
-            p_name += '[超清]'
+            p_name1 += '[超清]'
             p_res = 2
         elif match[i].find('<span class="ico__HD"')>0:
-            p_name += '[高清]'
+            p_name1 += '[高清]'
             p_res = 1
         else:
             p_res = 0
-        li = xbmcgui.ListItem(str(i + 1) + '. ' + p_name, iconImage = '', thumbnailImage = p_thumb)
-        u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)+"&res="+str(p_res)
+        li = xbmcgui.ListItem(str(i + 1) + '. ' + p_name1, iconImage = '', thumbnailImage = p_thumb)
+        u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&id="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)+"&res="+str(p_res)
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
 
@@ -290,24 +317,50 @@ def progList2(name,id,page,genre,year,order):
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def PlayVideo(name,url,thumb,res):
-    res_limit = int(__addon__.getSetting('movie_res'))
-    if res > res_limit:
-        res = res_limit
-    link = GetHttpData("http://www.flvcd.com/parse.php?kw=%s&format=%s" % (url, RES_LIST[res]))
-    match = re.compile('"(http://f.youku.com/player/getFlvPath/.+?)" target="_blank"').findall(link)
-    if len(match)>0:
-        stackurl = 'stack://' + ' , '.join(match)
+def selResolution(streamtypes):
+    ratelist = []
+    for i in range(0,len(streamtypes)):
+        if streamtypes[i] == 'flv': ratelist.append([3, '标清', i]) # [清晰度设置值, 清晰度, streamtypes索引]
+        if streamtypes[i] == 'mp4': ratelist.append([2, '高清', i])
+        if streamtypes[i] == 'hd2': ratelist.append([1, '超清', i])
+    ratelist.sort()
+    if len(ratelist) > 1:
+        resolution = int(__addon__.getSetting('resolution'))
+        if resolution == 0:    # 每次询问视频清晰度
+            list = [x[1] for x in ratelist]
+            sel = xbmcgui.Dialog().select('清晰度（低网速请选择低清晰度）', list)
+            if sel == -1:
+                return None, None
+        else:
+            sel = 0
+            while sel < len(ratelist)-1 and resolution > ratelist[sel][0]: sel += 1
+    else:
+        sel = 0
+    return streamtypes[ratelist[sel][2]], ratelist[sel][1]
+
+def PlayVideo(name,id,thumb,res):
+    url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % (id)
+    link = GetHttpData(url)
+    json_response = simplejson.loads(link)
+    typeid, typename = selResolution(json_response['data'][0]['streamtypes'])
+    if typeid:
+        seed = json_response['data'][0]['seed']
+        fileId = json_response['data'][0]['streamfileids'][typeid]
+        fileId = youkuDecoder().getFileId(fileId,seed)
+        if typeid == 'mp4':
+            type = 'mp4'
+        else:
+            type = 'flv'
+        urls = []
+        for i in range(len(json_response['data'][0]['segs'][typeid])): 
+            no = '%02X' % i
+            k = json_response['data'][0]['segs'][typeid][i]['k']
+            urls.append('http://f.youku.com/player/getFlvPath/sid/00_00/st/%s/fileid/%s%s%s?K=%s' % (type, fileId[:8], no, fileId[10:], k))
+        stackurl = 'stack://' + ' , '.join(urls)
+        name = '%s[%s]' % (name, typename)
         listitem=xbmcgui.ListItem(name,thumbnailImage=thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":name})
         xbmc.Player().play(stackurl, listitem)
-    else:
-        if link.find('该视频为加密视频')>0:
-            dialog = xbmcgui.Dialog()
-            ok = dialog.ok(__addonname__, '无法播放：该视频为加密视频')
-        elif link.find('解析失败，请确认视频是否被删除')>0:
-            dialog = xbmcgui.Dialog()
-            ok = dialog.ok(__addonname__, '无法播放：该视频或为收费节目')
 
 def performChanges(name,id,listpage,genre,area,year,order):
     genrelist,arealist,yearlist = getList(listpage,genre,area,year)
@@ -451,7 +504,7 @@ elif mode == 3:
 elif mode == 4:
     performChanges(name,id,page,genre,area,year,order)
 elif mode == 10:
-    PlayVideo(name,url,thumb,res)
+    PlayVideo(name,id,thumb,res)
 elif mode == 11:
     progList2(name,id,page,genre,year,order)
 elif mode == 12:
