@@ -32,6 +32,7 @@
  * plugin.video.5ivdo - 观看www.5ivdo.com网的在线视频
  * plugin.video.cntv - 中国网络电视台点播(CNTV)，观看中国网络电视在线视频
  * plugin.video.cntv-live - 中国网络电视台直播(CNTV Live)，观看中国网络电视直播频道（仅Windows平台）
+ * plugin.video.funshion - 观看风行网www.funshion.com在线视频
  * plugin.video.kankan - 迅雷看看(KanKan)，观看movie.kankan.com在线视频
  * plugin.video.ku6 - 酷6云中剧场(Ku6)，观看www.juchang.com在线视频
  * plugin.video.kugoumv - 酷狗MV(KugouMV)，观看www.kugou.com音乐电视
@@ -58,6 +59,7 @@
  * plugin.video.wzipad - 热点影院(wzipad)，观看www.wzipad.com在线视频
 
 === 音乐插件 ===
+ * plugin.audio.baidufm - 百度随心听
  * plugin.audio.baiduradio - 百度电台联盟音乐插件
  * plugin.audio.kuwobox - 酷我音乐盒(KuwoBox)
  * plugin.audio.top100 - 巨鲸音乐(TOP100)
