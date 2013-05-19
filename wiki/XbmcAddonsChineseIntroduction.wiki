@@ -32,6 +32,7 @@ Some of the Add-ons use Chinese Keyboard for text entry; you will also need to i
  * plugin.video.5ivdo - Online video from www.5ivdo.com (Chinese)
  * plugin.video.cntv - Chinese Net TV online video (Chinese)
  * plugin.video.cntv-live - Chinese Net TV live tv (Chinese)
+ * plugin.video.funshion - Online videos from www.funshion.com (Chinese)
  * plugin.video.kankan - Online videos from movie.kankan.com (Chinese)
  * plugin.video.ku6 - Online video from www.juchang.com (Chinese)
  * plugin.video.kugoumv - Online MV from www.kugou.com (Chinese)
