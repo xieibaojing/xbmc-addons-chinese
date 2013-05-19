@@ -59,6 +59,7 @@ Some of the Add-ons use Chinese Keyboard for text entry; you will also need to i
  * plugin.video.wzipad - Online video from www.wzipad.com (Chinese)
 
 === music plugins ===
+ * plugin.audio.baidufm - Baidu fm music (Chinese)
  * plugin.audio.baiduradio - Baidu online radio (Chinese)
  * plugin.audio.kuwobox - kuwobox online music (Chinese)
  * plugin.audio.top100 - online audio from www.top100.cn (Chinese)
