@@ -157,17 +157,6 @@ def urlExists(url):
     return result 
 
 
-def checksub(purl):
-    global subfrom 
-    global subto
-    global sub
-    match = re.compile('<from>(.+?)</from><to>(.+?)</to>').findall(sub)
-    for ifrom,ito in match:
-        subfrom  = ifrom 
-        subto = ito
-        if urlExists(purl.replace(subfrom,subto)): return
-    subfrom = 'ERROR'
-    subto ='ERROR'
 
 
 def sohuPlayVideo(pname,purl,pthumb):
@@ -211,8 +200,7 @@ def PlayVideo(name,url,matchstr,multiflag,thumb,pmod):
     elif pmod.find('SOHU') >0: 
         sohuPlayVideo(name,url,thumb)
     else:
-        playlist=xbmc.PlayList(1)  
-        playlist.clear() 
+        urls = []
         link = GetHttpData(url) 
         match = re.compile(matchstr).findall(link)
         if len(match) == 0:
@@ -221,19 +209,16 @@ def PlayVideo(name,url,matchstr,multiflag,thumb,pmod):
             return
         for i in range(0,len(match)): 
             if multiflag == '1' and i < len(match) -1: continue
-            listitem = xbmcgui.ListItem(name) 
-            if multiflag == '1':
-                listitem.setInfo(type="Video",infoLabels={"Title":name})
-            else:
-                listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
             purl=match[i]
             if pmod.find('SUB') > 0:
-                if i==0: checksub(match[i]) 
                 purl = purl.replace(subfrom,subto)
             if pmod.find('PRE') > 0:
                 purl = prefix + purl
-            playlist.add(purl, listitem)
-        xbmc.Player().play(playlist)
+            urls.append(purl)
+        stackurl = 'stack://' + ' , '.join(urls)
+        listitem = xbmcgui.ListItem(name) 
+        listitem.setInfo(type="Video",infoLabels={"Title":name})
+        xbmc.Player().play(stackurl, listitem)
     
 
 
@@ -308,7 +293,11 @@ elif mode == 'data':
     showdata(url)
 elif mode == 'play':
     if options: pmod = pmod + options
-    if sub: pmod = pmod + '|SUB'
+    if sub: 
+        pmod = pmod + '|SUB'
+        match = re.compile('<from>(.+?)</from><to>(.+?)</to>').findall(sub)
+        subfrom = match[0][0]
+        subto = match[0][1]
     if prefix: pmod = pmod + '|PRE'
     PlayVideo(name,url,matchstr,mflag,thumb,pmod) 
 elif mode == 'diag':
