@@ -123,12 +123,8 @@ def progList(name,type,genre,area,year,order,page):
     if year:
         str1 = str1 + ',year'
         str2 = str2 + ',' + year
-    url = 'http://movie.kankan.com/' + str1 +'/' + str2 + '/'
-    if page:
-        url = url + 'page' + page + '/'
-        currpage = int(page)
-    else:
-        currpage = 1
+    url = 'http://movie.kankan.com/%s/%s/page%s/' % (str1, str2, page)
+    currpage = int(page)
     link = GetHttpData(url)
     match = re.compile('class="de_btn_l[^"]*"></a><span>[0-9]+/([0-9]+)</span>', re.DOTALL).findall(link)
     if len(match):
@@ -198,11 +194,13 @@ def seriesList(name,url,thumb,res):
     subids = match.group(1).split(",")
     subnames = match.group(2).split("','")
     totalItems = len(subids)
+    id = url.split('/')[-1][:-6]
     if totalItems == 1:
-        PlayVideo(name,url,thumb,res)
+        p_url = "http://kankan.xunlei.com/vod/mp4/%s/%s/%s.shtml" % (id[:2], id, subids[0])
+        PlayVideo(name,p_url,thumb,res)
         return
     for i in range(0, totalItems):
-        p_url = "%s/%s.shtml" % (url[:-6], subids[i])
+        p_url = "http://kankan.xunlei.com/vod/mp4/%s/%s/%s.shtml" % (id[:2], id, subids[i])
         p_name = "%s %s" % (name, subnames[i])
         if res == 1:
             p_name += '[720P]'
@@ -217,20 +215,19 @@ def PlayVideo(name,url,thumb,res):
     res_limit = int(__addon__.getSetting('movie_res'))
     if res > res_limit:
         res = res_limit
-    link = GetHttpData("http://www.flvcd.com/parse.php?kw="+url+"&format="+RES_LIST[res])
+    link = GetHttpData("http://www.flvcd.com/parse.php?kw=%s&format=%s" % (url, RES_LIST[res]))
     match = re.compile('<a href="(http://[^/]+/data\d/cdn_transfer/[^"]+)" target="_blank"').findall(link)
     if not match:
-        link = GetHttpData("http://www.flvcd.com/parse.php?kw="+url)
+        link = GetHttpData("http://www.flvcd.com/parse.php?kw=%s" % (url))
         match = re.compile('<a href="(http://[^/]+/data\d/cdn_transfer/[^"]+)" target="_blank"').findall(link)
     if match:
-        playlist = xbmc.PlayList(1)
-        playlist.clear()
-        for i in range(0,len(match)):
-            title = name+" 第"+str(i+1)+"/"+str(len(match))+"节"
-            listitem = xbmcgui.ListItem(title, thumbnailImage=thumb)
-            listitem.setInfo(type="Video",infoLabels={"Title":title})
-            playlist.add(match[i], listitem)
-        xbmc.Player().play(playlist)
+        if len(match) > 1:
+            url = 'stack://' + ' , '.join(match)
+        else:
+            url = match[0]
+        listitem = xbmcgui.ListItem(name, thumbnailImage=thumb)
+        listitem.setInfo(type="Video",infoLabels={"Title":name})
+        xbmc.Player().play(url, listitem)
     else:
         dialog = xbmcgui.Dialog()
         ok = dialog.ok(__addonname__, '无法解析视频')

@@ -1,0 +1,8 @@
+﻿V1.0.2 2013-05-22
+- fixed: flvcd can't decode video url
+
+V1.0.1 2013-01-13
+- fixed: can't get movie list from special web pages
+
+V1.0.0 2013-01-10
+- initial release
