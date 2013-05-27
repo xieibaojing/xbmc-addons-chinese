@@ -173,19 +173,28 @@ def sohuPlayVideo(pname,purl,pthumb):
         ok = dialog.ok(__addonname__, '无法播放，请换用其他网站重试。')
         return
     newpaths = match[0].split('","')
-    playlist=xbmc.PlayList(1) 
-    playlist.clear()
+    urls = []
     for i in range(0,len(paths)):
         p_url = 'http://data.vod.itc.cn/?prot=2&file='+paths[i].replace('http://data.vod.itc.cn','')+'&new='+newpaths[i]
         link = GetHttpData(p_url)
         # http://newflv.sohu.ccgslb.net/|623|116.14.234.161|Googu7gm-8WjRTd5ZfBVPIfrtRtLE5Cn|1|0
         key=link.split('|')[3]
         url=link.split('|')[0].rstrip("/")+newpaths[i]+'?key='+key
-        title = pname+" 第"+str(i+1)+"/"+str(len(paths))+"节"
-        listitem=xbmcgui.ListItem(title)
-        listitem.setInfo(type="Video",infoLabels={"Title":title})
-        playlist.add(url, listitem)    
-    xbmc.Player().play(playlist)
+        urls.append(url)
+    stackurl = 'stack://' + ' , '.join(urls)
+    listitem = xbmcgui.ListItem(name) 
+    listitem.setInfo(type="Video",infoLabels={"Title":pname})
+    xbmc.Player().play(stackurl, listitem)
+
+
+
+def Getmatch2(purl,matchstr):
+    link = GetHttpData(purl)
+    matchA = re.compile(match2str).findall(link)
+    match = []
+    if matchA: match= re.compile(matchstr).findall(matchA[0])
+    return match
+
 
 
 
@@ -203,22 +212,35 @@ def PlayVideo(name,url,matchstr,multiflag,thumb,pmod):
         urls = []
         link = GetHttpData(url) 
         match = re.compile(matchstr).findall(link)
+        if match2str:
+            match=Getmatch2(url,matchstr)
         if len(match) == 0:
             dialog = xbmcgui.Dialog()
             ok = dialog.ok(__addonname__, '播放地址已失效，请换用其他网站重试。')
             return
         for i in range(0,len(match)): 
-            if multiflag == '1' and i < len(match) -1: continue
             purl=match[i]
             if pmod.find('SUB') > 0:
                 purl = purl.replace(subfrom,subto)
             if pmod.find('PRE') > 0:
                 purl = prefix + purl
             urls.append(purl)
-        stackurl = 'stack://' + ' , '.join(urls)
-        listitem = xbmcgui.ListItem(name) 
-        listitem.setInfo(type="Video",infoLabels={"Title":name})
-        xbmc.Player().play(stackurl, listitem)
+        if multiflag == '1':
+            playlist=xbmc.PlayList(1)  
+            playlist.clear() 
+            dialog = xbmcgui.Dialog()
+            listitem = xbmcgui.ListItem(name) 
+            listitem.setInfo(type="Video",infoLabels={"Title":name})
+            if pmod.find('FIRSTONE') > 0:
+                playlist.add(urls[0], listitem)
+            else:
+                playlist.add(urls[len(urls)-1], listitem)
+            xbmc.Player().play(playlist)
+        else:
+            stackurl = 'stack://' + ' , '.join(urls)
+            listitem = xbmcgui.ListItem(name) 
+            listitem.setInfo(type="Video",infoLabels={"Title":name})
+            xbmc.Player().play(stackurl, listitem)
     
 
 
@@ -229,13 +251,14 @@ url = None
 thumb = None
 name = None
 matchstr = None
+match2str = None
 mflag = None
 subfrom = None
 subto = None
 sub = None
 prefix = None
 options = None
-pmod = '|'
+ppmod = '|'
 
 try:
     thumb = urllib.unquote_plus(params["thumb"])
@@ -292,14 +315,18 @@ elif mode == 'menu':
 elif mode == 'data':
     showdata(url)
 elif mode == 'play':
-    if options: pmod = pmod + options
+    if options: 
+        ppmod = ppmod + options
+        if options.find('<match2str>') > 0:
+            match = re.compile('<match2str>(.+?)</match2str>').findall(options)
+            match2str = match[0][0]
     if sub: 
-        pmod = pmod + '|SUB'
+        ppmod = ppmod + '|SUB'
         match = re.compile('<from>(.+?)</from><to>(.+?)</to>').findall(sub)
         subfrom = match[0][0]
         subto = match[0][1]
-    if prefix: pmod = pmod + '|PRE'
-    PlayVideo(name,url,matchstr,mflag,thumb,pmod) 
+    if prefix: ppmod = ppmod + '|PRE'
+    PlayVideo(name,url,matchstr,mflag,thumb,ppmod) 
 elif mode == 'diag':
     dialog = xbmcgui.Dialog()
     ok = dialog.ok(__addonname__, '开发阶段。')
