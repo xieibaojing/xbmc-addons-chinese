@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, urlparse, httplib, re, string, sys, os, gzip, StringIO, simplejson
-import cookielib, time
+import cookielib, datetime, time
 import ChineseKeyboard
        
 # Plugin constants 
@@ -364,11 +364,6 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
 # - user selectable pages
 ##################################################################################
 def seriesList(name, id,url,thumb):
-    # print 'SeriesList('+name+', '+str(id)+', '+url+', '+thumb+')'
-    li = xbmcgui.ListItem('【[COLOR FFFFFF00][' + name + '][/COLOR] | [COLOR FF00FFFF][选择: ' + name + '][/COLOR]】', iconImage='', thumbnailImage=thumb)
-    u = sys.argv[0]+"?mode=2&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&url=" + urllib.quote_plus(url)+"&thumb="+urllib.quote_plus(thumb) 
-    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
-
     link = getHttpData(url)
     if url.find('.shtml')>0:
         match0 = re.compile('var vrs_playlist_id="(.+?)";', re.DOTALL).findall(link)
@@ -377,11 +372,13 @@ def seriesList(name, id,url,thumb):
         match = re.compile('"videoImage":"(.+?)",.+?"videoUrl":"(.+?)".+?"videoOrder":"(.+?)",', re.DOTALL).findall(link)
         totalItems = len(match)
 
-        for p_thumb,p_url,p_name in match:
-            li = xbmcgui.ListItem('第'+p_name+'集', iconImage = '', thumbnailImage = p_thumb)
-            u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus('第'+p_name+'集') + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
+        for p_thumb,p_url,p_order in match:
+            p_name = '%s第%s集' % (name, p_order)
+            li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
+            li.setInfo(type="Video",infoLabels={"Title":p_name, "episode":int(p_order)})
+            u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)       
-    else:    
+    else:
         match0 = re.compile('var pid=(.+?);', re.DOTALL).findall(link)
         if len(match0)>0:
             # print 'pid=' + match0[0]
@@ -391,12 +388,14 @@ def seriesList(name, id,url,thumb):
             obtype= '2'
             link = getHttpData("http://search.vrs.sohu.com/avs_i"+vid+"_pr"+pid+"_o"+obtype+"_n_p1000_chltv.sohu.com.json")
 
-            match = re.compile('"videoName":"(.+?)",.+?"videoUrl":"(.+?)",.+?"videoBigPic":"(.+?)",', re.DOTALL).findall(link)
+            match = re.compile('"videoName":"(.+?)",.+?"videoPublishTime":(\d+),.+?"playOrder":"(\d+)",.+?"videoUrl":"(.+?)",.+?"videoBigPic":"(.+?)",', re.DOTALL).findall(link)
             totalItems = len(match)
             i = 0
-            for p_name,p_url, p_thumb  in match:
+            for p_name, p_time, p_order, p_url, p_thumb  in match:
                 i +=1
-                li = xbmcgui.ListItem(str(i) +'. ' + p_name, iconImage = '', thumbnailImage = p_thumb)
+                p_date = datetime.date.fromtimestamp(float(p_time)/1000).strftime('%d.%m.%Y')
+                li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
+                li.setInfo(type="Video",infoLabels={"Title":p_name, "date":p_date, "episode":int(p_order)})
                 u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
         else:
@@ -447,6 +446,8 @@ def seriesList(name, id,url,thumb):
                     u = sys.argv[0] + "?mode=3&name="+urllib.quote_plus(p_name)+"&id="+id+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
                     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False)
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_EPISODE)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 ##################################################################################
