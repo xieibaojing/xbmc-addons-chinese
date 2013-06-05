@@ -5,6 +5,8 @@
 
 import urllib,urllib2,os,re,sys
 import gzip,StringIO #playvideo
+import hashlib,time
+
 #if 'XBMC' in os.path.realpath('.'):
 if not sys.modules.has_key('idlelib'):
     import xbmc
@@ -169,7 +171,7 @@ def PlayMusic():
     for mid in mids:
         if mid == '':
             continue
-        tree = getUrlTree('http://plugin.kuwo.cn/mbox/st/FlashData?rid=MUSIC_'+mid)
+        tree = getUrlTree('http://player.kuwo.cn/webmusic/st/getNewMuiseByRid?rid=MUSIC_'+mid)
         title = get_content_by_tag(tree, 'name')
         # kuwo has names like "song name(抢听版)", causing lyrics look up failure
         true_title = title.split('(')[0].rstrip()
@@ -187,7 +189,9 @@ def PlayMusic():
                 dl = get_content_by_tag(tree, 'mp3dl')
 
         if path and dl:
-            url = 'http://' + dl + path
+            timestamp = ("%x" % int(time.time()))[:8]
+            hashstr = hashlib.md5("kuwo_web@1906/resource/%s%s" % (path, timestamp)).hexdigest()
+            url = 'http://%s/%s/%s/resource/%s' % (dl, hashstr, timestamp, path)
             if xbmc:
                 listitem=xbmcgui.ListItem(title)
                 listitem.setInfo( type="Music", infoLabels={ "Title": true_title, "Artist": artist} )
