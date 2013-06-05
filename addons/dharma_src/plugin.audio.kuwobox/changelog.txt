@@ -1,4 +1,4 @@
-﻿v1.1.2 (2012/10/28 by wenli380@gamil.com)
+﻿v1.1.2 (2013/06/05 by wenli380@gamil.com)
 - 修正网站变化造成无法获取歌曲播放地址。
 
 v1.1.1 (2012/10/28 by runner6502@gamil.com)
