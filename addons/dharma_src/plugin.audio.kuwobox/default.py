@@ -25,7 +25,7 @@ support_MV = False
 
 
 UserAgent = 'Mozilla/5.0 (Windows NT 5.1; rv:8.0) Gecko/20100101 Firefox/8.0'
-URL_BASE = 'http://www.kuwo.cn'
+URL_BASE = 'http://yinyue.kuwo.cn'
 
 #
 # Web process engine
@@ -720,7 +720,7 @@ songItem_show_artist = {'tag':(None,{'class':re.compile('itemUl\d*')}), 'vect':a
 songContainer = {'tag':(None,{'id':"container"}), 'vect':addPlayAll, 'child':songItem_show_artist} 
 
 artistItem = {'tag':('li',{}), 'vect':addArtist, 'child':None}
-artistContainer = {'tag':(None,{'class':['sortFrm'] + tagSubBanners}), 'vect':addCategoryBanner, 'child':artistItem} 
+artistContainer = {'tag':(None,{'class':['sortFrm','numList newnumList'] + tagSubBanners}), 'vect':addCategoryBanner, 'child':artistItem} 
 artistAlphaBeta = {'tag':(None,{'class':"numList"}), 'vect':addAlphaBeta, 'child':None} 
 
 pageItem = {'tag':(None,{'class':'page'}), 'vect':addPage, 'child':None}
