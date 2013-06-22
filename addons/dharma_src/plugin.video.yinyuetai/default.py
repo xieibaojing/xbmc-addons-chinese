@@ -8,8 +8,8 @@ import ChineseKeyboard
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.6.1 2013-04-28 (cmeng)
-# - Update per latest site design changes
+# Version 1.6.2 2013-06-22 (cmeng)
+# - Update site latest url & design changes
  
 ##########################################################################
 
@@ -437,7 +437,7 @@ def listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)
     if page is None: page = 1
 
     # Fetch & build video titles list for user selection, highlight user selected filter  
-    url = 'http://www.yinyuetai.com/mv/all?&sort=pubdate&area='+fltrArea+'&artist='+fltrArtist+'&version='+fltrVersion+'&tag='+urllib.quote(fltrTag)+'&genre='+fltrGenre
+    url = 'http://mv.yinyuetai.com/all?&sort=pubdate&area='+fltrArea+'&artist='+fltrArtist+'&version='+fltrVersion+'&tag='+urllib.quote(fltrTag)+'&genre='+fltrGenre
     if fname <> '全部':
         url += '&enName='+fname 
     url += '&page='+str(page)
@@ -464,7 +464,8 @@ def listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)
         for item in matchli:
             item = item.replace('\\"','\'')
             match=re.compile('<a href="(.+?)" target="_blank">').findall(item)
-            p_url = 'http://www.yinyuetai.com' + match[0]
+            #p_url = 'http://www.yinyuetai.com' + match[0]
+            p_url = match[0]
             match=re.compile('<img src="(.+?)" alt="(.+?)"').findall(item)
             p_thumb = match[0][0]
             p_thumb += '|Referer=http://www.yinyuetai.com'
@@ -656,10 +657,10 @@ def listFavouriteMV(name,cat,order,page):
     if page is None: page = 1
 
     if re.search('热门',cat):
-        url = 'http://www.yinyuetai.com/pl/playlist_'+fltrCat+'/'+fltrOrder+'/'+str(page)
+        url = 'http://pl.yinyuetai.com/playlist_'+fltrCat+'/'+fltrOrder+'/'+str(page)
         li = xbmcgui.ListItem('[COLOR FF00FFFF]'+name+'[/COLOR]（第'+str(page)+'页）【[COLOR FFFF0000]'+cat+'[/COLOR]/[COLOR FF00FF00]'+order+'[/COLOR]】（按此选择）')
     else:
-        url = 'http://www.yinyuetai.com/pl/playlist_'+fltrCat+'/'+str(page)
+        url = 'http://pl.yinyuetai.com/playlist_'+fltrCat+'?page='+str(page)
         li = xbmcgui.ListItem('[COLOR FF00FFFF]'+name+'[/COLOR]（第'+str(page)+'页）【[COLOR FF00FF00]'+cat+'[/COLOR]】（按此选择）')
   
     # Fetch & build video titles list for user selection, highlight user selected filter  
@@ -669,7 +670,7 @@ def listFavouriteMV(name,cat,order,page):
     link=getHttpData(url)
     if link == None: return
 
-    matchs=re.compile('<div id="main">(.+?)</ul></div>').findall(link)
+    matchs=re.compile('<div id="main">(.+?)</ul>').findall(link)
     matchli=re.compile('<div class="thumb_box">(.+?)</li>').findall(matchs[0])
 
     if len(matchli):        
@@ -679,7 +680,8 @@ def listFavouriteMV(name,cat,order,page):
         j=0
         for item in matchli:
             match=re.compile('<a href="(.+?)" target="_blank" title="(.+?)"><img src="(.+?)"').findall(item)
-            p_url = 'http://www.yinyuetai.com' + match[0][0]
+            #p_url = 'http://www.yinyuetai.com' + match[0][0]
+            p_url = match[0][0]
             p_name = match[0][1]
             p_thumb = match[0][2]
             p_thumb += '|Referer=http://www.yinyuetai.com'

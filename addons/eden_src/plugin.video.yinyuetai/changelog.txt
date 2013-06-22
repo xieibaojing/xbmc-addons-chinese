@@ -1,6 +1,9 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.6.2 2013-06-22 (cmeng)
+# - Update site latest url & design changes
+
 # Version 1.6.1 2013-04-28 (cmeng)
 # - Update per latest site design changes
 
