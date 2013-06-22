@@ -1,11 +1,13 @@
 ﻿' pps4xbmc
 '=============
 ' 开源代码，随意修改，原作者不承担因此引起的法律纠纷。robinttt,2009-12-2
-' Version 2.0.2 2013-04-13 (cmeng)
-' - Regain focus when PPS notification pop up
+' Version 2.0.3 2013-06-22 (cmeng)
+' - Disable Timer running in normal mode
+' - Wait some time for other application to settle before taking control
 
 Imports VB = Microsoft.VisualBasic
 Imports System.Text
+'Imports System.Threading
 Imports System.Net.Sockets
 
 Public Class frmPPS
@@ -30,6 +32,8 @@ Public Class frmPPS
          ByVal wFlags As Integer) As Boolean
 
     Private Declare Function ShowWindow Lib "user32" (ByVal handle As IntPtr, ByVal nCmdShow As Integer) As Integer
+    Private Declare Sub Sleep Lib "kernel32.dll" (ByVal Milliseconds As Integer)
+
     Private Const SW_SHOWMAXIMIZED As Integer = 3
     Private Const NORMAL As Integer = 1
 
@@ -287,13 +291,20 @@ Public Class frmPPS
 
     Private Sub Form1_Deactivate(sender As Object, e As EventArgs) Handles Me.Deactivate
         If Cmd.Visible = True Then ' raising form to topmost only if it not in exit mode
-            LB.Text = "Regaining Control ..."
-            LB.Visible = True
-            Timer2.Enabled = True
+            'Wait some time for other application to settle before taking control
+            Timer1.Enabled = True
         End If
     End Sub
 
+    Private Sub Timer1_Tick(sender As System.Object, e As System.EventArgs) Handles Timer1.Tick
+        Timer1.Enabled = False
+        LB.Text = "恢复控制权 ..."
+        LB.Visible = True
+        Timer2.Enabled = True
+    End Sub
+
     Private Sub Timer2_Tick(sender As System.Object, e As System.EventArgs) Handles Timer2.Tick
+        Timer2.Enabled = False
         If LB.Visible = True Then
             LB.Visible = False
             Me.Focus()
@@ -351,7 +362,6 @@ Public Class frmPPS
     '        TB_TCP.Text = "Data from XBMC: " + rxdata
     '    End If
     'End Sub
-
 End Class
 
 

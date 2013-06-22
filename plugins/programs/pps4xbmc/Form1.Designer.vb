@@ -29,6 +29,7 @@ Partial Class frmPPS
         Me.Cmd = New System.Windows.Forms.TextBox()
         Me.PowerPlayer1 = New AxPowerPlayerULib.AxPowerPlayerU()
         Me.TextBox_TCP = New System.Windows.Forms.TextBox()
+        Me.Timer1 = New System.Windows.Forms.Timer(Me.components)
         CType(Me.PowerPlayer1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -60,7 +61,7 @@ Partial Class frmPPS
         'PowerPlayer1
         '
         Me.PowerPlayer1.Enabled = True
-        Me.PowerPlayer1.Location = New System.Drawing.Point(52, 65)
+        Me.PowerPlayer1.Location = New System.Drawing.Point(51, 66)
         Me.PowerPlayer1.Name = "PowerPlayer1"
         Me.PowerPlayer1.OcxState = CType(resources.GetObject("PowerPlayer1.OcxState"), System.Windows.Forms.AxHost.State)
         Me.PowerPlayer1.Size = New System.Drawing.Size(510, 178)
@@ -73,6 +74,10 @@ Partial Class frmPPS
         Me.TextBox_TCP.Size = New System.Drawing.Size(30, 20)
         Me.TextBox_TCP.TabIndex = 3
         Me.TextBox_TCP.Visible = False
+        '
+        'Timer1
+        '
+        Me.Timer1.Interval = 7000
         '
         'frmPPS
         '
@@ -98,5 +103,6 @@ Partial Class frmPPS
     Friend WithEvents Cmd As System.Windows.Forms.TextBox
     Friend WithEvents PowerPlayer1 As AxPowerPlayerULib.AxPowerPlayerU
     Friend WithEvents TextBox_TCP As System.Windows.Forms.TextBox
+    Friend WithEvents Timer1 As System.Windows.Forms.Timer
 
 End Class

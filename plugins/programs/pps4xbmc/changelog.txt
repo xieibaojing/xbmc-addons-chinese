@@ -1,6 +1,13 @@
 ﻿######################################################
 # pps4xbmc player
 ######################################################
+' Version 2.0.3 2013-06-22 (cmeng)
+' - Disable Timer running in normal mode
+' - Wait some time for other application to settle before taking control
+
+' Version 2.0.2 2013-04-13 (cmeng)
+' - Regain focus when PPS notification pop up
+
 ' Version 2.0.0 2013-03-30 (cmeng)
 ' Ported pps4xbmc to VB 2010
 ' Set PPS player focus to accept user input by default
