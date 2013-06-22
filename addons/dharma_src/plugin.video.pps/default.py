@@ -6,10 +6,8 @@ import ChineseKeyboard
 
 ########################################################################
 # PPS影音(PPS.tv)
-# Version 1.1.4 2013-04-13 (cmeng)
-# - Fixed script error
-# - Remove text buffering - faster to do direct online fetch
-# - Regain focus when PPS notification pop up
+# Version 1.1.5 2013-06-22 (cmeng)
+# - Update pps4xbmc.exe
 
 # See changelog.txt for previous history
 ########################################################################
