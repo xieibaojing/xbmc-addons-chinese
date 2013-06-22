@@ -12,8 +12,8 @@ else:
 
 ########################################################################
 # PPStream 网络电视 by cmeng
-# Version 2.2.7 2013-04-27 (cmeng)
-# Update search filter per ipd site changes
+# Version 2.2.8 2013-06-22 (cmeng)
+# - Update pps4xbmc.exe
  
 # See changelog.txt for previous history
 ########################################################################
