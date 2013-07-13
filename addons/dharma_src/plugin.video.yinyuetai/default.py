@@ -5,12 +5,17 @@ import datetime
 import cookielib
 import ChineseKeyboard
 
+if sys.version_info < (2, 7):
+    import simplejson
+else:
+    import json as simplejson
+
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.6.2 2013-06-22 (cmeng)
+# Version 1.6.3 2013-07-13 (cmeng)
 # - Update site latest url & design changes
- 
+# - Add new menu "音悦台 - 正流行" 
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -24,7 +29,8 @@ __profile__   = xbmc.translatePath( __settings__.getAddonInfo('profile') )
 cookieFile    = __profile__ + 'cookies.yinyuetai'
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 
-FCS_LIST = [['','首播'],['index-ml','内地'],['index-ht','港台'],['index-us','欧美'],['index-kr','韩语'],['index-jp','日语'],['index-yyman','音悦人'],['index-elite','热门推荐']]
+#FCS_LIST = [['','首播'],['index-ml','内地'],['index-ht','港台'],['index-us','欧美'],['index-kr','韩语'],['index-jp','日语'],['index-yyman','音悦人'],['index-elite','热门推荐']]
+FCS_LIST = [['all','首播'],['ml','内地'],['ht','港台'],['us','欧美'],['kr','韩语'],['jp','日语']]
 MVR_LIST = [['all','全部推荐'],['ML','内地推荐'],['HT','港台推荐'],['US','欧美推荐'],['KR','韩语推荐'],['JP','日语推荐']]
 MVR_DATE = [['today','今日'],['week','本周'],['month','本月']]
 
@@ -328,65 +334,66 @@ def performChangeVChart(name,area,page):
 ##################################################################################
 # http://www.yinyuetai.com/index-ml
 ##################################################################################
-def listFocusMV(name,cat):
+def listFocusMV(name,p_url,cat):
     # fetch user specified parameters
     if cat == None: cat = '首播'
     fltrCat  = fetchID(FCS_LIST, cat)
-    url = 'http://www.yinyuetai.com/'+fltrCat
-    
+    # url = 'http://www.yinyuetai.com/ajax/zhengliuxing?area=' + fltrCat    
+    # url = 'http://www.yinyuetai.com/ajax/shoubo?area=' + fltrCat    
+    url = p_url + fltrCat    
+
     # Fetch & build video titles list for user selection, highlight user selected filter  
     li = xbmcgui.ListItem('[COLOR FF00FFFF]'+name+'[/COLOR]【[COLOR FF00FF00]'+cat+'[/COLOR]】（按此选择）')
-    u = sys.argv[0] + "?mode=12&name="+urllib.quote_plus(name)+"&cat="+cat
+    u = sys.argv[0] + "?mode=12&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(p_url)+"&cat="+cat
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
 
     link=getHttpData(url)
     if link == None: return
 
-    matchs=re.compile('<div class="mv_list"><ul>(.+?)</ul></div>').findall(link)
-    matchli=re.compile('<div class="thumb">(.+?)</div></li>').findall(matchs[0])
+    playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
+    playlist.clear()
 
-    if len(matchli):
-        totalItems=len(matchli)
-        playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
-        playlist.clear()
-        j=0
-        for item in matchli:
-            matchp=re.compile('<div class="title"><a href="(.+?)" title="(.+?)" target="_blank" class="song">').findall(item)
-            p_name = matchp[0][1]
-            p_url = 'http://www.yinyuetai.com' + matchp[0][0]              
+    # fetch and build the video series episode list
+    vlist = simplejson.loads(link)
+    totalItems = len(vlist)
+    for i in range(0, totalItems):
+        vid = str(vlist[i]['videoId'])
+        #v_url  = 'http://www.yinyuetai.com/mv/get-video-info?videoId=' + vid
+        v_url = 'http://www.yinyuetai.com/video/' + vid
 
-            artist=re.compile('--<a href="(.+?)"[\s]+?title="(.+?)"[\s]+?class="artist"[\s]+?target="_blank">').findall(item)
-            p_artist = artist[0][1]
-      
-            img=re.compile('<img src="(.+?)"').findall(item)
-            p_thumb = img[0]
-            p_thumb += '|Referer=http://www.yinyuetai.com'
+        p_thumb = vlist[i]['image']
+        p_title = vlist[i]['title'].encode('utf-8')
 
-            j+=1
-            p_list = str(j)+'. '+p_name+' ['+p_artist+']'
-                
-            li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
-            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
-            u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
-            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
-            playlist.add(p_url, li)
+        p_artists = vlist[i]['artists']
+        p_artist =''
+        for j in range(0, len(p_artists)):
+            p_artist += p_artists[j]['artistName'].encode('utf-8') + ', '
 
-        xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
+        p_list = p_name = str(i+1) + '. ' + p_title
+        p_list += ' [COLOR FF00FFFF][' + p_artist[:-2] + '][/COLOR]'
+       
+        li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
+        li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+        u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(v_url)+"&thumb="+urllib.quote_plus(p_thumb)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+        playlist.add(v_url, li)
+
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 ##################################################################################
 # Routine to update video list as per user selected filters
 ##################################################################################
-def performChangeFocus(name,cat):
+def performChangeFocus(name,url,cat):
     change = False
     dialog = xbmcgui.Dialog()
     list = [x[1] for x in FCS_LIST]        
-    sel = dialog.select('聚焦', list)
+    sel = dialog.select(name, list)
     if sel != -1:
         cat = FCS_LIST[sel][1]
         change = True
 
-    if change: listFocusMV(name,cat)
+    if change: listFocusMV(name,url,cat)
         
 #############################################################################################
 # Routine to fetch and build the video selection menu
@@ -1053,18 +1060,20 @@ except:
 #except:
 #    pass
 ctl = {
-            None : ('MainMenu(ctl)','音悦台MV',(1,2,3,4,5,6)),
+            None : ('MainMenu(ctl)','音悦台MV',(1,2,8,3,4,5,6)),
             1    : ('listVChart(name,area,page)','音悦台 - V榜','',True),
-            2    : ('listFocusMV(name,cat)','音悦台 - 聚焦','',True),
+            2    : ('listFocusMV(name,url,cat)','音悦台 - 聚焦','/ajax/shoubo?area=',True),
             3    : ('listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)','音悦台 - 全部MV','/mv/all',True),           
             4    : ('listRecommendMV(name,area,page)','音悦台 - 推荐MV','/lookVideo-area/MV',True),   
             5    : ('listFavouriteMV(name,cat,order,page)','音悦台 - 悦单','/pl/playlist_newRecommend',True), 
             6    : ('listArtist(name,area,geshou,fname,page)','音悦台 - 歌手','/fanAll',True),
             7    : ('listArtistMV(name,url,thumb,page)','显示歌手MV','/fanAll',True),
+            8    : ('listFocusMV(name,url,cat)','音悦台 - 正流行','/ajax/zhengliuxing?area=',True),
+            9    : ('listFocusMV(name,url,cat)','音悦台 - V榜','/ajax/vchart?area=',True),
             10   : ('playVideo(name,url,thumb)',''),
             
             11   : ('performChangeVChart(name,area,page)',''),
-            12   : ('performChangeFocus(name,cat)',''),
+            12   : ('performChangeFocus(name,url,cat)',''),
             13   : ('performChangesAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)',''),
             14   : ('performChangesMV(name,area,page)',''),
             15   : ('performChangeFavourite(name,cat,order,page)',''),

@@ -1,6 +1,10 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.6.3 2013-07-13 (cmeng)
+# - Update site latest url & design changes
+# - Add new menu "音悦台 - 正流行" 
+
 # Version 1.6.2 2013-06-22 (cmeng)
 # - Update site latest url & design changes
 
