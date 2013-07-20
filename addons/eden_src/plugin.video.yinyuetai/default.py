@@ -13,9 +13,8 @@ else:
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.6.3 2013-07-13 (cmeng)
-# - Update site latest url & design changes
-# - Add new menu "音悦台 - 正流行" 
+# Version 1.6.4 2013-07-20 (cmeng)
+# - Update site latest url & design changes for VChart
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -192,7 +191,7 @@ def getListMV(listpage):
 # {"year":0,"dateCode":20111219,"periods":"07","beginDateText":"12.19","endDateText":"12.25"}
 # <a href="javascript:void(0)" val="20120709">29期(07.09-07.15)</a>
 ##################################################################################
-def getTimeListx(area):
+def getTimeList(area):
     yearlist=[]
     year = datetime.datetime.now().year
     yearlist.append(year)
@@ -200,10 +199,10 @@ def getTimeListx(area):
 
     timelist=[]
     for x in yearlist: # get 2 years worth of data only
-        p_url = 'http://www.yinyuetai.com/vchart/video-rank-week-date?area='+area+'&year='+str(x)
+        p_url = 'http://vchart.yinyuetai.com/vchart/video-rank-week-date?area='+area+'&year='+str(x)
         link=getHttpData(p_url)
 
-        xlist = re.compile('{"year":0,"dateCode":(.+?),"periods":"(.+?)","beginDateText":"(.+?)","endDateText":"(.+?)"}').findall(link)
+        xlist = re.compile('{"year":.+?,"dateCode":(.+?),"periods":"(.+?)","beginDateText":"(.+?)","endDateText":"(.+?)"}').findall(link)
         if len(xlist) == 0: continue
         for datecode, period, begindate, enddate in xlist:
             xstr = period+'期('+begindate+'-'+enddate+')'
@@ -243,18 +242,27 @@ def MainMenu(ctl):
 # http://www.yinyuetai.com/vchart/ajax/trends-list?page=2&area=ML&currentUrl=%2Fvchart%2Ftrends%3Farea%3DML%23!page%3D2
 # http://www.yinyuetai.com/vchart/ajax/trends-list?page=2&area=ML&currentUrl=/vchart/trends?area=ML#!page=2
 ##################################################################################
-def listVChart(name,area,page):   
+def listVChart(name,area,date,timelist):   
     # fetch user specified parameters
     if area is None: area = '内地篇'
     fltrArea  = fetchID(VCHART_LIST, area)
 
-    if page is None: page = 'TOP:1-20'
-    fltrPage  = fetchID(PAGE_LIST, page)
-
+#     if page is None: page = 'TOP:1-20'
+#     fltrPage  = fetchID(PAGE_LIST, page)
+    
+    if timelist is None:
+        timelist = getTimeList(fltrArea)
+    if date is None: date = timelist[0][1]
+    fltrDate  = fetchID(timelist, date)
+    year = fltrDate[:4]
+    
     # Fetch & build video titles list for user selection, highlight user selected filter  
-    li = xbmcgui.ListItem('[COLOR FF00FFFF]'+name+'[/COLOR]【[COLOR FFFF0000]'+area+'[/COLOR]/[COLOR FF00FF00]'+page+'[/COLOR]】（按此选择）')
-    u = sys.argv[0] + "?mode=11&name="+urllib.quote_plus(name)+"&area="+area+"&page="+page
+    li = xbmcgui.ListItem('[COLOR FF00FFFF]'+name+'[/COLOR]【[COLOR FFFF0000]'+area+'[/COLOR]/[COLOR FF00FF00]'+year+'[/COLOR]/[COLOR FF5555FF]'+date+'[/COLOR]】（按此选择）')
+    u = sys.argv[0] + "?mode=11&name="+urllib.quote_plus(name)+"&area="+area+"&date="+date
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+ 
+#     li = xbmcgui.ListItem('[COLOR FF00FFFF]'+name+'[/COLOR]【[COLOR FFFF0000]'+area+'[/COLOR]/[COLOR FF00FF00]'+page+'[/COLOR]】（按此选择）')
+#     u = sys.argv[0] + "?mode=11&name="+urllib.quote_plus(name)+"&area="+area+"&page="+page
 
 #    url = 'http://www.yinyuetai.com/vchart/v?area='+fltrArea+'&date='+fltrDate
 #    link=getHttpData(url)
@@ -271,12 +279,14 @@ def listVChart(name,area,page):
 #        dialog = xbmcgui.Dialog()
 #        ok = dialog.ok(__addonname__, msg)
 #        return
-        
-    url = 'http://www.yinyuetai.com/vchart/ajax/trends-list?page='+fltrPage+'&area='+fltrArea+'&currentUrl=/vchart/trends?area='+fltrArea+'#!page='+fltrPage
-    link=getHttpData(url)
+    # http://vchart.yinyuetai.com/vchart/v?area=HT&date=20130701
+    # 'http://vchart.yinyuetai.com/vchart/ajax/vchart?date=20130624&area=HT&currentUrl=/vchart/v/area=HT&date=20130624  
+    
+    url = 'http://vchart.yinyuetai.com/vchart/ajax/vchart?date='+fltrDate+'&area='+fltrArea+'&currentUrl=/vchart/v/area='+fltrArea+'%26date='+fltrDate  
+    link = getHttpData(url)
     if link == None: return
 
-    matchli=re.compile('<li name="dmvLi"(.+?)</div></div></div>').findall(link)
+    matchli = re.compile('<li name="vlist_li">(.+?)</ul></div></div></li>').findall(link)
     if len(matchli):
         totalItems=len(matchli)
         playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
@@ -284,17 +294,16 @@ def listVChart(name,area,page):
         j=0
         for item in matchli:
             matchp=re.compile('<a href="(.+?)" target="_blank"><img src="(.+?)" alt="(.+?)"/>').findall(item)
-            p_url = 'http://www.yinyuetai.com' + matchp[0][0]              
+            p_url = matchp[0][0]              
             p_thumb = matchp[0][1]
             p_thumb += '|Referer=http://www.yinyuetai.com'
-
             p_name = matchp[0][2]
 
-            artist=re.compile('<a href="/fanclub.+?target="_blank">(.+?)</a>').findall(item)
+            artist=re.compile('<a href=".+?/fanclub.+?target="_blank">(.+?)</a>').findall(item)
             p_artist = artist[0]
                 
-            matchp=re.compile('<div class="score">([.0-9]+)<div').findall(item)
-            p_score = matchp[0]
+            matchp=re.compile('<div class="number" name="data_info">(.+?)</div>').findall(item)
+            p_score = matchp[0].strip()
 
             matchp=re.compile('<li>发布时间：(.+?)</li>').findall(item)
             p_date = matchp[0]
@@ -310,11 +319,45 @@ def listVChart(name,area,page):
 
         xbmcplugin.setContent(int(sys.argv[1]), 'movies')
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
-        
+
 ##################################################################################
 # Routine to update video list as per user selected filters
 ##################################################################################
-def performChangeVChart(name,area,page):
+def performChangeVChart(name,area,date,timelist):
+    change = False
+    dialog = xbmcgui.Dialog()
+    list = [x[1] for x in VCHART_LIST]        
+    sel = dialog.select('悦单', list)
+    if sel != -1:
+        area = VCHART_LIST[sel][1]
+        change = True
+
+    list=[]
+    timelist = getTimeList(VCHART_LIST[sel][0])
+    year  = fetchID(timelist, date)[:4]
+    for x in timelist:
+        if x[2] not in list: list.append(x[2])
+    if len(list) > 2:
+        sel = dialog.select('年份', list)
+        if sel != -1:
+            year = list[sel]
+            change = True
+    else:
+        year = list[0]
+
+    list=[]
+    list = [x[1] for x in timelist if x[2] == year]        
+    sel = dialog.select(year+' 期份', list)
+    if sel != -1:
+        date = list[sel]
+        change = True
+        
+    if change: listVChart(name,area,date,timelist)
+
+##################################################################################
+# Routine to update video list as per user selected filters
+##################################################################################
+def performChangeVChartx(name,area,page):
     change = False
     dialog = xbmcgui.Dialog()
     list = [x[1] for x in VCHART_LIST]        
@@ -1055,13 +1098,13 @@ try:
     listpage=urllib.unquote_plus(params["listpage"])
 except:
     pass
-#try:
-#    timelist=urllib.unquote_plus(params["timelist"])
-#except:
-#    pass
+try:
+    timelist=urllib.unquote_plus(params["timelist"])
+except:
+    pass
 ctl = {
             None : ('MainMenu(ctl)','音悦台MV',(1,2,8,3,4,5,6)),
-            1    : ('listVChart(name,area,page)','音悦台 - V榜','',True),
+            1    : ('listVChart(name,area,date,timelist)','音悦台 - V榜','',True),
             2    : ('listFocusMV(name,url,cat)','音悦台 - 聚焦','/ajax/shoubo?area=',True),
             3    : ('listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)','音悦台 - 全部MV','/mv/all',True),           
             4    : ('listRecommendMV(name,area,page)','音悦台 - 推荐MV','/lookVideo-area/MV',True),   
@@ -1072,7 +1115,7 @@ ctl = {
             9    : ('listFocusMV(name,url,cat)','音悦台 - V榜','/ajax/vchart?area=',True),
             10   : ('playVideo(name,url,thumb)',''),
             
-            11   : ('performChangeVChart(name,area,page)',''),
+            11   : ('performChangeVChart(name,area,date,timelist)',''),
             12   : ('performChangeFocus(name,url,cat)',''),
             13   : ('performChangesAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)',''),
             14   : ('performChangesMV(name,area,page)',''),
