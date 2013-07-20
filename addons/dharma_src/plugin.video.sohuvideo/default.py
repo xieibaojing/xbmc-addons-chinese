@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
-import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, urlparse, httplib, re, string, sys, os, gzip, StringIO, simplejson
+import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, urlparse, httplib, re, string, sys, os, gzip, StringIO
 import cookielib, datetime, time
 import ChineseKeyboard
+if sys.version_info < (2, 7):
+    import simplejson
+else:
+    import json as simplejson
        
 # Plugin constants 
 __addonname__ = "搜狐视频(SoHu)"
@@ -382,17 +386,20 @@ def seriesList(name, id,url,thumb):
         match0 = re.compile('var pid=(.+?);', re.DOTALL).findall(link)
         if len(match0)>0:
             # print 'pid=' + match0[0]
-            pid=match0[0].replace('"','')
+            pid = match0[0].replace('"','')
             match0 = re.compile('var vid=(.+?);', re.DOTALL).findall(link)
-            vid=match0[0].replace('"','')
-            obtype= '2'
+            vid = match0[0].replace('"','')
+            obtype = '2'
             link = getHttpData("http://search.vrs.sohu.com/avs_i"+vid+"_pr"+pid+"_o"+obtype+"_n_p1000_chltv.sohu.com.json")
-
-            match = re.compile('"videoName":"(.+?)",.+?"videoPublishTime":(\d+),.+?"playOrder":"(\d+)",.+?"videoUrl":"(.+?)",.+?"videoBigPic":"(.+?)",', re.DOTALL).findall(link)
+            data = link.replace('var video_album_videos_result=','').decode('raw_unicode_escape')
+            match = simplejson.loads(data)['videos']
             totalItems = len(match)
-            i = 0
-            for p_name, p_time, p_order, p_url, p_thumb  in match:
-                i +=1
+            for item in match:
+                p_name = item['videoName'].encode('utf-8')
+                p_time = item['videoPublishTime']
+                p_order = item['playOrder'].encode('utf-8')
+                p_url = item['videoUrl'].encode('utf-8')
+                p_thumb = item['videoBigPic'].encode('utf-8')
                 p_date = datetime.date.fromtimestamp(float(p_time)/1000).strftime('%d.%m.%Y')
                 li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
                 li.setInfo(type="Video",infoLabels={"Title":p_name, "date":p_date, "episode":int(p_order)})
