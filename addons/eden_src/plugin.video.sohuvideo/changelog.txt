@@ -1,4 +1,7 @@
-﻿V2.3.8 (2013-07-20)
+﻿V2.3.9 (2013-07-25)
+- fixed: live video channel
+
+V2.3.8 (2013-07-20)
 - fixed: get video list for episodes
 
 V2.3.7 (2013-06-03)

@@ -799,6 +799,9 @@ def LivePlay(name,id,thumb):
     link = getHttpData(LIVEID_URL % (id))
     parsed_json = simplejson.loads(link)
     url = 'http://' + parsed_json['data']['clipsURL'][0].encode('utf-8')
+    link = getHttpData(url)
+    parsed_json = simplejson.loads(link)
+    url = parsed_json['url'].encode('utf-8')
     li = xbmcgui.ListItem(name,iconImage='',thumbnailImage=thumb)
     xbmc.Player().play(url, li)
 
