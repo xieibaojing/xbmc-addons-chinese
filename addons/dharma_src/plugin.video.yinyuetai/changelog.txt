@@ -1,6 +1,9 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.6.5 2013-08-16 (cmeng)
+# - Add in missing import for gzip
+
 # Version 1.6.4 2013-07-20 (cmeng)
 # - Update site latest url & design changes for VChart
 

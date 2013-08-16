@@ -2,6 +2,7 @@
 import urllib,urllib2,re,os,xbmcplugin,xbmcgui,xbmc
 import xbmcaddon
 import datetime
+import gzip, StringIO
 import cookielib
 import ChineseKeyboard
 
@@ -13,8 +14,8 @@ else:
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.6.4 2013-07-20 (cmeng)
-# - Update site latest url & design changes for VChart
+# Version 1.6.5 2013-08-16 (cmeng)
+# - Add in missing import for gzip
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -76,8 +77,10 @@ def getHttpData(url):
     charset=''
     req = urllib2.Request(url)
     req.add_header('User-Agent', UserAgent)
+
     try:
         response = opener.open(req)
+        #response = urllib2.urlopen(req)
     except urllib2.HTTPError, e:
         httpdata = e.read()
     except urllib2.URLError, e:
