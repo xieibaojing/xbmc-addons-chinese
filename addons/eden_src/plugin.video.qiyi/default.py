@@ -183,20 +183,24 @@ def progList(name,id,page,cat,area,year,order,paytype):
     u = sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus(cat)+"&area="+urllib.quote_plus(area)+"&year="+urllib.quote_plus(year)+"&order="+order+"&paytype="+urllib.quote_plus(paytype)+"&page="+urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     for i in range(0,len(match)):
-        p_url  = re.compile('class="imgBg1" href="(.+?)"').findall(match[i])[0]
+        p_id  = re.compile('data-qidanadd-albumid="(\d+)"').search(match[i]).group(1)
         p_name = re.compile('alt="(.+?)"').findall(match[i])[0]
         p_thumb = re.compile('src="(.+?)"').findall(match[i])[0]
         
-        match1 = re.compile('<span class="imgBg1C">(共[^<]+)</span>').search(match[i])
-        if not match1:
-            match1 = re.compile('<span class="imgBg1C">(更新至第[^<]+)</span>').search(match[i])
+        p_episode = re.compile('data-qidanadd-episode="(\d)"').search(match[i]).group(1) == '1'
+        match1 = re.compile('<span class="imgBg1C">([^<]+)</span>').search(match[i])
         if match1:
+            msg = match1.group(1)
+            p_name1 = p_name + '（' + msg + '）'
+            if (msg.find('更新至第') == 0) or (msg.find('共') == 0):
+                p_episode = True
+        else:
+            p_name1 =  p_name
+        if p_episode:
             mode = 2
-            p_name1 = p_name + '（' + match1.group(1) + '）'
             isdir = True
         else:
             mode = 3
-            p_name1 =  p_name
             isdir = False
         match1 = re.compile('<p class="dafen2">\s*<strong class="fRed"><span>(\d*)</span>([\.\d]*)</strong><span>分</span>\s*</p>').search(match[i])
         if match1:
@@ -224,7 +228,7 @@ def progList(name,id,page,cat,area,year,order,paytype):
         else:
             p_plot = ''
         li = xbmcgui.ListItem(str(i + 1) + '.' + p_name1, iconImage = '', thumbnailImage = p_thumb)
-        u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
+        u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(p_name)+"&id="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)
         li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Cast":p_cast, "Rating":p_rating})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, isdir, totalItems)
 
@@ -239,49 +243,53 @@ def progList(name,id,page,cat,area,year,order,paytype):
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def seriesList(name,url,thumb):
+def seriesList(name,id,thumb,page):
+    url = 'http://cache.video.qiyi.com/a/%s' % (id)
     link = GetHttpData(url)
-    match1 = re.compile('<em>\(<a href="[^"]+">(\d+)</a>\)</em>').findall(link)
-    if len(match1) == 0:
+    data = link[link.find('=')+1:]
+    json_response = simplejson.loads(data)
+    if json_response['data']['tvYear']:
+        p_year = int(json_response['data']['tvYear'])
+    else:
         p_year = 0
-    else:
-        p_year = int(match1[0])
-    match1 = re.compile('导演：(.+?)</p>', re.DOTALL).search(link)
-    if match1:
-        p_director = ' / '.join(re.compile('<a [^>]+>([^<]*)</a>').findall(match1.group(1)))
-    else:
-        p_director = ''
-    match1 = re.compile('主演：(.+?)</p>', re.DOTALL).search(link)
-    if match1:
-        p_cast = re.compile('<a [^>]+>([^<]*)</a>').findall(match1.group(1))
-    else:
-        p_cast = ''
+    p_director = ' / '.join(json_response['data']['directors']).encode('utf-8')
+    p_cast = [x.encode('utf-8') for x in json_response['data']['mainActors']]
+    p_plot = json_response['data']['tvDesc'].encode('utf-8')
 
-    match1 = re.compile('<div id="j-album-[0-9]+[^>]*>(.*?)</div>').findall(link)
-    album = ''
-    for url1 in match1:
-        album = album + GetHttpData('http://www.iqiyi.com' + url1)
-    match2 = re.compile('<div id="j-desc-[0-9]+[^>]*>(.*?)</div>').findall(link)
-    desc = ''
-    for url1 in match2:
-        desc = desc + GetHttpData('http://www.iqiyi.com' + url1)
-    match = re.compile('<li><a href="([^"]+)" class="[^"]+">.+?data-lazy="([^"]+)" title="([^"]+)"', re.DOTALL).findall(album)
-    if not match:
-        match = re.compile('<li><a href="([^"]+)" class="[^"]+">.+?src="([^"]+)" title="([^"]+)"', re.DOTALL).findall(album)
-    totalItems = len(match)
-    for i in range(0,len(match)):
-        p_url = match[i][0]
-        p_thumb = match[i][1]
-        p_name = match[i][2]
-        match1 = re.compile('<a href="' + p_url + '">' + p_name + '</a></dt>\s*<dd>(.*?)</dd>').findall(desc)
-        if len(match1) > 0:
-            p_plot = match1[0].replace('&nbsp;','')
-        else:
-            p_plot = ''
+    url = 'http://cache.video.qiyi.com/avlist/%s/%s/' % (id, page)
+    link = GetHttpData(url)
+    data = link[link.find('=')+1:]
+    json_response = simplejson.loads(data)
+    totalItems = len(json_response['data']['vlist']) + 1
+    totalpages = json_response['data']['pgt']
+    currpage = int(page)
+    if currpage > 1: totalItems = totalItems + 1
+    if currpage < totalpages: totalItems = totalItems + 1
+    li = xbmcgui.ListItem(name+'（第'+str(currpage)+'/'+str(totalpages)+'页）')
+    u = sys.argv[0]+"?mode=99"
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+
+    for item in json_response['data']['vlist']:
+        tvId = str(item['id'])
+        videoId = item['vid'].encode('utf-8')
+        p_id = '%s,%s' % (tvId, videoId)
+        p_thumb = item['vpic'].encode('utf-8')
+        p_name = item['vn'].encode('utf-8')
+        if item['vt']:
+            p_name = '%s %s' % (p_name, item['vt'].encode('utf-8'))
         li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
         li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year})
-        u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)
+        u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&id=" + urllib.quote_plus(p_id)+ "&thumb=" + urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+
+    if currpage > 1:
+        li = xbmcgui.ListItem('上一页')
+        u = sys.argv[0]+"?mode=2&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&thumb="+urllib.quote_plus(thumb)+"&page="+urllib.quote_plus(str(currpage-1))
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    if currpage < totalpages:
+        li = xbmcgui.ListItem('下一页')
+        u = sys.argv[0]+"?mode=2&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&thumb="+urllib.quote_plus(thumb)+"&page="+urllib.quote_plus(str(currpage+1))
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -308,32 +316,18 @@ def selResolution(items):
         sel = 0
     return ratelist[sel][2]
 
-def PlayVideo(name,url,thumb):
-    link = GetHttpData(url)
-    match1 = re.compile('<script\s*type="text/javascript">\s*var info\s*=(.*?)</script>', re.DOTALL).findall(link)
-    if match1:
-        try:
-            data = unicode(match1[0], 'utf-8', errors='ignore')
-            json_response = simplejson.loads(data)
-            pid = json_response['pid'].encode('utf-8')
-            ptype = json_response['ptype'].encode('utf-8')
-            videoId = json_response['videoId'].encode('utf-8')
-            tvId = json_response['tvId'].encode('utf-8')
-        except:
-            dialog = xbmcgui.Dialog()
-            ok = dialog.ok(__addonname__, '未能解析视频地址')
-            return
+def PlayVideo(name,id,thumb):
+    id = id.split(',')
+    if len(id) == 1:
+        url = 'http://cache.video.qiyi.com/avlist/%s/' % (id[0])
+        link = GetHttpData(url)
+        data = link[link.find('=')+1:]
+        json_response = simplejson.loads(data)
+        tvId = str(json_response['data']['vlist'][0]['id'])
+        videoId = json_response['data']['vlist'][0]['vid'].encode('utf-8')
     else:
-        match1 = re.compile('<div class="videoPlay medium">\s*<div(.*?)>', re.DOTALL).findall(link)
-        if match1:
-            match = re.compile('data-player-videoid="([^"]+)"', re.DOTALL).search(match1[0])
-            videoId = match.group(1)
-            match = re.compile('data-player-tvid="([^"]+)"', re.DOTALL).search(match1[0])
-            tvId = match.group(1)
-        else:
-            dialog = xbmcgui.Dialog()
-            ok = dialog.ok(__addonname__, '未能解析视频地址')
-            return
+        tvId = id[0]
+        videoId = id[1]
 
     playmode = int(__addon__.getSetting('playmode'))
     if playmode == 0:   # 连续播放模式
@@ -445,7 +439,7 @@ year = ''
 order = '3'
 paytype = '0'
 num = '1'
-page = ''
+page = '1'
 url = None
 thumb = None
 
@@ -503,8 +497,8 @@ if mode == None:
 elif mode == 1:
     progList(name,id,page,cat,area,year,order,paytype)
 elif mode == 2:
-    seriesList(name,url,thumb)
+    seriesList(name,id,thumb,page)
 elif mode == 3:
-    PlayVideo(name,url,thumb)
+    PlayVideo(name,id,thumb)
 elif mode == 4:
     performChanges(name,id,page,cat,area,year,order,paytype)
