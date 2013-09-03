@@ -1,4 +1,7 @@
-﻿V1.1.7 2013-05-14 (taxigps)
+﻿V1.1.9 2013-09-03 (taxigps)
+- update for site change
+
+V1.1.7 2013-05-14 (taxigps)
 - added: language selection for 国语 and 粤语
 
 V1.1.6 2013-05-09 (taxigps)

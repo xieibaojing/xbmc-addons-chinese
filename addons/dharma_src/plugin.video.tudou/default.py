@@ -1,5 +1,9 @@
 ﻿# -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
+if sys.version_info < (2, 7):
+    import simplejson
+else:
+    import json as simplejson
 
 # Plugin constants 
 __addon__     = xbmcaddon.Addon()
@@ -180,23 +184,36 @@ def progList(name,type,area,genre,stat,year,order,page):
     for i in range(0,len(match)):
         match1 = re.compile('<div class="txt">\s*<h6 class="caption">\s*<a [^>]+>(.+?)</a>\s*</h6>').search(match[i])
         p_name = match1.group(1)
+        match1 = re.compile('<a .*?class="vinf".*?>(.*?)</a>').search(match[i])
+        if match1 and match1.group(1):
+            info = match1.group(1)
+            p_name1 = '%s（%s）' % (p_name, info)
+        else:
+            info = ''
+            p_name1 = p_name
+        match1 = re.compile('<div class="pic">\s*<a href="(.+?)"').search(match[i])
+        p_url = match1.group(1)
         match1 = re.compile('<img class="quic" src="(.+?)"').search(match[i])
-        if not match1:
+        if match1:
+            p_thumb = match1.group(1)
+            id = p_url.split('/')[-1][:-5]
+            if info == '正片':
+                p_url = 'http://www.tudou.com/albumplay/%s.html' % (id)
+                mode = 3
+                isdir = False
+            elif info == '预告':
+                p_url = 'http://www.tudou.com/oplay/%s.html' % (id)
+                mode = 3
+                isdir = False
+            else:
+                p_url = 'http://www.tudou.com/albumcover/albumdata/getAlbumItems.html?acode=%s&charset=utf-8' % (id)
+                mode = 2
+                isdir = True
+        else:
             match1 = re.compile('class="pack_listImg" src="(.+?)"').search(match[i])
             p_thumb = match1.group(1)
             mode = 3
             isdir = False
-        else:
-            p_thumb = match1.group(1)
-            mode = 2
-            isdir = True
-        match1 = re.compile('<div class="pic">\s*<a href="(.+?)"').search(match[i])
-        p_url = match1.group(1)
-        match1 = re.compile('<a .*?class="vinf".*?>(.*?)</a>').search(match[i])
-        if match1 and match1.group(1):
-            p_name1 = p_name + '（' + match1.group(1) + '）'
-        else:
-            p_name1 = p_name
         if match[i].find('<span class="hd720"></span>')>0:
             p_name1 += '[超清]'
             p_res = 1
@@ -248,32 +265,26 @@ def progList(name,type,area,genre,stat,year,order,page):
 
 def seriesList(name,url,thumb,res):
     link = GetHttpData(url)
-    match = re.compile('<div class="pack pack_video_card">\s*<div class="pic">\s*<a target="new" title="(.+?)"\s*href="\s*(http://www.tudou.com/.*?.html)\s*"></a>\s*<div class="inner">\s*<img\s*src="(.+?)"', re.DOTALL).findall(link)
-    if match:
-        totalItems = len(match)
-        for p_name, p_url, p_thumb in match:
-            li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
-            u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)+"&res="+str(res)
-            #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
-            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
-        xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
-    else:
-        match = re.compile('<div class="album-btn">\s*<a href="(http://www.tudou.com/.*?.html)"', re.DOTALL).findall(link)
-        if match:
-            PlayVideo(name,match[0],thumb,res)
-        else:
-            dialog = xbmcgui.Dialog()
-            ok = dialog.ok(__addonname__, '没有可播放的视频')
+    json_response = simplejson.loads(link)
+    totalItems = json_response['itemNum']
+    for item in json_response['items']:
+        p_name = item['title'].encode('utf-8')
+        p_url = item['itemPlayUrl'].encode('utf-8')
+        p_thumb = item['picUrl'].encode('utf-8')
+        li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
+        u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)+"&res="+str(res)
+        #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+    xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def PlayTudou(name,iid,thumb):
-    url = 'http://v2.tudou.com/v2/cdn?id=%s' % (iid)
+    url = 'http://v2.tudou.com/f?id=%s' % (iid)
     link = GetHttpData(url)
-    match = re.compile('<f.+?brt="(\d+)"[^>]*>(.+?)</f>', re.DOTALL).findall(link)
-    match.sort(reverse=True)
+    match = re.compile('<f [^>]*>(.+?)</f>', re.DOTALL).findall(link)
     listitem = xbmcgui.ListItem(name,thumbnailImage=thumb)
     listitem.setInfo(type="Video",infoLabels={"Title":name})
-    xbmc.Player().play('%s|User-Agent=%s' % (match[0][1], UserAgent), listitem)
+    xbmc.Player().play('%s|User-Agent=%s' % (match[0], UserAgent), listitem)
 
 def PlayYouku(name,url,thumb,res):
     link = GetHttpData("http://www.flvcd.com/parse.php?kw=%s&format=%s" % (url, RES_LIST[res]))
@@ -295,17 +306,18 @@ def PlayYouku(name,url,thumb,res):
 
 def PlayVideo(name,url,thumb,res):
     link = GetHttpData(url)
-    match = re.compile('itemData=\{(.+?)\};', re.DOTALL).search(link)
+    match = re.compile('(var pageConfig = |itemData=)\{(.+?)\};', re.DOTALL).search(link)
     if match:
         iid = ''
         vcode = ''
         #llist = ''
-        # 解析土豆视频id (iid)
-        match1 = re.compile('iid: (\d+)').search(match.group(1))
+        # 解析土豆视频id (k)
+        match1 = re.compile('"pt":(\d+),"k":(\d+)', re.DOTALL).findall(match.group(2))
         if match1:
-            iid = match1.group(1)
+            match1.sort(reverse=True)
+            iid = match1[0][1]
         # 解析优酷视频id (vcode)
-        match1 = re.compile("vcode: '([^']+)'").search(match.group(1))
+        match1 = re.compile("vcode: '([^']+)'").search(match.group(2))
         if match1:
             vcode = match1.group(1)
         lang_select = int(__addon__.getSetting('lang_select')) # 默认|每次选择|自动首选
