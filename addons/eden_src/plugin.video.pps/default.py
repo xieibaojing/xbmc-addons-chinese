@@ -6,8 +6,8 @@ import ChineseKeyboard
 
 ########################################################################
 # PPS影音(PPS.tv)
-# Version 1.1.5 2013-06-22 (cmeng)
-# - Update pps4xbmc.exe
+# Version 1.1.6 2013-09-22 (cmeng)
+# - Update pps URL link
 
 # See changelog.txt for previous history
 ########################################################################
@@ -77,13 +77,19 @@ def getHttpData(url):
 
 ##################################################################################
 # Routine to fetch PPS video file in xml.zip format
+# GENERAS_URL = 'http://list1.ppstream.com/class/generas.xml.zip'
+# SUB_URL = 'http://list1.pps.tv/class/%d.xml.zip'
+# MOVIE_URL = 'http://list1.ppstv.com/schs/%d.xml.zip'
+# SEARCH_URL = 'http://listso.ppstream.com/search.php?acp=936&w='
 ##################################################################################
 def read_xml(id,type=1):
 #    dialog = xbmcgui.Dialog()
     if type :
-        url= "http://list1.pps.tv/class/"+id+".xml.zip" #目录    
+        #url= "http://list1.pps.tv/class/"+id+".xml.zip" #目录    
+        url= "http://list1.ppstream.com/class/"+id+".xml.zip" #目录    
     else :
-        url= "http://list1.pps.tv/schs/"+id+".xml.zip" #文件列表    
+        #url= "http://list1.pps.tv/schs/"+id+".xml.zip" #文件列表    
+        url= "http://list1.ppstv.com/schs/"+id+".xml.zip" #文件列表    
     print 'xml_zip: ' + url
     
     dfile=urllib.urlretrieve(url)

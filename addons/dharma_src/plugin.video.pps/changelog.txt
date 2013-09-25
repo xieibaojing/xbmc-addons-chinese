@@ -2,6 +2,9 @@
 # PPS影音(PPS.tv)
 ########################################################################
 # PPS影音(PPS.tv)
+# Version 1.1.6 2013-09-22 (cmeng)
+# - Update pps URL link
+
 # Version 1.1.5 2013-06-22 (cmeng)
 # - Update pps4xbmc.exe
 
