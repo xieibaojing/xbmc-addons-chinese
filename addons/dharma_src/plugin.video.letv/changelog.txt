@@ -1,6 +1,9 @@
 ﻿########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
+# Version 1.2.8 2013-09-28 (cmeng)
+# - fix missing page selector
+
 # Version 1.2.7 2013-04-07 (cmeng)
 # - fix script error in progListVariety (use simplejson)
 # - enhance menu list information display

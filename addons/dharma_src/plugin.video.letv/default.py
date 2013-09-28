@@ -12,9 +12,8 @@ else:
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.2.7 2013-04-07 (cmeng)
-# - fix script error in progListVariety (use simplejson)
-# - enhance menu list information display
+# Version 1.2.8 2013-09-28 (cmeng)
+# - fix missing page selector
 
 # See changelog.txt for previous history
 ########################################################################
@@ -317,7 +316,7 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
     # Fetch and build user selectable page number
-    matchp = re.compile('<div class="page">(.+?)</div>', re.DOTALL).findall(link)
+    matchp = re.compile('<div class="page".+?>(.+?)</div>', re.DOTALL).findall(link)
     if len(matchp): 
         matchp1 = re.compile('<a href=".+?">([0-9]+)</a>', re.DOTALL).findall(matchp[0])    
         if len(matchp1):
@@ -609,7 +608,7 @@ def progListStar(name, url, page, alphabet, area, prof, gender):
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
     # Fetch and build user selectable page number
-    matchp = re.compile('<div class="page">(.+?)</div>', re.DOTALL).findall(link)
+    matchp = re.compile('<div class="page".+?>(.+?)</div>', re.DOTALL).findall(link)
     if len(matchp): 
         matchp1 = re.compile('<a href=".+?">([0-9]+)</a>', re.DOTALL).findall(matchp[0])    
         if len(matchp1):
@@ -761,7 +760,7 @@ def progListUgc(name, url):
         playlist.add(p_url, li)            
 
     # Fetch and build user selectable page number 
-    matchp = re.compile('<div class="page">(.+?)</div>').findall(link)
+    matchp = re.compile('<div class="page".+?>(.+?)</div>').findall(link)
     if len(matchp): matchp1 = re.compile('<a href="(.+?)">([0-9]+)</a>').findall(matchp[0])      
     if len(matchp1):
         plist=[]
