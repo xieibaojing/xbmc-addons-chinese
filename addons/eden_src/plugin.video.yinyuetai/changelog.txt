@@ -1,6 +1,9 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.6.6 2013-09-28 (cmeng)
+# - Update items phrasing per latest site change
+
 # Version 1.6.5 2013-08-16 (cmeng)
 # - Add in missing import for gzip
 

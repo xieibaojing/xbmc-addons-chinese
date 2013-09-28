@@ -14,8 +14,8 @@ else:
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.6.5 2013-08-16 (cmeng)
-# - Add in missing import for gzip
+# Version 1.6.6 2013-09-28 (cmeng)
+# - Update items phrasing per latest site change
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -732,7 +732,7 @@ def listFavouriteMV(name,cat,order,page):
         playlist.clear()
         j=0
         for item in matchli:
-            match=re.compile('<a href="(.+?)" target="_blank" title="(.+?)"><img src="(.+?)"').findall(item)
+            match=re.compile('<a href="(.+?)" target="_blank" title="(.+?)">.+?<img src="(.+?)"').findall(item)
             #p_url = 'http://www.yinyuetai.com' + match[0][0]
             p_url = match[0][0]
             p_name = match[0][1]
