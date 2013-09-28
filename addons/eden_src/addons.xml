@@ -368,24 +368,6 @@ For Non-PRC OS environment (Windows7|WindowsXP):[CR]"Control Panel"|"Region and 
     </extension>
 </addon>
 
-<addon id="plugin.video.soku"
-    name="搜库-太极拳(Soku)"
-    version="1.0.1"
-    provider-name="cmeng">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">Soku video plugin</summary>
-        <summary lang="zh">搜库插件</summary>
-        <description lang="en">online video search from youku.com</description>
-        <description lang="zh">观看优酷网在线视频-搜库</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
 <addon id="plugin.video.somovie"
     name="搜索电影(SoMovie)"
     version="1.1.6"
