@@ -14,8 +14,9 @@ else:
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.6.6 2013-09-28 (cmeng)
-# - Update items phrasing per latest site change
+# Version 1.6.7 2013-09-29 (cmeng)
+# - Update UI menu to per site change
+# - fixed video link decode error
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -30,13 +31,13 @@ cookieFile    = __profile__ + 'cookies.yinyuetai'
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 
 #FCS_LIST = [['','首播'],['index-ml','内地'],['index-ht','港台'],['index-us','欧美'],['index-kr','韩语'],['index-jp','日语'],['index-yyman','音悦人'],['index-elite','热门推荐']]
-FCS_LIST = [['all','首播'],['ml','内地'],['ht','港台'],['us','欧美'],['kr','韩语'],['jp','日语']]
+FCS_LIST = [['all','全部'],['ml','内地'],['ht','港台'],['us','欧美'],['kr','韩国'],['jp','日本']]
 MVR_LIST = [['all','全部推荐'],['ML','内地推荐'],['HT','港台推荐'],['US','欧美推荐'],['KR','韩语推荐'],['JP','日语推荐']]
 MVR_DATE = [['today','今日'],['week','本周'],['month','本月']]
 
 MVF_LIST = [['newRecommend','最新推荐'],['newFavorite','最新收藏'],['newComment','最新评论'],['newCreate','最新创建'],['hotView','热门播放'],['hotRecommend','热门推荐'],['hotFavorite','热门收藏'],['hotComment','热门评论'],['promo','编辑推荐'],['all','全部悦单']]
 MVO_LIST = [['all','全部热门'],['today','24小时热门'],['week','本周热门'],['month','本月热门']]
-AREA_LIST = [['','全部地区'],['ML','内地'],['HT','港台'],['US','欧美'],['KR','韩语'],['JP','日语']]
+AREA_LIST = [['','全部地区'],['ML','内地'],['HT','港台'],['US','欧美'],['KR','韩国'],['JP','日本']]
 PAGE_LIST = [['1','TOP:1-20'],['2','TOP:21-40'],['3','TOP:41-50']]
 VCHART_LIST = [['ML','内地篇'],['HT','港台篇'],['US','欧美篇'],['KR','韩国篇'],['JP','日本篇']]
 GS_LIST = [['','全部歌手'],['Girl','女歌手'],['Boy','男歌手'],['Combo','乐队/组合']]
@@ -382,7 +383,7 @@ def performChangeVChartx(name,area,page):
 ##################################################################################
 def listFocusMV(name,p_url,cat):
     # fetch user specified parameters
-    if cat == None: cat = '首播'
+    if cat == None: cat = '全部'
     fltrCat  = fetchID(FCS_LIST, cat)
     # url = 'http://www.yinyuetai.com/ajax/zhengliuxing?area=' + fltrCat    
     # url = 'http://www.yinyuetai.com/ajax/shoubo?area=' + fltrCat    
@@ -700,6 +701,7 @@ def performChangesMV(name,area,page):
 
 ##################################################################################
 # http://www.yinyuetai.com/pl/playlist_newRecommend/all
+
 def listFavouriteMV(name,cat,order,page):
     # fetch user specified parameters
     if cat == None: cat = '最新推荐'
@@ -943,6 +945,27 @@ def performChangeGs(name,area,geshou,fname,page):
     if change:listArtist(name,area,geshou,fname,1)
 
 ##################################################################################
+# http://hc.yinyuetai.com/uploads/videos/common/D15E013E4B0CA991DBBD9FCFDECDE167.flv?sc=441d14c6ded1de37&br=776&ptp=mv&rd=yinyuetai.com&json=1
+
+def get_vurl(url):
+    link=getHttpData(url)
+    if link == None: 
+        return url
+    
+    match=re.compile('\[\{"videoUrl":"(.+?)"').findall(link)
+    if len(match):
+        purl = match[0] + "&br=776&ptp=mv&rd=yinyuetai.com&json=1"
+        link=getHttpData(purl)
+        if link == None: 
+            return url
+        else:
+            matchv=re.compile('"url":"(.+?)"').findall(link)
+            vurl = re.sub('\\\\\\\\\u003d', '=', matchv[0])
+            return vurl 
+    else:
+        return url
+
+##################################################################################
 # Continuous Player start playback from user selected video
 # User backspace to previous menu will not work - playlist = last selected
 ##################################################################################
@@ -967,6 +990,11 @@ def playVideo(name,url,thumb):
 
         if re.search('http://www.yinyuetai.com/', p_url):
             v_url = get_flv_url(p_url)
+            if v_url == None: continue
+            playlistA.remove(p_url) # remove old url
+            playlistA.add(v_url, li, x)  # keep a copy of v_url in Audio Playlist
+        elif re.search('http://v.yinyuetai.com/playlist', p_url):
+            v_url = get_vurl(p_url)
             if v_url == None: continue
             playlistA.remove(p_url) # remove old url
             playlistA.add(v_url, li, x)  # keep a copy of v_url in Audio Playlist
@@ -1106,15 +1134,15 @@ try:
 except:
     pass
 ctl = {
-            None : ('MainMenu(ctl)','音悦台MV',(1,2,8,3,4,5,6)),
-            1    : ('listVChart(name,area,date,timelist)','音悦台 - V榜','',True),
-            2    : ('listFocusMV(name,url,cat)','音悦台 - 聚焦','/ajax/shoubo?area=',True),
+            None : ('MainMenu(ctl)','音悦台MV',(2,8,1,3,4,5,6)),
+            1    : ('listVChart(name,area,date,timelist)','音悦台 - 音悦V榜','',True),
+            2    : ('listFocusMV(name,url,cat)','音悦台 - MV首播','/ajax/shoubo?area=',True),
             3    : ('listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)','音悦台 - 全部MV','/mv/all',True),           
             4    : ('listRecommendMV(name,area,page)','音悦台 - 推荐MV','/lookVideo-area/MV',True),   
-            5    : ('listFavouriteMV(name,cat,order,page)','音悦台 - 悦单','/pl/playlist_newRecommend',True), 
+            5    : ('listFavouriteMV(name,cat,order,page)','音悦台 - 全部悦单','/pl/playlist_newRecommend',True), 
             6    : ('listArtist(name,area,geshou,fname,page)','音悦台 - 歌手','/fanAll',True),
             7    : ('listArtistMV(name,url,thumb,page)','显示歌手MV','/fanAll',True),
-            8    : ('listFocusMV(name,url,cat)','音悦台 - 正流行','/ajax/zhengliuxing?area=',True),
+            8    : ('listFocusMV(name,url,cat)','音悦台 - 正在流行','/ajax/zhengliuxing?area=',True),
             9    : ('listFocusMV(name,url,cat)','音悦台 - V榜','/ajax/vchart?area=',True),
             10   : ('playVideo(name,url,thumb)',''),
             
