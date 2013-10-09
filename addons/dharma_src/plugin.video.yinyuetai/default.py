@@ -14,9 +14,8 @@ else:
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.6.7 2013-09-29 (cmeng)
-# - Update UI menu to per site change
-# - fixed video link decode error
+# Version 1.6.8 2013-10-09 (cmeng)
+# - Update video link decode per site new changes
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -988,7 +987,7 @@ def playVideo(name,url,thumb):
         li = xbmcgui.ListItem(p_list)
         li.setInfo(type = "Video", infoLabels = {"Title":p_list})   
 
-        if re.search('http://www.yinyuetai.com/', p_url):
+        if re.search('http://www.yinyuetai.com/', p_url) or re.search('http://v.yinyuetai.com/video/', p_url):
             v_url = get_flv_url(p_url)
             if v_url == None: continue
             playlistA.remove(p_url) # remove old url

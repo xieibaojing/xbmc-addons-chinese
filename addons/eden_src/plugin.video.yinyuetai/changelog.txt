@@ -1,6 +1,9 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.6.8 2013-10-09 (cmeng)
+# - Update video link decode per site new changes
+
 # Version 1.6.7 2013-09-29 (cmeng)
 # - Update UI menu to per site change
 # - fixed video link decode error
