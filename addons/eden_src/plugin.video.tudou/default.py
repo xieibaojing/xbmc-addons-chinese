@@ -210,7 +210,7 @@ def progList(name,type,area,genre,stat,year,order,page):
                 mode = 2
                 isdir = True
         else:
-            match1 = re.compile('class="pack_listImg" src="(.+?)"').search(match[i])
+            match1 = re.compile('class="pack_clipImg" src="(.+?)"').search(match[i])
             p_thumb = match1.group(1)
             mode = 3
             isdir = False
