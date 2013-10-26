@@ -19,7 +19,8 @@ RATE_LIST = [['超清','3'], ['高清','2'], ['普通','1'], ]
 CHANNEL_LIST = [['电影','100'],['电视剧','101'],['动漫','115'],['综艺','106'],['纪录片','107'],['音乐','121'],['教育','119'],['新闻 ','122'],['娱乐 ','112'],['星尚 ','130']]
 ORDER_LIST = [['7','周播放最多'],['5','日播放最多'],['1','总播放最多'],['3','最新发布'],['4','评分最高']]
 
-LIVEID_URL = 'http://live.tv.sohu.com/live/player_json.jhtml?lid=%s&af=1&bw=531&type=1&g=8'
+LIVEID_URL = 'http://live.tv.sohu.com/live/player_json.jhtml?lid=%s&type=1'
+
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 
 ##################################################################################
@@ -780,7 +781,7 @@ def LiveChannel():
         totalItems = len(parsed_json['STATIONS'])
         i = 0
         for item in parsed_json['STATIONS']:
-            if item['IsSohuSource'] <> 1:
+            if item['IsSohuSource'] <> 1 or item['TV_TYPE'] <> 1:
                 continue
             p_name = item['STATION_NAME'].encode('utf-8')
             p_thumb = item['STATION_PIC'].encode('utf-8')
