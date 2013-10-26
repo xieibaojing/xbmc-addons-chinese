@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.search"
+       name="视频搜索(VSearch)"
+       version="0.0.1"
+       provider-name="litian">
+  <requires>
+    <import addon="xbmc.python" version="1.0"/>
+    <import addon="script.module.keyboard.chinese" version="1.0.0"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource"
+            library="default.py">
+        <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <platform>all</platform>
+    <summary lang="en">Video search plugin.</summary>
+    <summary lang="zh">视频搜索插件</summary>
+    <description lang="en">Video Search.</description>
+    <description lang="zh">使用搜索引擎查找各大网站视频内容。</description>
+  </extension>
+</addon>
