@@ -4,6 +4,11 @@ import xbmc, xbmcgui, xbmcplugin, xbmcaddon
 import urllib
 import urllib2, re, os, gzip, StringIO
 try:
+    from BeautifulSoup import BeautifulSoup
+except ImportError:
+    pass
+
+try:
     import pycurl
 except ImportError:
     pass
@@ -45,6 +50,7 @@ UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2
 __addonid__ = "plugin.video.search"
 __addon__ = xbmcaddon.Addon(id=__addonid__)
 __addonicon__ = os.path.join( __addon__.getAddonInfo('path'), 'icon.png' )
+__addonname__ = __addon__.getAddonInfo('name')
 # utility functions
 def GetHttpData(url):
     req = urllib2.Request(url)
@@ -96,15 +102,21 @@ def show_root_menu():
         url = "http://so.v.360.cn/index.php?kw="+keyword
         print url
         link = GetHttpData(url)
-        match0 = re.compile('<ul class="gsearchlist">(.+?)</ul>', re.DOTALL).search(link)
-        if match0:
-            vlist = re.compile('<div class="avatar">.*?<a href="(.+?)".*?<img title="(.+?)".*?data-src="(.+?)"', re.DOTALL).findall(match0.group(1))
-            for url0, name, img in vlist:
-            #print url
+        soup1 = BeautifulSoup(link)
+        soup2=soup1.find(attrs={"data-logger":"hidstat=0"})
+        if soup2:
+            soup3=soup2.findAll(attrs={"class":"le-figure le-figure-horizontal item-longvideo clearfix"})
+            for item in soup3:
+                atag=item.a
+                aimg=atag.img
+                url0=atag['href'].encode('utf-8')
+                name=atag['title'].encode('utf-8')
+                img=aimg['src'].encode('utf-8')
+                #print url
                 submenuname = name
                 addDirectoryItem(name, parameters={ PARAMETER_KEY_MODE: MODE_FIRST,"url":url0,"name":submenuname }, isFolder=True, thumbnail=img)
         #addDirectoryItem(name=SECOND_SUBMENU, parameters={ PARAMETER_KEY_MODE: MODE_SECOND }, isFolder=True)
-        addDirectoryItem("显示相关搜索", parameters={ PARAMETER_KEY_MODE: MODE_RELATION,"url":url }, isFolder=True)
+        addDirectoryItem("显示相关视频", parameters={ PARAMETER_KEY_MODE: MODE_RELATION,"url":url }, isFolder=True)
     xbmcplugin.endOfDirectory(handle=handle, succeeded=True)
     
 def show_first_submenu(name,url):
@@ -167,11 +179,15 @@ def show_second_submenu(site, url, name):
     text='<div class="content" site="'+site+'".*?><div class="full gclearfix"(.+?)</div>'
     print text
     match = re.compile(text, re.DOTALL).search(link)
+    vlist=[]
     if not match:
-        text='<div class="list gclearfix">.*?sitename="'+site+'"(.+?)</div>\s*</div>\s*</div>'
-        print text
-        match = re.compile(text, re.DOTALL).search(link)
-    vlist = re.compile('href="(.+?)">(.+?)</a>', re.DOTALL).findall(match.group(1))
+        soup1 = BeautifulSoup(link)
+        soup2=soup1.find(attrs={"class":"listing-bd"})
+        soup3=soup2.find(attrs={"site":site},recursive=False)
+        soup4=soup3.find(attrs={"class":"list gclearfix"},recursive=False)
+        vlist = re.compile('href="(.+?)".*?>(.+?)</a>', re.DOTALL).findall(str(soup4))
+    else:
+        vlist = re.compile('href="(.+?)">(.+?)</a>', re.DOTALL).findall(match.group(1))
     for url, num in vlist:
         num=num.split('<')[0]
         addDirectoryItem(name+" "+num, parameters={ PARAMETER_KEY_MODE: MODE_PLAY,"url":url, "site":site, "name":name }, isFolder=False)
@@ -253,6 +269,7 @@ def PlayVideoFunshion(name,url,thumb,res):
     #res_limit = int(__addon__.getSetting('movie_res'))
     #if res > res_limit:
     #    res = res_limit
+    print "FunshionUrl:"+url
     link = GetHttpData("http://www.flvcd.com/parse.php?kw=%s&format=%s" % (url, res))
     match = re.compile('<a href="(.+?)" target="_blank" class="link"').findall(link)
     if not match:
@@ -438,11 +455,24 @@ def PlayVideoTudou(name,url,thumb,res):
 
 def show_relation(url):
     link = GetHttpData(url)
-    match0 = re.compile('<ul class="gshortvideolist gclearfix">(.+?)</ul>', re.DOTALL).search(link)
+    match0 = re.compile('<ul class="bd clearfix">(.+?)</ul>', re.DOTALL).search(link)
     if match0:
-        vlist = re.compile('<li>.*?<a sitename="(.+?)" href="(.+?)".*?title="(.+?)".*?data-src="(.+?)".*?<em>(.+?)</em>\s*<ins>(.+?)</ins>.*?</li>', re.DOTALL).findall(match0.group(1))
-        for site, url, name, img, sitename, instime in vlist:
+        vlist = re.compile('<li class="le-figure">(.+?)</li>', re.DOTALL).findall(match0.group(1))
         #print url
+        for item in vlist:
+            soup = BeautifulSoup(item)
+            atag=soup.a
+            aimg=atag.img
+            url=atag['href'].encode('utf-8')
+            site=atag['data-export'].encode('utf-8')
+            img=aimg['data-src'].encode('utf-8')
+            name=aimg['alt'].encode('utf-8')
+            sitename=""
+            tmp=re.compile('<span class="le-hint-left">(.+?)</span>', re.DOTALL).search(item)
+            if tmp:
+                sitename=tmp.group(1)
+            #sitename=atag.find(attrs={"class":"le-hint-left"}).text.encode('utf-8')
+            instime=atag.find(attrs={"class":"le-hint-right"}).text.encode('utf-8')
             submenuname = name
             addDirectoryItem(name+" "+instime+" "+sitename, parameters={ PARAMETER_KEY_MODE: MODE_PLAY,"url":url, "site":site, "name":submenuname }, isFolder=False, thumbnail=img)
     xbmcplugin.endOfDirectory(handle=handle, succeeded=True)
