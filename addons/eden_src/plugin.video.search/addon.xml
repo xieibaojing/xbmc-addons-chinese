@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.search"
        name="视频搜索(VSearch)"
-       version="0.0.1"
+       version="0.0.2"
        provider-name="litian">
   <requires>
     <import addon="xbmc.python" version="1.0"/>
     <import addon="script.module.keyboard.chinese" version="1.0.0"/>
+    <import addon="script.module.beautifulsoup"  version="3.2.0" optional="false"/>
   </requires>
   <extension point="xbmc.python.pluginsource"
             library="default.py">
