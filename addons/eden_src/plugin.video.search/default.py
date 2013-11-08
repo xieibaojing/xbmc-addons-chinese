@@ -152,8 +152,8 @@ def show_first_submenu(name,url):
                     print "******searchplugin dianying*******"
                     addDirectoryItem(name+" "+sitename, parameters={ PARAMETER_KEY_MODE: MODE_PLAY,"url":url,"site":site, "name":name }, isFolder=False)
     else:
-        match = re.compile('<div class="single gclearfix">(.*?)</div>', re.DOTALL).search(link)
-        vlist = re.compile('<a class="(.*?)"><em>(.*?)</em></a>', re.DOTALL).findall(match.group(1))
+        match = re.compile('<div class=".*?single gclearfix">(.*?)</div>', re.DOTALL).search(link)
+        vlist = re.compile('<a class="(.*?)">(.*?)</a>', re.DOTALL).findall(match.group(1))
         for site, sitename in vlist:
             print site
             print sitename
@@ -183,9 +183,15 @@ def show_second_submenu(site, url, name):
     if not match:
         soup1 = BeautifulSoup(link)
         soup2=soup1.find(attrs={"class":"listing-bd"})
+        if not soup2:
+            soup2=soup1.find(attrs={"class":"listing-bd clearfix"})
         soup3=soup2.find(attrs={"site":site},recursive=False)
         soup4=soup3.find(attrs={"class":"list gclearfix"},recursive=False)
-        vlist = re.compile('href="(.+?)".*?>(.+?)</a>', re.DOTALL).findall(str(soup4))
+        if not soup4:
+            soup4=soup3.find(attrs={"class":"content-bd gclearfix"},recursive=False)
+            vlist = re.compile('<dt>.*?href="(.+?)".*?title="(.+?)".*?</dt>', re.DOTALL).findall(str(soup4))
+        else:
+            vlist = re.compile('href="(.+?)".*?>(.+?)</a>', re.DOTALL).findall(str(soup4))
     else:
         vlist = re.compile('href="(.+?)">(.+?)</a>', re.DOTALL).findall(match.group(1))
     for url, num in vlist:
@@ -219,6 +225,9 @@ def PlayVideo(name,site,url,res):
         PlayVideoFunshion(name,url,thumb,res)
     elif site=='qiyi':
         playVideoQiyi(name,url,thumb,res)
+    elif site=='pptv':
+        addonurl = "plugin://plugin.video.pptv/" + '?url=' + urllib.quote_plus(url) + '&mode=playvideo' + '&name=' + urllib.quote_plus(name) + '&thumb=' + urllib.quote_plus(thumb)
+        xbmc.executebuiltin("xbmc.PlayMedia("+addonurl+")")
     else:
         PlayVideoYouku(name,url,"",res)
 

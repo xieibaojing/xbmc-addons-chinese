@@ -441,7 +441,7 @@ For Non-PRC OS environment (Windows7|WindowsXP):[CR]"Control Panel"|"Region and 
 
 <addon id="plugin.video.search"
        name="视频搜索(VSearch)"
-       version="0.0.2"
+       version="0.0.3"
        provider-name="litian">
   <requires>
     <import addon="xbmc.python" version="1.0"/>
