@@ -130,8 +130,6 @@ def getList16(listpage):
 def getList24(listpage):
     match = re.compile('<dt>类型：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
     lxlist = re.compile('p5(.*?)_p6.+?html">(.+?)</a>', re.DOTALL).findall(match[0])
-    match = re.compile('<dt>歌手：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
-    gslist = re.compile('p6(.*?)_p7.+?html">(.+?)</a>', re.DOTALL).findall(match[0])
     match = re.compile('<dt>语言：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
     yylist = re.compile('_p101_p11(.+?).html">(.+?)</a>', re.DOTALL).findall(match[0])
     if len(yylist)>0: yylist.insert(0,['','全部'])
@@ -139,7 +137,7 @@ def getList24(listpage):
     arealist = re.compile('p3(.*?)_p4.+?>(.+?)</a>', re.DOTALL).findall(match[0])
     match = re.compile('<dt>风格：</dt>\s*<dd>(.+?)</dd>', re.DOTALL).findall(listpage)
     fglist = re.compile('p2(.*?)_p3.+?>(.+?)</a>', re.DOTALL).findall(match[0])
-    return lxlist,gslist,yylist,arealist,fglist
+    return lxlist,yylist,arealist,fglist
 
 ##################################################################################
 # Routine to fetch & build Sohu 网络 main menu
@@ -258,17 +256,12 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
 
         if id=='121': 
             lxstr += '[COLOR FFFF0000]'
-            lxlist,gslist,yylist,arealist,fglist=getList24(listpage)
+            lxlist,yylist,arealist,fglist=getList24(listpage)
             if p5:
                 lxstr += searchDict(lxlist,p5)
             else:
                 lxstr += '全部类型'            
             lxstr += '[/COLOR]/[COLOR FF00FF00]'
-            if p6:
-                lxstr += searchDict(gslist,p6)
-            else:
-                lxstr += '全部歌手'
-            lxstr += '[/COLOR]/[COLOR FFFFFF00]'
             if p11:
                 lxstr += searchDict(yylist,p11)
             else:
@@ -303,7 +296,7 @@ def progList(name,id,page,cat,area,year,p5,p6,p11,order):
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
         for i in range(0,len(match)):
-            match1 = re.compile('<a target="_blank" title="(.+?)" href="(.+?)">', re.DOTALL).search(match[i])
+            match1 = re.compile('<a target="_blank" title="(.+?)" href="(.+?)"', re.DOTALL).search(match[i])
             p_name = match1.group(1)
             p_url = match1.group(2)
             match1 = re.compile('<img src="(.+?)"', re.DOTALL).search(match[i])
@@ -424,7 +417,7 @@ def seriesList(name, id,url,thumb):
             #for img in thumbDict.items():
             url = 'http://so.tv.sohu.com/mts?c=2&wd=' + urllib.quote_plus(name.decode('utf-8').encode('gbk'))
             html = getHttpData(url)
-            match =  re.compile('class="v-episode-list(.+?)<div class="v-episode-bottom">').findall(html)
+            match =  re.compile('class="serie-list(.+?)</div>').findall(html)
             if not match:
                 return
             items = re.compile('<a([^>]*)>(.+?)</a>',re.I).findall(match[0])
@@ -434,7 +427,7 @@ def seriesList(name, id,url,thumb):
                     continue
                 href = re.compile('href="(.+?)"').findall(item[0])
                 if len(href)>0:
-                    p_url = 'http://so.tv.sohu.com/' + href[0]
+                    p_url = href[0]
                     urlKey = re.compile('u=(http.+?.shtml)').search(p_url)
                     if urlKey:
                         urlKey = urllib.unquote(urlKey.group(1))
@@ -515,7 +508,7 @@ def performChanges(name,id,cat,area,year,p5,p6,p11,order,listpage):
                     p6 = nllist[sel][0]
                 change = True
     if id=='121': 
-        lxlist,gslist,yylist,arealist,fglist=getList24(listpage)
+        lxlist,yylist,arealist,fglist=getList24(listpage)
         if len(lxlist)>0:
             list = [x[1] for x in lxlist]
             sel = dialog.select('类型', list)
@@ -525,15 +518,6 @@ def performChanges(name,id,cat,area,year,p5,p6,p11,order,listpage):
                 else:
                     p5 = lxlist[sel][0]
                 change = True         
-        if len(gslist)>0:
-            list = [x[1] for x in gslist]
-            sel = dialog.select('歌手', list)
-            if sel != -1:
-                if sel == 0:
-                    p6 = ''
-                else:
-                    p6 = gslist[sel][0]
-                change = True 
         if len(yylist)>0:
             list = [x[1] for x in yylist]
             sel = dialog.select('语言', list)
