@@ -1,6 +1,9 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.6.9 2013-11-16 (cmeng)
+# - Update video link decode for vChart new changes
+
 # Version 1.6.8 2013-10-09 (cmeng)
 # - Update video link decode per site new changes
 

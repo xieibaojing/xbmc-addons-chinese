@@ -14,8 +14,8 @@ else:
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.6.8 2013-10-09 (cmeng)
-# - Update video link decode per site new changes
+# Version 1.6.9 2013-11-16 (cmeng)
+# - Update video link decode for vChart new changes
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -289,7 +289,8 @@ def listVChart(name,area,date,timelist):
     link = getHttpData(url)
     if link == None: return
 
-    matchli = re.compile('<li name="vlist_li">(.+?)</ul></div></div></li>').findall(link)
+    matchli = re.compile('<li name="vlist_li".+?>(.+?)</ul></div></div></li>').findall(link)
+    print matchli
     if len(matchli):
         totalItems=len(matchli)
         playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
@@ -313,7 +314,7 @@ def listVChart(name,area,date,timelist):
 
             j+=1
             p_list = str(j)+'. '+p_name+' [COLOR FFFF55FF]['+p_artist+'][/COLOR][COLOR FFFFFF55] ('+p_score+') [/COLOR]['+p_date+']'
-                      
+                     
             li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
             li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
             u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
