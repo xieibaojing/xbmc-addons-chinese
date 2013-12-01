@@ -6,8 +6,8 @@ import ChineseKeyboard
 
 ########################################################################
 # PPS影音(PPS.tv)
-# Version 1.1.6 2013-09-22 (cmeng)
-# - Update pps URL link
+# Version 1.1.7 2013-12-01 (cmeng)
+# - Update pps URL links
 
 # See changelog.txt for previous history
 ########################################################################
@@ -81,15 +81,21 @@ def getHttpData(url):
 # SUB_URL = 'http://list1.pps.tv/class/%d.xml.zip'
 # MOVIE_URL = 'http://list1.ppstv.com/schs/%d.xml.zip'
 # SEARCH_URL = 'http://listso.ppstream.com/search.php?acp=936&w='
+# http://api.pps.tv/video/get_resource.php?tvid=394427&app_key=10007&app_secret=d073c391368e4fd4e49813e6d276ff82&stat_city=&stat_client=client&stat_isp=
+# http://api.tuijian.pps.tv/api.php?act=nextplay&client=pc&uid=2028212&scene=autoplay&fistinstall=1
 ##################################################################################
 def read_xml(id,type=1):
 #    dialog = xbmcgui.Dialog()
     if type :
         #url= "http://list1.pps.tv/class/"+id+".xml.zip" #目录    
-        url= "http://list1.ppstream.com/class/"+id+".xml.zip" #目录    
+        #url= "http://list1.ppstream.com/class/"+id+".xml.zip" #目录    
+        url= "http://list3.pps.tv/class/"+id+".xml.zip" #目录    
     else :
         #url= "http://list1.pps.tv/schs/"+id+".xml.zip" #文件列表    
-        url= "http://list1.ppstv.com/schs/"+id+".xml.zip" #文件列表    
+        #url= "http://list1.ppstv.com/schs/"+id+".xml.zip" #文件列表    
+        
+        url= "http://list3.pps.tv/schs/"+id+".xml.zip" #文件列表    
+        #url= "http://list3.ppstv.com/schs/"+id+".xml.zip" #文件列表    
     print 'xml_zip: ' + url
     
     dfile=urllib.urlretrieve(url)
