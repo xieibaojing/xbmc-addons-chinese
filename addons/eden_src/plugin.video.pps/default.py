@@ -6,8 +6,8 @@ import ChineseKeyboard
 
 ########################################################################
 # PPS影音(PPS.tv)
-# Version 1.1.7 2013-12-01 (cmeng)
-# - Update pps URL links
+# Version 1.1.8 2013-12-07 (cmeng)
+# - Omit menu items with dj='1' for selection
 
 # See changelog.txt for previous history
 ########################################################################
@@ -182,6 +182,11 @@ def menu_sub(name,id,category):
         p_id = elem.attrib['id']
         cnt = elem.attrib['op']
         
+        try:
+            p_url = elem.attrib['dj']
+            continue
+        except: dj=''
+
         try: p_url = elem.attrib['image']
         except: p_url=''
         try: tag = elem.attrib['tags']
@@ -220,7 +225,7 @@ def menu_sub(name,id,category):
         u=sys.argv[0]+"?mode=sub&name="+name+"&id="+p_id+"&rating="+str(vm)+"&category="+urllib.quote_plus(catType)+"&thumb="+p_thumb
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
 
-    li = xbmcgui.ListItem('[COLOR FFFF00FF]选择[/COLOR]:'+str(j)+'【'+eList+'】（按此选择）')
+    li = xbmcgui.ListItem(' [COLOR FFFF00FF]选择[/COLOR]:'+str(j)+'【'+eList+'】（按此选择）')
     li.setInfo( type="Video", infoLabels={"Title":name, "count":1000000000, "Rating":10.0})
     u=sys.argv[0]+"?mode=gen&id="+id+"&category="+category
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
@@ -249,6 +254,8 @@ def menu_ch(name,id,category,rating,thumb):
     eList='[COLOR FF00FF00]'+name+'[/COLOR]'
     if category:
         catFilter = updateFilter(category)
+        #catFilter = category
+        #category=""
         eList = ''
         sfltr=[]
         xlist = catFilter.split(';')
@@ -262,6 +269,10 @@ def menu_ch(name,id,category,rating,thumb):
 
     i = 0
     image_en = __addon__.getSetting('image_en')
+
+    # required if series contains zero item.
+    p_order=1000
+
     for node in elemroot:
         elemtop = node.find('ID')
         if category:
