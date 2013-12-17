@@ -8,6 +8,7 @@ __addonname__ = __addon__.getAddonInfo('name')
 CHANNEL_LIST = [['电影','movie'],['电视剧','teleplay'],['综艺','tv'],['动漫','anime'],['微电影','vmovie'],['纪录片','documentary'],['公开课','lesson']]
 ORDER_LIST = [['hits','热门'], ['update','更新'], ['rat','评分'], ['release','新上映'], ['guess','猜你喜欢']]
 RES_LIST = ['normal', 'high']
+UserAgent = 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)'
 
 def log(txt):
     message = '%s: %s' % (__addonname__, txt)
@@ -16,7 +17,7 @@ def log(txt):
 def GetHttpData(url):
     log("%s::url - %s" % (sys._getframe().f_code.co_name, url))
     req = urllib2.Request(url)
-    req.add_header('User-Agent', 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)')
+    req.add_header('User-Agent', UserAgent)
     try:
         response = urllib2.urlopen(req)
         httpdata = response.read()
@@ -221,10 +222,11 @@ def PlayVideo(name,url,thumb,res):
         link = GetHttpData("http://www.flvcd.com/parse.php?kw=%s" % (url))
         match = re.compile('<a href="(http://[^/]+/data\d/cdn_transfer/[^"]+)" target="_blank"').findall(link)
     if match:
-        if len(match) > 1:
-            url = 'stack://' + ' , '.join(match)
+        urls = ['%s|User-Agent=%s' % (x, UserAgent) for x in match]
+        if len(urls) > 1:
+            url = 'stack://' + ' , '.join(urls)
         else:
-            url = match[0]
+            url = urls[0]
         listitem = xbmcgui.ListItem(name, thumbnailImage=thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":name})
         xbmc.Player().play(url, listitem)

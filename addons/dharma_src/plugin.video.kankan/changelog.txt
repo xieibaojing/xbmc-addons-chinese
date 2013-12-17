@@ -1,4 +1,7 @@
-﻿V1.0.2 2013-05-22
+﻿V1.0.3 2013-12-17
+- fixed: refused access to play video url
+
+V1.0.2 2013-05-22
 - fixed: flvcd can't decode video url
 
 V1.0.1 2013-01-13
