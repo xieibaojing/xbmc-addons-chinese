@@ -12,8 +12,8 @@ else:
 
 ########################################################################
 # PPStream 网络电视 by cmeng
-# Version 2.2.8 2013-06-22 (cmeng)
-# - Update pps4xbmc.exe
+# Version 2.2.9 2013-12-20 (cmeng)
+# - Update all filters per latest site content changed
  
 # See changelog.txt for previous history
 ########################################################################
@@ -29,16 +29,17 @@ cookieFile = __profile__ + 'cookies.ppstream'
 
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 VIDEO_LIST = [['c_movie','电影'],['c_tv','电视剧'],['c_zy','综艺'],['c_anime','动漫']]
-UGC_LIST = [['c10','原创'],['c11','音乐'],['ent','娱乐'],['life','生活'],['c4','焦点'],['game','游戏'],['c5','财经'],['c6','体育'],['auto','汽车'],['tech','科技'],['fashion','时尚'],['travel','旅游'],['mama','母婴'],['c19','教育'],['fun','搞笑'],['girl','女性'],['c22','其它'],['c24','达人秀'],['food','美食']]
+UGC_LIST = [['c20','搞笑'],['c14','生活'],['c15','时尚'],['c18','母婴'],['c10','原创'],['c8','科技'],['c7','汽车'],['c12','游戏'],['c17','美食'],['c19','教育'],['c5','财经'],['c4','焦点'],['c25','纪录片'],['c21','女性'],['c16','旅游'],['c11','音乐'],['c9','娱乐'],['c6','体育']]
 SORT_LIST = [['','播放最多'],['_o_2','评分最高'],['_o_3','最近更新']]
-IPD_LIST = [['ent','娱乐'],['life','生活'],['game','游戏'],['auto','汽车'],['tech','科技'],['fashion','时尚'],['travel','旅游'],['mama','母婴'],['fun','搞笑'],['girl','女性'],['food','美食']]
-ISORT_DATE = [['default','全部'],['today','今日'],['week','本周'],['month','本月']]
-ISORT_ORDER = [['0','默认'],['1','最近更新'],['2','播放最多']]
+USORT_DATE = [['t1','不限'],['t3','一周'],['t4','一月']]
+USORT_ORDER = [['o1','默认'],['o3','最多播放'],['o2','最新更新']]
 COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]','[COLOR FFFF00FF]']
 MPLAYER_LIST = [['10','PPS网络电视'],['99','SMG'],['43','优酷'],['44','土豆'],['45','奇艺'],['46','搜狐'],['47','新浪'],['48','乐视']]
 VIDEO_RES = [["标清",'sd'],["高清",'hd'],["普通",''],["未注","null"]] 
-datelist = [['t1','全部'],['t2','今日'],['t3','本周'],['t4','本月']]
-orderlist = [['o1','最新发布'],['o2','最多播放'],['o3','最多评论'],['o4','最多推荐']]   
+
+datelist = [['default','全部'],['today','今日'],['week','本周'],['month','本月']]
+orderlist = [['o1','默认'],['o3','最多播放'],['o2','最新更新']]
+#ISORT_ORDER = [['0','默认'],['1','最近更新'],['2','播放最多']]
      
 ##################################################################################
 # Routine to fetech url site data using Mozilla browser
@@ -121,13 +122,13 @@ def fetchID(dlist, idx):
 ##################################################################################
 def getList(listpage):
     catlist = arealist = yearlist = []
-    match = re.compile('<dt>按类型：</dt>(.+?)</ul>').findall(listpage)
+    match = re.compile('<dt class="dt">按类型：</dt>(.+?)</ul>').findall(listpage)
     catlist = re.compile('href="/v_list/c_[a-z]+([_st]*.*?)[_.]+.+?ml">(.+?)</a>').findall(match[0])
     
-    match = re.compile('<dt>按地区：</dt>(.+?)</ul>').findall(listpage)
+    match = re.compile('<dt class="dt">按地区：</dt>(.+?)</ul>').findall(listpage)
     arealist = re.compile('href="/v_list/c_[a-z]+([_sa]*.*?)[_.]+.+?ml">(.+?)</a>').findall(match[0])
  
-    match = re.compile('<dt>按年份：</dt>(.+?)</ul>').findall(listpage)
+    match = re.compile('<dt class="dt">按年份：</dt>(.+?)</ul>').findall(listpage)
     yearlist = re.compile('href="/v_list/c_[a-z]+([_sy]*.*?)[_.]+.+?ml">(.+?)</a>').findall(match[0])
 
     #print 'list...', catlist, arealist, yearlist
@@ -155,13 +156,9 @@ def mainMenu():
     
     # fetch the url for ugc channels, exclude those already in VIDEO_LIST 
     for cat, name in UGC_LIST:
-        if cat[0]=='c':
-            morder = '最多播放'
-        else:
-            morder = '播放最多'
         i = i+1
         li = xbmcgui.ListItem(str(i)+'. '+name)
-        u = sys.argv[0]+"?mode=11&name="+urllib.quote_plus(name)+"&id=ugc"+"&page=1"+"&cat="+cat+"&year=本周"+"&order="+morder
+        u = sys.argv[0]+"?mode=11&name="+urllib.quote_plus(name)+"&id=ugc"+"&page=1"+"&cat="+cat+"&year=一周"+"&order=最多播放"
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
         
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
@@ -191,7 +188,7 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
         link = getHttpData(p_url)
         
         # Extract filter list for user selection - list order valid on first entry only
-        match = re.compile('<dl class="cate-panel">(.+?)</dl>').findall(link)
+        match = re.compile('<dl class="retrieval-dl">(.+?)</dl><div').findall(link)
         listpage = match[0]
     catlist, arealist, yearlist = getList(listpage)   
  
@@ -207,7 +204,7 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
     if p_url <> url: # fetch http data if not first entry
         link = getHttpData(url)
 
-    match = re.compile('<li class="p-item list-item">(.+?)</ul></li>').findall(link)                  
+    match = re.compile('<li class="p-item">(.+?)</li>').findall(link)                  
     totalItems = len(match)
     if re.search(cat,'全部'): cat = '全部类型'
     if re.search(area,'全部'): area = '全部地区'
@@ -222,10 +219,10 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
         # Video & Series titles need different routines
         if name == '电影':
             mode = '10'
-            match1 = re.compile('<a class="ico-item btn-syp" target="_blank" href="(.+?)">').findall(match[i])
+            match1 = re.compile('<a href="(.+?)" class="thumb-outer thumb-outer-sya" target="_blank">').findall(match[i])
         else:
             mode = '3'
-            match1 = re.compile('<a target="_blank" href="(.+?)">').findall(match[i])
+            match1 = re.compile('<div class="t"><a href="(.+?)".+?</a></div>').findall(match[i])
 
         # skip if no playback button for playing video
         if match1 == None: continue
@@ -233,23 +230,24 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
         if not re.search('http:', p_url):
             p_url = 'http://v.pps.tv'+p_url
         
-        match1 = re.compile('<img class="thumb".+?src="(.+?)"').findall(match[i])
+        match1 = re.compile('<img.+?src="(.+?)"').findall(match[i])
         p_thumb = match1[0]
 
-        match1 = re.compile('<a target="_blank" title=.+?>(.+?)</a>').findall(match[i])
+        match1 = re.compile('<a.+?title=.+?target="_blank">(.+?)</a>').findall(match[i])
         p_name = match1[0]
         p_list = '[COLOR FF00FF00]'+str(i+1)+'. '+p_name+'[/COLOR]'
         
-        match1 = re.compile('<span class="status tr">[更新至]*(.*?)</span>').findall(match[i])
-        if len(match1[0].strip()) > 0: p_list += ' [COLOR FFFFFF00]['+match1[0].strip()+'][/COLOR]'
+        match1 = re.compile('<span class="status right">[更新至]*(.*?)</span>').findall(match[i])
+        if len(match1):
+            if len(match1[0].strip()) > 0: p_list += ' [COLOR FFFFFF00]['+match1[0].strip()+'][/COLOR]'
 
         match1 = re.compile('<span class="clarity-HD">(.+?)</span>').findall(match[i])
         if match1: p_list += ' [COLOR FF00FFFF]['+match1[0]+'][/COLOR]'             
                
-        match1 = re.compile('<.+?class="score">(.+?)</').findall(match[i])
+        match1 = re.compile('<div class="score">(.+?)</div>').findall(match[i])
         if match1: p_list += ' [COLOR FFFF00FF]['+match1[0]+'][/COLOR]'
               
-        match0 = re.compile('<span class="auxiliary">[主演：|主持：]+</span>(.+?)</li>').findall(match[i])
+        match0 = re.compile('<div class="sub">[主演：|主持：]+(.+?)</div>').findall(match[i])
         if match0:
             match1 = re.compile('<a target=.+?>(.+?)</a>').findall(match0[0])
             if match1:
@@ -258,7 +256,7 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
                     p_actor += match1[k]+'/'
                 p_list += ' ('+p_actor[:-1]+')'
 
-        match1 = re.compile('播放次数：(.+?)</span></li>').findall(match[i])
+        match1 = re.compile('播放次数：(.+?)</div>').findall(match[i])
         if match1: p_list += ' [COLOR FFFF0000][播放: '+match1[0]+'][/COLOR]' #+ ' ('+p_url+')'
   
         li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
@@ -266,9 +264,9 @@ def progListMovie(name, id, page, cat, area, year, order, listpage):
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
 
     # Fetch and build user selectable page number
-    matchp = re.compile('<div class="page-nav">(.+?)</div>').findall(link)
+    matchp = re.compile('<div class="page-nav-sya">(.+?)</div>').findall(link)
     if len(matchp): 
-        matchp1 = re.compile('<a href=.+?class="pn".+?>([0-9]+)</span>').findall(matchp[0])    
+        matchp1 = re.compile('<a href=.+?class="pn">([0-9]+)</a>').findall(matchp[0]) 
         if len(matchp1):
             plist=[]
             for num in matchp1:
@@ -324,11 +322,12 @@ def updateListMovie(name, id, page, cat, area, year, order, listpage):
 # - user selectable pages
 
 # ustr.decode('unicode-escape').encode('utf-8') 
+# http://v.pps.tv/ugc/ajax/aj_newlongvideo.php?&from=web&type=play&sid=136755
 ##################################################################################
 def progListSeries(name, url, thumb, episodeSel):
     # url = http://v.pps.tv/splay_156449.html
     sid = re.compile('.+?_(.+?).html').findall(url)[0]
-    s_url = 'http://v.pps.tv/ugc/ajax/aj_newlongvideo.php?sid=' + sid + '&type=splay'
+    s_url = 'http://v.pps.tv/ugc/ajax/aj_newlongvideo.php?&from=web&type=play&sid=' + sid
     link = getHttpData(s_url)   #.replace('\\/','/')
     jsd = simplejson.loads(link)
     
@@ -417,18 +416,18 @@ def progListUgc(name, id, page, cat, year, order):
     # fetch url filter ID's & Construct url based on filter ID's & selected page           
     if cat[0] == 'c':
         mf = '12'        
-        dateID = fetchID(datelist, year)
-        orderID = fetchID(orderlist, order)    
+        dateID = fetchID(USORT_DATE, year)
+        orderID = fetchID(USORT_ORDER, order)    
         url = 'http://v.pps.tv/'+id+'/list-'+cat+'-'+dateID+'-'+orderID+'-p'+page+'.html'
     else:
         mf ='13'
-        dateID = fetchID(ISORT_DATE, year)
-        orderID = fetchID(ISORT_ORDER, order)    
+        dateID = fetchID(datelist, year)
+        orderID = fetchID(orderlist, order)    
         url = 'http://ipd.pps.tv/'+cat+'.html?type=video&time='+dateID+'&sort='+orderID+'&page='+page
 
     link = getHttpData(url)
     # Fetch & build ugc/ipd list for user selection, highlight user selected filter      
-    matcha = re.compile('<ul class="[ugc|horn]+-list.+?>(.+?)<div class="page.+?">').findall(link)
+    matcha = re.compile('<ul class="lateral-list-syb p-list"(.+?)<div class="page.+?>').findall(link)
     match = re.compile('<li class="[ugc|p]+-item"(.+?)</li>').findall(matcha[0])
 
     totalItems = len(match)   
@@ -466,7 +465,7 @@ def progListUgc(name, id, page, cat, year, order):
         playlist.add(p_url, li)
 
     # Fetch and build user selectable page number 
-    matchp = re.compile('<div class="page.+?">(.+?)</div>').findall(link)
+    matchp = re.compile('<div class="page.+?>(.+?)</div>').findall(link)
     if len(matchp): 
         matchp1 = re.compile('<a href=.+?class="pn".+?>([0-9]+)</span></a>').findall(matchp[0])
         if not matchp1:
@@ -492,16 +491,16 @@ def updateListUgc(name, id, cat, year, order):
     #datelist, orderlist = getListUgc(listpage)
     change = False
     dialog = xbmcgui.Dialog()
-    list = [x[1] for x in datelist]
+    list = [x[1] for x in USORT_DATE]
     sel = dialog.select('发布时间:', list)
     if sel != -1:
-        year = datelist[sel][1]
+        year = USORT_DATE[sel][1]
         change = True
 
-    list = [x[1] for x in orderlist]
+    list = [x[1] for x in USORT_ORDER]
     sel = dialog.select('排序方式', list)
     if sel != -1:
-        order = orderlist[sel][1]
+        order = USORT_ORDER[sel][1]
         change = True
 
     if change:
@@ -516,16 +515,16 @@ def updateListIpd(name, id, cat, year, order):
     #datelist, orderlist = getListUgc(listpage)
     change = False
     dialog = xbmcgui.Dialog()
-    list = [x[1] for x in ISORT_DATE]
+    list = [x[1] for x in datelist]
     sel = dialog.select('发布时间:', list)
     if sel != -1:
-        year = ISORT_DATE[sel][1]
+        year = datelist[sel][1]
         change = True
 
-    list = [x[1] for x in ISORT_ORDER]
+    list = [x[1] for x in orderlist]
     sel = dialog.select('排序方式', list)
     if sel != -1:
-        order = ISORT_ORDER[sel][1]
+        order = orderlist[sel][1]
         change = True
 
     if change:
