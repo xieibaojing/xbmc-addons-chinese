@@ -362,6 +362,10 @@ Public Class frmPPS
     '        TB_TCP.Text = "Data from XBMC: " + rxdata
     '    End If
     'End Sub
+
+    Private Sub PowerPlayer1_PlayStop(sender As System.Object, e As System.EventArgs) Handles PowerPlayer1.PlayStop
+
+    End Sub
 End Class
 
 
