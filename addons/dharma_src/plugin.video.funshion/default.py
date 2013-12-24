@@ -1,9 +1,15 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
 if sys.version_info < (2, 7):
     import simplejson
 else:
     import json as simplejson
+    
+########################################################################
+# 风行视频(Funshion)"
+########################################################################
+# v1.0.1 2013.12.24 (cmeng)
+# - Temporary fix for video playback    
 
 # Plugin constants 
 __addon__     = xbmcaddon.Addon()
@@ -23,6 +29,7 @@ def log(txt):
     xbmc.log(msg=message, level=xbmc.LOGDEBUG)
 
 def GetHttpData(url):
+    print "url-link: " + url
     log("%s::url - %s" % (sys._getframe().f_code.co_name, url))
     req = urllib2.Request(url)
     req.add_header('User-Agent', UserAgent)
@@ -237,6 +244,25 @@ def selResolution(items):
     return items[ratelist[sel][2]][1], ratelist[sel][1]
 
 def PlayVideo(name,id,thumb,id2):
+    url = 'http://api.funshion.com/ajax/get_web_fsp/%s/mp4' % (id)
+    link = GetHttpData(url)
+    json_response = simplejson.loads(link)
+    if not json_response['data']:
+        ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
+        return
+
+    print json_response['data']['fsps']['mult']
+    hashid = json_response['data']['fsps']['mult'][0]['hashid'].encode('utf-8')
+    url = 'http://jobsfe.funshion.com/query/v1/mp4/%s.json' % (hashid)
+    link = GetHttpData(url)
+    json_response = simplejson.loads(link)
+    if json_response['return'].encode('utf-8') == 'succ':
+        listitem = xbmcgui.ListItem(name,thumbnailImage=thumb)
+        xbmc.Player().play(json_response['playlist'][0]['urls'][0], listitem)
+    else:
+        ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
+
+def PlayVideox(name,id,thumb,id2):
     url = 'http://api.funshion.com/ajax/get_webplayinfo/%s/%s/mp4' % (id, id2)
     link = GetHttpData(url)
     json_response = simplejson.loads(link)
