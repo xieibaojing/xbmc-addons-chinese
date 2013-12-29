@@ -57,24 +57,24 @@ PPTV_EM_QUALITY_VALS = ('收费', '超清', '蓝光', 'VIP', '登录', '独家',
 PPTV_TV_AREAS = 35
 PPTV_LIVE_TYPES = { 'http://live.pptv.com/list/sports_program/' : '35', 'http://live.pptv.com/list/game_program/' : '5', 'http://live.pptv.com/list/finance/' : '47' }
 
-TV_LIST = [['tv_list','全国电视台'],['sports_program','体育直播'],['game_program','游戏直播'],['finance','财经节目单']]
-VIDEO_LIST = [['tv','电视剧'],['movie','电影'],['zongyi','综艺'],['cartoon','动漫'],['sports','体育'],['korea','韩娱'],['news','热点'],['finance','财经'],\
-			  ['music','音乐'],['8','娱乐'],['in','时尚'],['auto','汽车'],['travel','旅游'],['joke','搞笑']]
-
 ##### Common functions #####
 
 dbg = False
 dbglevel = 3
 
 def GetHttpData(url, agent = UserAgent_IPAD):
-	print "getHttpData: " + url
+	#print "getHttpData: " + url
 	req = urllib2.Request(url)
 	req.add_header('User-Agent', agent)
 	try:
 		response = urllib2.urlopen(req)
 		httpdata = response.read()
 		if response.headers.get('content-encoding', None) == 'gzip':
-			httpdata = gzip.GzipFile(fileobj=StringIO.StringIO(httpdata)).read()
+			try:
+				tmpdata = gzip.GzipFile(fileobj=StringIO.StringIO(httpdata)).read()
+				httpdata = tmpdata
+			except:
+				print "Invalid gzip content on: " + url
 		charset = response.headers.getparam('charset')
 		response.close()
 	except:
@@ -240,29 +240,18 @@ def GetPPTVCatalogs():
 	links = []
 	names = []
 
-#  link slow response - cmeng
-# 	data = GetHttpData(PPTV_TV_LIST)
-# 	chl = CheckValidList(parseDOM(unicode(data, 'utf-8', 'ignore'), 'li', attrs = { 'class' : 'level_1 ' }))
-# 	if len(chl) > 0:
-# 		links = parseDOM(chl, 'a', ret = 'href')
-# 		names = parseDOM(chl, 'a')
+	data = GetHttpData(PPTV_TV_LIST)
+	chl = CheckValidList(parseDOM(unicode(data, 'utf-8', 'ignore'), 'li', attrs = { 'class' : 'level_1 ' }))
+	if len(chl) > 0:
+		links = parseDOM(chl, 'a', ret = 'href')
+		names = parseDOM(chl, 'a')
 
-#  link not existence anymore - cmeng
-# 	data = GetHttpData(PPTV_LIST)
-# 	chl = CheckValidList(parseDOM(unicode(data, 'utf-8', 'ignore'), 'div', attrs = { 'id' : 'channelBox' }))
-# 	if len(chl) > 0:
-# 		links.extend(parseDOM(chl, 'a', ret = 'href'))
-# 		names.extend(parseDOM(chl, 'a'))
+	data = GetHttpData(PPTV_LIST)
+	chl = CheckValidList(parseDOM(unicode(data, 'utf-8', 'ignore'), 'div', attrs = { 'id' : 'channelBox' }))
+	if len(chl) > 0:
+		links.extend(parseDOM(chl, 'a', ret = 'href'))
+		names.extend(parseDOM(chl, 'a'))
 
-	for id, name in TV_LIST:
-		links.append(unicode('http://live.pptv.com/list/' + id,'utf-8','ignore'))
-		names.append(unicode(name,'utf-8','ignore'))
-		
-	# fetch the url for video channels specified in VIDEO_LIST
-	for id, name in VIDEO_LIST:
-		links.append(unicode('http://%s.pptv.com' % (id),'utf-8','ignore'))
-		names.append(unicode(name,'utf-8','ignore'))
-	
 	cat_list.extend([{ 'link' : i.encode('utf-8'), 'name' : j.encode('utf-8') } for i, j in zip(links, names)])
 	return cat_list
 
@@ -274,14 +263,14 @@ def CheckValidList(val):
 
 def GetPPTVVideoList(url, only_filter = False):
 	data = GetHttpData(url)
-	filters = parseDOM(unicode(data, 'utf-8', 'ignore'), 'p', attrs = { 'class' : 'index-type index-w50' })
+	filters = parseDOM(unicode(data, 'utf-8', 'ignore'), 'div', attrs = { 'class' : 'item cf' })
 	filter_list = []
-	
+
 	# get common video filters like: type/year/location...
 	for filter in filters:
 		links = parseDOM(filter, 'a', ret = 'href')
 		names = parseDOM(filter, 'a')
-		label = parseDOM(filter, 'strong')
+		label = parseDOM(filter, 'dt')
 		selected_name = CheckValidList(parseDOM(filter, 'a', attrs = { 'class' : 'now' })).encode('utf-8')
 		# select first type if no "now" class
 		if len(selected_name) <= 0 and len(names) > 0:
@@ -755,17 +744,15 @@ def listFilter(name, url):
 	t_url = url
 	level = 0
 	dialog = xbmcgui.Dialog()
-	
 	while True:
 		filter_list = GetPPTVVideoList(t_url, True)
 		# show last filter
 		if level >= len(filter_list) - 1:
 			level = -1
-
 		sel = dialog.select(filter_list[level]['label'], [i['name'] for i in filter_list[level]['options']])
 		t_url = filter_list[level]['options'][sel]['link']
 		# reach last filter, just list specified videos
-		if (level < 0):
+		if level < 0:
 			listVideo(name, t_url, GetPPTVVideoList(t_url))
 			return
 		level += 1
