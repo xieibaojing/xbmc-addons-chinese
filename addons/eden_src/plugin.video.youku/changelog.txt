@@ -1,4 +1,8 @@
-﻿V2.1.7 2013-05-17
+﻿V2.1.8 2014-01-01
+- fixed: can't get video list because site change
+- added: play video in 1080P resolution
+
+V2.1.7 2013-05-17
 - added: language selection for 国语 and 粤语
 
 V2.1.4 2013-03-21

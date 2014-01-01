@@ -80,26 +80,32 @@ def searchDict(dlist,idx):
     return ''
 
 def getCurrent(text,list,id):
-    match = re.compile('<li class="current"><span>(.+?)</span>').search(text)
+    match = re.compile('<li class="current"\s*><span>(.+?)</span>').search(text)
     if match:
         list.append([id, match.group(1)])
 
-def getList(listpage,genre,area,year):
-    match = re.compile('<label>类型:</label>(.+?)</ul>', re.DOTALL).search(listpage)
-    genrelist = re.compile('_g_([^_]*)_[^>]*>([^<]+)</a>').findall(match.group(1))
+def getList(listpage,id,genre,area,year):
+    if id == 'c_95':
+        str1 = '风格'
+        str3 = '发行'
+    else:
+        str1 = '类型'
+        str3 = '时间'
+    match = re.compile('<label>%s</label>(.+?)</ul>' % (str1), re.DOTALL).search(listpage)
+    genrelist = re.compile('_g_([^_\.]*)[^>]*>([^<]+)</a>').findall(match.group(1))
     getCurrent(match.group(1), genrelist, genre)
-    match = re.compile('<label>地区:</label>(.+?)</ul>', re.DOTALL).search(listpage)
-    arealist = re.compile('_a_([^_]*)_[^>]*>([^<]+)</a>').findall(match.group(1))
+    match = re.compile('<label>地区</label>(.+?)</ul>', re.DOTALL).search(listpage)
+    arealist = re.compile('_a_([^_\.]*)[^>]*>([^<]+)</a>').findall(match.group(1))
     getCurrent(match.group(1), arealist, area)
-    match = re.compile('<label>上映:</label>(.+?)</ul>', re.DOTALL).search(listpage)
-    yearlist = re.compile('_r_([^_]*)_[^>]*>([^<]+)</a>').findall(match.group(1))
+    match = re.compile('<label>%s</label>(.+?)</ul>' % (str3), re.DOTALL).search(listpage)
+    yearlist = re.compile('_r_([^_\.]*)[^>]*>([^<]+)</a>').findall(match.group(1))
     getCurrent(match.group(1), yearlist, year)
     return genrelist,arealist,yearlist
 
 def getList2(listpage,genre):
-    match = re.compile('<label>类型:</label>(.+?)</ul>', re.DOTALL).search(listpage)
+    match = re.compile('<label>类型</label>(.+?)</ul>', re.DOTALL).search(listpage)
     if match:
-        genrelist = re.compile('<li><a href="/v_showlist/[^g]*g([0-9]+)[^\.]*\.html"[^>]*>(.+?)</a></li>').findall(match.group(1))
+        genrelist = re.compile('<li><a href=".*?/v_showlist/[^g]*g([0-9]+)[^\.]*\.html"[^>]*>(.+?)</a></li>').findall(match.group(1))
         getCurrent(match.group(1), genrelist, genre)
     else:
         genrelist = []
@@ -107,8 +113,8 @@ def getList2(listpage,genre):
 
 def rootList():
     link = GetHttpData('http://www.youku.com/v/')
-    match0 = re.compile('<div class="left">(.+?)<!--left end-->', re.DOTALL).search(link)
-    match = re.compile('<li><a href="/([^/]+)/([^\.]+)\.html"[^>]+>(.+?)</a></li>').findall(match0.group(1))
+    match0 = re.compile('<label>分类</label>(.+?)</ul>', re.DOTALL).search(link)
+    match = re.compile('<li><a\s*href="/([^/]+)/([^\.]+)\.html"[^>]+>(.+?)</a></li>').findall(match0.group(1))
     totalItems = len(match)
     for path, id, name in match:
         if path == 'v_olist':
@@ -122,7 +128,7 @@ def rootList():
 def progList(name,id,page,genre,area,year,order):
     url = 'http://www.youku.com/v_olist/%s_a_%s_s__g_%s_r_%s_o_%s_p_%s.html' % (id, area, genre, year, order, page)
     link = GetHttpData(url)
-    match = re.compile('<ul class="pages">(.+?)</ul>', re.DOTALL).search(link)
+    match = re.compile('<ul class="yk-pages">(.+?)</ul>', re.DOTALL).search(link)
     plist = []
     if match:
         match1 = re.compile('<li.+?>([0-9]+)(</a>|</span>)</li>', re.DOTALL).findall(match.group(1))
@@ -133,19 +139,19 @@ def progList(name,id,page,genre,area,year,order):
             totalpages = int(match1[len(match1)-1][0])
     else:
         totalpages = 1
-    match = re.compile('<div class="filter" id="filter">(.+?)<!--filter end-->', re.DOTALL).search(link)
+    match = re.compile('<div class="yk-filter" id="filter">(.+?)<div class="yk-filter-handle">', re.DOTALL).search(link)
     if match:
         listpage = match.group(1)
     else:
         listpage = ''
     if id == 'c_95':
-        match = re.compile('<ul class="p">(.+?)</ul>', re.DOTALL).findall(link)
+        match = re.compile('<div class="v">(.+?)</div>\s*</div>\s*</div>\s*</div>', re.DOTALL).findall(link)
     else:
-        match = re.compile('<ul class="p pv">(.+?)</ul>', re.DOTALL).findall(link)
+        match = re.compile('<div class="p p-small">(.+?)</div>\s*</div>\s*</div>\s*</div>', re.DOTALL).findall(link)
     totalItems = len(match) + 1 + len(plist)
     currpage = int(page)
 
-    genrelist,arealist,yearlist = getList(listpage,genre,area,year)
+    genrelist,arealist,yearlist = getList(listpage,id,genre,area,year)
     if genre:
         genrestr = searchDict(genrelist,genre)
     else:
@@ -162,35 +168,44 @@ def progList(name,id,page,genre,area,year,order):
     u = sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&genre="+urllib.quote_plus(genre)+"&area="+urllib.quote_plus(area)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     for i in range(0,len(match)):
-        match1 = re.compile('/id_(.+?).html"').search(match[i])   
-        p_id = match1.group(1)
-        match1 = re.compile('<li class="p_thumb"><img src="(.+?)"').search(match[i])
-        p_thumb = match1.group(1)
-        match1 = re.compile('<li class="p_title"><a .*?">(.+?)</a>').search(match[i])
-        p_name = match1.group(1)
-        match1 = re.compile('<li class="p_status"><span class="status">(.+?)</span>').search(match[i])
-        if match1:
-            if match1.group(1) == '资料':
-                mode = 99
-            p_name1 = p_name + '（' + match1.group(1) + '）'
-        else:
-            p_name1 = p_name
-        if match[i].find('<span class="ico__SD"')>0:
-            p_name1 += '[超清]'
-            p_res = 2
-        elif match[i].find('<span class="ico__HD"')>0:
-            p_name1 += '[高清]'
-            p_res = 1
-        else:
-            p_res = 0
-        if match[i].find('<li class="p_ischarge">')>0:
-            p_name1 += '[付费节目]'
         if id in ('c_96','c_95'):
             mode = 2
             isdir = False
         else:
             mode = 3
             isdir = True
+        match1 = re.compile('/id_(.+?).html"').search(match[i])   
+        p_id = match1.group(1)
+        if id == 'c_95':
+            match1 = re.compile('<div class="v-thumb">\s*<img src="(.+?)"').search(match[i])
+            p_thumb = match1.group(1)
+            match1 = re.compile('<div class="v-meta-title">\s*<a [^>]+>(.+?)</a>').search(match[i])
+            p_name = match1.group(1)
+        else:
+            match1 = re.compile('<div class="p-thumb">\s*<img src="(.+?)"').search(match[i])
+            p_thumb = match1.group(1)
+            match1 = re.compile('<div class="p-meta-title"><a .*?">(.+?)</a>').search(match[i])
+            p_name = match1.group(1)
+        match1 = re.compile('<span class="p-status">(.+?)</span>').search(match[i])
+        if match1:
+            if match1.group(1) == '资料':
+                mode = 99
+            p_name1 = p_name + '（' + match1.group(1) + '）'
+        else:
+            p_name1 = p_name
+        if match[i].find('<i class="ico-1080P"')>0:
+            p_name1 += '[1080P]'
+            p_res = 1
+        elif match[i].find('<i class="ico-SD"')>0:
+            p_name1 += '[超清]'
+            p_res = 2
+        elif match[i].find('<i class="ico-HD"')>0:
+            p_name1 += '[高清]'
+            p_res = 3
+        else:
+            p_res = 4
+        if match[i].find('<i class="ico-ispay"')>0:
+            p_name1 += '[付费节目]'
         li = xbmcgui.ListItem(str(i + 1) + '. ' + p_name1, iconImage = '', thumbnailImage = p_thumb)
         u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(p_name)+"&id="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)+"&res="+str(p_res)
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
@@ -243,14 +258,17 @@ def seriesList(name,id,thumb,res):
         match1 = re.compile('<div class="title">[\s]*<a [^>]+>(.+?)</a>').search(match[i])
         p_name = match1.group(1)
         p_name1 = p_name
-        if match[i].find('<span class="ico__SD"')>0:
+        if match[i].find('<i class="ico-1080P"')>0:
+            p_name1 += '[1080P]'
+            p_res = 1
+        elif match[i].find('<i class="ico-SD"')>0:
             p_name1 += '[超清]'
             p_res = 2
-        elif match[i].find('<span class="ico__HD"')>0:
+        elif match[i].find('<i class="ico-HD"')>0:
             p_name1 += '[高清]'
-            p_res = 1
+            p_res = 3
         else:
-            p_res = 0
+            p_res = 4
         li = xbmcgui.ListItem(p_name1, iconImage = '', thumbnailImage = p_thumb)
         u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&id="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)+"&res="+str(p_res)
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
@@ -261,7 +279,7 @@ def seriesList(name,id,thumb,res):
 def progList2(name,id,page,genre,year,order):
     url = 'http://www.youku.com/v_showlist/t%sd%s%sg%sp%s.html' % (order, year, id, genre, page)
     link = GetHttpData(url)
-    match = re.compile('<ul class="pages">(.+?)</ul>', re.DOTALL).search(link)
+    match = re.compile('<ul class="yk-pages">(.+?)</ul>', re.DOTALL).search(link)
     plist = []
     if match:
         match1 = re.compile('<li.+?>([0-9]+)(</a>|</span>)</li>', re.DOTALL).findall(match.group(1))
@@ -272,12 +290,12 @@ def progList2(name,id,page,genre,year,order):
             totalpages = int(match1[len(match1)-1][0])
     else:
         totalpages = 1
-    match = re.compile('<div class="filter" id="filter">(.+?)<!--filter end-->', re.DOTALL).search(link)
+    match = re.compile('<div class="yk-filter\s*" id="filter">(.+?)<div class="yk-filter-handle">', re.DOTALL).search(link)
     if match:
         listpage = match.group(1)
     else:
         listpage = ''
-    match = re.compile('<ul class="v">(.+?)</ul>', re.DOTALL).findall(link)
+    match = re.compile('<div class="v">(.+?)</div>\s*</div>\s*</div>\s*</div>', re.DOTALL).findall(link)
     totalItems = len(match) + 1 + len(plist)
     currpage = int(page)
 
@@ -290,21 +308,24 @@ def progList2(name,id,page,genre,year,order):
     u = sys.argv[0]+"?mode=12&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&genre="+urllib.quote_plus(genre)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     for i in range(0,len(match)):
-        match1 = re.compile('<li class="v_link"><a href="http://v.youku.com/v_show/id_(.+?)\.html"').search(match[i])
+        match1 = re.compile('<div class="v-link">\s*<a href="http://v.youku.com/v_show/id_(.+?)\.html"').search(match[i])
         p_id = match1.group(1)
-        match1 = re.compile('<li class="v_thumb"><img src="(.+?)"').search(match[i])
+        match1 = re.compile('<div class="v-thumb">\s*<img src="(.+?)"').search(match[i])
         p_thumb = match1.group(1)
-        match1 = re.compile('<li class="v_title"><a [^>]+>(.+?)</a>').search(match[i])
+        match1 = re.compile('<div class="v-meta-title">\s*<a [^>]+>(.+?)</a>').search(match[i])
         p_name = match1.group(1).replace('&quot;','"')
         p_name1 = p_name
-        if match[i].find('<span class="ico__SD"')>0:
+        if match[i].find('<i class="ico-1080P"')>0:
+            p_name1 += '[1080P]'
+            p_res = 1
+        elif match[i].find('<i class="ico-SD"')>0:
             p_name1 += '[超清]'
             p_res = 2
-        elif match[i].find('<span class="ico__HD"')>0:
+        elif match[i].find('<i class="ico-HD"')>0:
             p_name1 += '[高清]'
-            p_res = 1
+            p_res = 3
         else:
-            p_res = 0
+            p_res = 4
         li = xbmcgui.ListItem(str(i + 1) + '. ' + p_name1, iconImage = '', thumbnailImage = p_thumb)
         u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(p_name)+"&id="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)+"&res="+str(p_res)
         #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Genre":p_genre, "Plot":p_plot, "Year":p_year, "Cast":p_cast, "Tagline":p_tagline})
@@ -320,9 +341,10 @@ def progList2(name,id,page,genre,year,order):
 def selResolution(streamtypes):
     ratelist = []
     for i in range(0,len(streamtypes)):
-        if streamtypes[i] == 'flv': ratelist.append([3, '标清', i]) # [清晰度设置值, 清晰度, streamtypes索引]
-        if streamtypes[i] == 'mp4': ratelist.append([2, '高清', i])
-        if streamtypes[i] == 'hd2': ratelist.append([1, '超清', i])
+        if streamtypes[i] == 'flv': ratelist.append([4, '标清', i]) # [清晰度设置值, 清晰度, streamtypes索引]
+        if streamtypes[i] == 'mp4': ratelist.append([3, '高清', i])
+        if streamtypes[i] == 'hd2': ratelist.append([2, '超清', i])
+        if streamtypes[i] == 'hd3': ratelist.append([1, '1080P', i])
     ratelist.sort()
     if len(ratelist) > 1:
         resolution = int(__addon__.getSetting('resolution'))
@@ -345,7 +367,7 @@ def PlayVideo(name,id,thumb,res):
 
     vid = id
     lang_select = int(__addon__.getSetting('lang_select')) # 默认|每次选择|自动首选
-    if lang_select != 0 and 'audiolang' in json_response['data'][0]['dvd']:
+    if lang_select != 0 and json_response['data'][0].has_key('dvd') and 'audiolang' in json_response['data'][0]['dvd']:
         langlist = json_response['data'][0]['dvd']['audiolang']
         if lang_select == 1:
             list = [x['lang'] for x in langlist]
@@ -387,7 +409,7 @@ def PlayVideo(name,id,thumb,res):
         xbmc.Player().play(stackurl, listitem)
 
 def performChanges(name,id,listpage,genre,area,year,order):
-    genrelist,arealist,yearlist = getList(listpage,genre,area,year)
+    genrelist,arealist,yearlist = getList(listpage,id,genre,area,year)
     change = False
     dialog = xbmcgui.Dialog()
     if len(genrelist)>0:
