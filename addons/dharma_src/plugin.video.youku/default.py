@@ -87,18 +87,27 @@ def getCurrent(text,list,id):
 def getList(listpage,id,genre,area,year):
     if id == 'c_95':
         str1 = '风格'
-        str3 = '发行'
+        str3a = '发行'
+        str3b = 'r'
+    elif id == 'c_84' or id == 'c_87':
+        str1 = '类型'
+        str3a = '出品'
+        str3b = 'pr'
     else:
         str1 = '类型'
-        str3 = '时间'
+        str3a = '时间'
+        str3b = 'r'
     match = re.compile('<label>%s</label>(.+?)</ul>' % (str1), re.DOTALL).search(listpage)
     genrelist = re.compile('_g_([^_\.]*)[^>]*>([^<]+)</a>').findall(match.group(1))
     getCurrent(match.group(1), genrelist, genre)
-    match = re.compile('<label>地区</label>(.+?)</ul>', re.DOTALL).search(listpage)
-    arealist = re.compile('_a_([^_\.]*)[^>]*>([^<]+)</a>').findall(match.group(1))
-    getCurrent(match.group(1), arealist, area)
-    match = re.compile('<label>%s</label>(.+?)</ul>' % (str3), re.DOTALL).search(listpage)
-    yearlist = re.compile('_r_([^_\.]*)[^>]*>([^<]+)</a>').findall(match.group(1))
+    if id == 'c_84' or id == 'c_87':
+        arealist = []
+    else:
+        match = re.compile('<label>地区</label>(.+?)</ul>', re.DOTALL).search(listpage)
+        arealist = re.compile('_a_([^_\.]*)[^>]*>([^<]+)</a>').findall(match.group(1))
+        getCurrent(match.group(1), arealist, area)
+    match = re.compile('<label>%s</label>(.+?)</ul>' % (str3a), re.DOTALL).search(listpage)
+    yearlist = re.compile('_%s_([^_\.]*)[^>]*>([^<]+)</a>' % (str3b)).findall(match.group(1))
     getCurrent(match.group(1), yearlist, year)
     return genrelist,arealist,yearlist
 
@@ -159,11 +168,14 @@ def progList(name,id,page,genre,area,year,order):
     if area:
         areastr = searchDict(arealist,area)
     else:
-        areastr = '全部地区'
+		    areastr = '全部地区'
     if year:
         yearstr = searchDict(yearlist,year)
     else:
-        yearstr = '全部年份'
+        if id == 'c_84' or id == 'c_87':
+            yearstr = '全部出品'
+        else:
+            yearstr = '全部年份'
     li = xbmcgui.ListItem(name+'（第'+str(currpage)+'/'+str(totalpages)+'页）【[COLOR FFFF0000]' + genrestr + '[/COLOR]/[COLOR FF00FF00]' + areastr + '[/COLOR]/[COLOR FFFFFF00]' + yearstr + '[/COLOR]/[COLOR FF00FFFF]' + searchDict(ORDER_LIST,order) + '[/COLOR]】（按此选择）')
     u = sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&genre="+urllib.quote_plus(genre)+"&area="+urllib.quote_plus(area)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
@@ -223,7 +235,7 @@ def getMovie(name,id,thumb,res):
         link = GetHttpData('http://www.youku.com/show_page/id_' + id + '.html')
         match = re.compile('<a class="btnShow btnplayposi".*?href="http://v.youku.com/v_show/id_(.+?)\.html"', re.DOTALL).search(link)
         if not match:
-            match = re.compile('<div class="btnplay">.*?href="ttp://v.youku.com/v_show/id_(.+?)\.html"', re.DOTALL).search(link)
+            match = re.compile('<div class="btnplay">.*?href="http://v.youku.com/v_show/id_(.+?)\.html"', re.DOTALL).search(link)
         if match:
             # 播放正片
             PlayVideo(name, match.group(1), thumb, res)
@@ -411,10 +423,19 @@ def PlayVideo(name,id,thumb,res):
 def performChanges(name,id,listpage,genre,area,year,order):
     genrelist,arealist,yearlist = getList(listpage,id,genre,area,year)
     change = False
+    if id == 'c_95':
+        str1 = '风格'
+        str3 = '发行'
+    elif id == 'c_84' or id == 'c_87':
+        str1 = '类型'
+        str3 = '出品'
+    else:
+        str1 = '类型'
+        str3 = '时间'
     dialog = xbmcgui.Dialog()
     if len(genrelist)>0:
         list = [x[1] for x in genrelist]
-        sel = dialog.select('类型', list)
+        sel = dialog.select(str1, list)
         if sel != -1:
             genre = genrelist[sel][0]
             change = True
@@ -426,7 +447,7 @@ def performChanges(name,id,listpage,genre,area,year,order):
             change = True
     if len(yearlist)>0:
         list = [x[1] for x in yearlist]
-        sel = dialog.select('年份', list)
+        sel = dialog.select(str3, list)
         if sel != -1:
             year = yearlist[sel][0]
             change = True
