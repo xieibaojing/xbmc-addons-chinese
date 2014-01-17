@@ -187,7 +187,13 @@ def sohuPlayVideo(pname,purl,pthumb):
     xbmc.Player().play(stackurl, listitem)
 
 
+def Getmatch1(purl,pmatchstr):
+    link = GetHttpData(purl) 
+    match = re.compile(pmatchstr).findall(link)
+    return match
 
+
+    
 def Getmatch2(purl,matchstr):
     link = GetHttpData(purl)
     matchA = re.compile(match2str).findall(link)
@@ -195,6 +201,23 @@ def Getmatch2(purl,matchstr):
     if matchA: match= re.compile(matchstr).findall(matchA[0])
     return match
 
+
+
+def Getmatch3(purl,pmatchstr,pgroupstr,pgroupid):
+    rt = []
+    iflag = 'N'
+    link = GetHttpData(purl) 
+    match = re.compile(pmatchstr).findall(link)
+    for a in match:
+        ig = re.compile(pgroupstr).findall(a)
+        if len(ig) > 0 :
+            if pgroupid == ig[0] :
+                iflag = 'Y'
+            else:
+                iflag = 'N'   
+            continue
+        if iflag == 'Y' : rt.append(a)
+    return rt
 
 
 
@@ -210,25 +233,28 @@ def PlayVideo(name,url,matchstr,multiflag,thumb,pmod):
         sohuPlayVideo(name,url,thumb)
     else:
         urls = []
-        link = GetHttpData(url) 
-        match = re.compile(matchstr).findall(link)
+
         if match2str:
             match=Getmatch2(url,matchstr)
+        if pmod.find('GROUPSELECT') > 0:
+            match=Getmatch3(url,matchstr,groupstr,groupid)
+        else:
+            match=Getmatch1(url,matchstr)
         if len(match) == 0:
             dialog = xbmcgui.Dialog()
             ok = dialog.ok(__addonname__, '播放地址已失效，请换用其他网站重试。')
             return
-        for i in range(0,len(match)): 
-            purl=match[i]
+        for x in match:
+            purl = x
             if pmod.find('SUB') > 0:
-                purl = purl.replace(subfrom,subto)
+                purl = x.replace(subfrom,subto)
             if pmod.find('PRE') > 0:
                 purl = prefix + purl
             urls.append(purl)
+
         if multiflag == '1':
             playlist=xbmc.PlayList(1)  
             playlist.clear() 
-            dialog = xbmcgui.Dialog()
             listitem = xbmcgui.ListItem(name) 
             listitem.setInfo(type="Video",infoLabels={"Title":name})
             if pmod.find('FIRSTONE') > 0:
@@ -237,12 +263,21 @@ def PlayVideo(name,url,matchstr,multiflag,thumb,pmod):
                 playlist.add(urls[len(urls)-1], listitem)
             xbmc.Player().play(playlist)
         else:
-            stackurl = 'stack://' + ' , '.join(urls)
-            listitem = xbmcgui.ListItem(name) 
-            listitem.setInfo(type="Video",infoLabels={"Title":name})
-            xbmc.Player().play(stackurl, listitem)
+            if pmod.find('NOSTACK') > 0:
+                playlist=xbmc.PlayList(1)
+                playlist.clear()
+                for i in range(0,len(urls)): 
+                    listitem = xbmcgui.ListItem(name) 
+                    listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(urls))+" 节"})
+                    playlist.add(urls[i], listitem)
+                xbmc.Player().play(playlist) 
+            else:    
+                stackurl = 'stack://' + ' , '.join(urls)
+                listitem = xbmcgui.ListItem(name) 
+                listitem.setInfo(type="Video",infoLabels={"Title":name})
+                xbmc.Player().play(stackurl, listitem)
     
-
+        
 
 
 params = get_params()
@@ -252,6 +287,8 @@ thumb = None
 name = None
 matchstr = None
 match2str = None
+groupstr = None
+groupid = None
 mflag = None
 subfrom = None
 subto = None
@@ -316,10 +353,24 @@ elif mode == 'data':
     showdata(url)
 elif mode == 'play':
     if options: 
-        ppmod = ppmod + options
+        options = ' ' + options
+        if options.find('SOHU') > 0:
+            ppmod = ppmod + '|SOHU'
+        if options.find('FIRSTONE') > 0:
+            ppmod = ppmod + '|FIRSTONE'
+        if options.find('NOSTACK') > 0:
+            ppmod = ppmod + '|NOSTACK'
+        if options.find('RAW') > 0:
+            ppmod = ppmod + '|RAW'
         if options.find('<match2str>') > 0:
             match = re.compile('<match2str>(.+?)</match2str>').findall(options)
-            match2str = match[0][0]
+            match2str = match[0]
+        if options.find('<groupstr>') > 0:
+            match = re.compile('<groupstr>(.+?)</groupstr>').findall(options)
+            groupstr = match[0]
+            match = re.compile('<groupid>(.+?)</groupid>').findall(options)
+            groupid = match[0]
+            ppmod = ppmod + '|GROUPSELECT'
     if sub: 
         ppmod = ppmod + '|SUB'
         match = re.compile('<from>(.+?)</from><to>(.+?)</to>').findall(sub)
