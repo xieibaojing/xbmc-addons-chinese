@@ -1,19 +1,96 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addons>
-<addon id="plugin.audio.baidufm"
-	name="百度随心听"
-	version="0.0.3"
-	provider-name="zhangyuanwei">
-	<extension
-		point="xbmc.python.pluginsource"
-		library="default.py">
-        <provides>audio</provides>
+<addon id="plugin.video.youkuvideo" name="YouKu Video" version="0.9.1" provider-name="tacy.lee">
+  <requires>
+    <import addon="xbmc.python" version="2.1.0"/>
+    <import addon="script.module.xbmcswift2" version="2.4.0"/>
+    <import addon="script.module.keyboard.chinese"  version="1.2.8" optional="true"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="addon.py">
+    <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <platform>all</platform>
+    <language></language>
+    <summary lang="en">YouKu Video</summary>
+    <summary lang="zh">优酷视频</summary>
+    <description lang="en">YouKu is china's largest video sharing site, YoukuVideo plugin support all channels play and video search. Please submit bug or issue to http://github.com/tacy/plugin.video.youkuvideo.</description>
+    <description lang="zh">优酷视频是中国最大的视频分享网站，插件支持优酷全频道播放、视频搜索(多播放源支持，包括优酷/搜狐/腾讯/爱奇艺/乐视/土豆/PPS）。如果有问题请提交到 http://github.com/tacy/plugin.video.youkuvideo</description>
+  </extension>
+</addon>
+
+<addon id="plugin.video.youku"
+    name="优酷视频(YouKu)"
+    version="2.1.9"
+    provider-name="Taxigps">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary>Baidu fm audio plugin</summary>
-        <summary lang="zh">百度随心听插件</summary>
-        <description>Baidu fm audio plugin</description>
-        <description lang="zh">百度随心听插件</description>
+        <summary lang="en">YouKu video plugin</summary>
+        <summary lang="zh">优酷网视频插件</summary>
+        <description lang="en">online video from youku.com</description>
+        <description lang="zh">优酷（NYSE:YOKU），2006年12月21日正式推出。优酷以 "快者为王"为产品理 念，凭借"快速播放，快速发布，快速搜索"的产品特性，充分满足用户日益增长的互动需求及多元化视频体验，现已成为中国互联网领域最具影响力、最受用户喜爱的视频媒体。</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.ku6"
+    name="酷6云中剧场(Ku6)"
+    version="1.0.5"
+    provider-name="wow1122">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">Ku6 video plugin</summary>
+        <summary lang="zh">酷6云中剧场视频插件</summary>
+        <description lang="en">online video from www.juchang.com/n</description>
+        <description lang="zh">观看酷6云中剧场</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="script.skinfont"
+    name="Skin Font" version="0.0.2" provider-name="taxigps">
+  <requires>
+    <import addon="xbmc.python" version="2.1.0"/>
+  </requires>
+  <extension point="xbmc.python.script" library="default.py">
+     <provides>executable</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en">Add Arial skin fontset</summary>
+    <summary lang="zh">为皮肤增加Arial字体</summary>
+    <description lang="en">Add Arial skin fontset</description>
+    <description lang="zh">有些皮肤使用的字体文件中没有汉字造成中文无法显示，本插件可为此类皮肤增加支持中文显示的Arial字体选项。</description>
+    <platform>all</platform>
+    <language></language>
+  </extension>
+</addon>
+
+<addon id="plugin.video.ppstream"
+    name="PPS网络电视(PPStream)"
+    version="2.2.9"
+    provider-name="cmeng (originator: robinttt)">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">PPStream video plugin</summary>
+        <summary lang="zh">PPS网络电视</summary>
+        <description lang="en">PPS网络电视: (KeyMap Settings)[CR]Mute: F8  Vol-: F9  Vol+: F10  ZoomIn: [↓  ZoomOut: ]↑[CR]Rev: ,←  Next: .→  Pause: Space/Ent  Exit: x/Esc  About: F1[CR]
+To customize Keypmap:[CR]Run plugin.video.pps\resources\player\KeymapSet.exe
+For Non-PRC OS environment (Windows7|WindowsXP):[CR]"Control Panel"|"Region and Language"|"Administrative"[CR]Change system locale to "Chinese (Simplified PRC)"</description>
+        <description lang="zh">快捷键设置 (Keymap Settings):[CR]静音: F8  声音缩小: F9  声音放大: F10  画面缩小: [↓  画面放大: ]↑[CR]上一章节: ,←  下一章节: .→  播放暂停: 空格键/回车  关闭程序: x/Esc  关于: F1
+设置自定快捷键:[CR]请运行 plugin.video.pps\resources\player\KeymapSet.exe
+使用PPS影音收看影视节目，清晰流畅更新快。PPS网络电视是全球第一家集P2P直播点播于一身的网络电视软件。PPS网络电视播放流畅、完全免费，PPS网络电视是网民喜爱的装机必备软件。</description>
         <platform>all</platform>
     </extension>
 </addon>
@@ -40,39 +117,20 @@
     </extension>
 </addon>
 
-<addon id="plugin.program.utorrent"
-       name="uTorrent"
-       version="1.1.0"
-       provider-name="Taxigps">
-    <requires>
-        <import addon="xbmc.python" version="1.0"/>
-    </requires>
-    <extension point="xbmc.python.pluginsource" library="default.py">
-        <provides>executable</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <platform>all</platform>
-        <summary lang="en">uTorrent Control Plugin</summary>
-        <summary lang="zh">uTorrent控制插件</summary>
-        <description lang="en">Manages your uTorrent queue from within XBMC![CR][CR]Install:[CR]1. Enable WebUI for uTorrent[CR]2. Enable Token Authentication for uTorrent[CR]3. Install the plug-in[CR]4. Enter username and password of uTorrent via 'Plug-in Settings'[CR]5. Enjoy!</description>
-        <description lang="zh">在XBMC中控制你的uTorrent下载队列。[CR][CR]安装说明：[CR]1. 起用uTorrent的WebUI[CR]2. 启用uTorrent的Token认证[CR]3. 安装本插件[CR]4. 在扩展功能设置界面输入uTorrent用户名和密码[CR]5. 祝你使用愉快！</description>
-    </extension>
-</addon>
-
-<addon id="plugin.video.5ivdo"
-    name="5ivdo(5ivdo)"
-    version="1.1.4"
-    provider-name="5ivdo">
+<addon id="plugin.video.ipadpptv"
+    name="PPTV IPAD专区"
+    version="1.0.1"
+    provider-name="wow1122-modify by cchen">
     <extension
         point="xbmc.python.pluginsource"
         library="default.py">
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary lang="en">5ivdo video plugin</summary>
-        <summary lang="zh">我爱VDO</summary>
-        <description lang="en">online video from 5ivdo.com</description>
-        <description lang="zh">在线视频聚合，主站[http://www.5ivdo.com]。基于XBMC运行，能够支持优土，爱奇艺，腾讯，搜狐，乐视，新浪，风行等主要视频内容的在线播放，更多站点支持敬请期待。本站作为资源导航，只为个人服务，商业用途勿扰。你所体验的所有视频内容，版权归属相应网站，应对他们的工作心存感激。有任何意见或建议请加入QQ群[197687378]，或者关注官方微博[http://weibo.com/5ivdo]。让我们为创造更好的XBMC体验而努力！</description>
+        <summary lang="en">pptv ipad video plugin</summary>
+        <summary lang="zh">PPTV IPAD专区视频插件</summary>
+        <description lang="en">online video from ipad.pptv.com</description>
+        <description lang="zh">观看PPTV IPAD专区在线视频</description>
         <platform>all</platform>
     </extension>
 </addon>
@@ -95,127 +153,17 @@
     </extension>
 </addon>
 
-<addon id="plugin.video.cntv-live"
-    name="中国网络电视台直播(CNTV Live)"
-    version="1.1.0"
-    provider-name="Robinttt">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">CNTV Live video plugin</summary>
-        <summary lang="zh">中国网络电视台直播插件</summary>
-        <description lang="en">CNTV Live video plugin[CR][CR]Note: [CR]1.The plugin will auto call CCTVPlayerOcxReg.exe to regist player ocx at the first run.[CR]2.The default key setting of the external player similar as XBMC: F8 - Mute / F9 - VolumeDown / F10 - VolumeUp / [ - ZoomIn / ] - ZoomOut / SPACE - Pause / X - Exit[CR]You can run key setting program to custom the key map for external player, file path:[CR]plugin.video.cntv-live\resources\player\KeymapSet.exe[CR]3.on the non-PRC OS environment, you need to do the following settings:[CR]On Windows 7 (similar for Windows XP):[CR]Go to "Control Panel"=>"Region and Language"=>Select Tab "Administrative"[CR]Click button "Change system locale" to "Chinese (Simplified, PRC)"[CR]and restart the machine as instructed.</description>
-        <description lang="zh">中国网络电视台直播插件[CR][CR]说明：[CR]1.首次进入本插件会自动运行CCTVPlayerOcxReg.exe进行播放控件注册；[CR]2.外挂播放器按键默认设置与XBMC相近：F8 - 静音 / F9 - 音量减 / F10 - 音量增 / [ - 画面缩小 / ] - 画面放大 / SPACE - 播放暂停 / X - 关闭程序[CR]你也可以运行插件文件夹下的设置程序调整按键：[CR]plugin.video.cntv-live\resources\player\KeymapSet.exe</description>
-        <platform>windx wingl</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.funshion"
-    name="风行视频(Funshion)"
-    version="1.0.1"
-    provider-name="taxigps">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">Funshion Video plugin</summary>
-        <summary lang="zh">风行网视频插件</summary>
-        <description lang="en">Online videos from www.funshion.com</description>
-        <description lang="zh">来自风行网（www.funshion.com）的网络视频内容。</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.ipadpptv"
-    name="PPTV IPAD专区"
-    version="1.0.1"
-    provider-name="wow1122-modify by cchen">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">pptv ipad video plugin</summary>
-        <summary lang="zh">PPTV IPAD专区视频插件</summary>
-        <description lang="en">online video from ipad.pptv.com</description>
-        <description lang="zh">观看PPTV IPAD专区在线视频</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.kankan"
-    name="迅雷看看(KanKan)"
-    version="1.0.3"
-    provider-name="Taxigps">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">KanKan video plugin</summary>
-        <summary lang="zh">迅雷看看视频插件</summary>
-        <description lang="en">online video from www.kankan.com</description>
-        <description lang="zh">迅雷看看是中国第一高清影视视频门户，免费提供电影、电视剧、综艺、音乐MV、动漫、新片、大片的高清在线点播和下载，是中国最大最全的正版影视发行平台。</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.ku6"
-    name="酷6云中剧场(Ku6)"
-    version="1.0.5"
-    provider-name="wow1122">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">Ku6 video plugin</summary>
-        <summary lang="zh">酷6云中剧场视频插件</summary>
-        <description lang="en">online video from www.juchang.com/n</description>
-        <description lang="zh">观看酷6云中剧场</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.kugoumv"
-    name="酷狗MV(KugouMV)"
-    version="1.0.0"
-    provider-name="runner6502@gmail.com">
-    <extension point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary>KugouMV video plugin</summary>
-        <summary lang="zh">酷狗MV插件</summary>
-        <description>KugouMV video plugin</description>
-        <description lang="zh">酷狗Music Video</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.letv"
-    name="乐视网 (LeTV)"
+<addon id="script.module.keyboard.chinese"
+    name="Chinese keyboard"
     version="1.2.8"
-    provider-name="cmeng">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
+    provider-name="Taxigps">
+    <extension point="xbmc.python.module" library="lib" />
     <extension point="xbmc.addon.metadata">
-        <summary lang="en">LeTV video plugin</summary>
-        <summary lang="zh">乐视网插件</summary>
-        <description lang="en">Letv video plugin[CR][CR]LeTV.com (Chinese: 乐视网), operated by Beijing LeTV Mobile Media and Technology Co. Ltd, is an online video portal in Beijing. It offers online video programs and movie viewing through legal channels.</description>
-        <description lang="zh">Letv video plugin[CR][CR]乐视网(LeTV.com)是以正版,高清影视剧为主的视频门户网站,为用户提供正版高清电影,电视剧,动漫,综艺,娱乐等视频在线观看,视频分享,视频搜索等服务</description>
+        <summary lang="en">Chinese keyboard</summary>
+        <summary lang="zh">中文键盘</summary>
+        <description lang="en">Visual keyboard to input Chinese</description>
+        <description lang="zh">支持中文输入的虚拟键盘</description>
+        <license>GPL</license>
         <platform>all</platform>
     </extension>
 </addon>
@@ -240,46 +188,285 @@
     </extension>
 </addon>
 
-<addon id="plugin.video.pps"
-    name="PPS影音(PPS.tv)"
-    version="1.1.8"
-    provider-name="cmeng (originator: yxnr)">
+<addon id="plugin.video.yinyuetai"
+    name="音悦台MV(YinYueTai)"
+    version="1.6.9"
+    provider-name="cmeng (originator: Skyemperor)">
     <extension
         point="xbmc.python.pluginsource"
         library="default.py">
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary lang="en">PPStream Network TV</summary>
-        <summary lang="zh">PPS影音</summary>
-        <description lang="en">PPStream Network TV: (KeyMap Settings)[CR]Mute: F8  Vol-: F9  Vol+: F10  ZoomIn: [↓  ZoomOut: ]↑[CR]Rev: ,←  Next: .→  Pause: Space/Ent  Exit: x/Esc  About: F1[CR]
-To customize Keypmap:[CR]Run plugin.video.pps\resources\player\KeymapSet.exe
-For Non-PRC OS environment (Windows7|WindowsXP):[CR]"Control Panel"|"Region and Language"|"Administrative"[CR]Change system locale to "Chinese (Simplified PRC)"</description>
-        <description lang="zh">快捷键设置 (Keymap Settings):[CR]静音: F8  声音缩小: F9  声音放大: F10  画面缩小: [↓  画面放大: ]↑[CR]上一章节: ,←  下一章节: .→  播放暂停: 空格键/回车  关闭程序: x/Esc  关于: F1
-设置自定快捷键:[CR]请运行 plugin.video.pps\resources\player\KeymapSet.exe
-使用PPS影音收看影视节目，清晰流畅更新快。PPS网络电视是全球第一家集P2P直播点播于一身的网络电视软件。PPS网络电视播放流畅、完全免费，PPS网络电视是网民喜爱的装机必备软件。</description>
+        <summary lang="en">YinYueTai video plugin</summary>
+        <summary lang="zh">音悦台视频插件</summary>
+        <description lang="en">Online MV from yinyuetai.com[CR][CR]To Enable Video Auto Playback Option:[CR]---------------------------------[CR]- Navigate to Add-on settings[CR]- Video Continuous Playback: Enable/Disable</description>
+        <description lang="zh">观看音悦台在线MV[CR][CR]视频自动播放说明：[CR]--------------------------------[CR]- 找到 Add-on settings 文件列表[CR]- 选择视频连续播放": 是/否</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.soptv"
+    name="SOP电视(soptv)"
+    version="0.2.1"
+    provider-name="htpcyh2@gmail.com">
+    <requires>
+        <import addon="script.module.keyboard.chinese" version="1.0.0"/>
+    </requires>
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">SOP TV plugin</summary>
+        <summary lang="zh">SOP网络电视插件</summary>
+        <description lang="en">Watch sopcast p2p network TV live broadcast. support 32bit Linux systems. example as openelec and xbmc live</description>
+        <description lang="zh">观看sopcast p2p 网络电视直播,支持32位openelec ,安装完插件请重新起动电脑,即可使用</description>
+        <platform>linux</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.tv365"
+    name="TV365"
+    version="1.1.0"
+    provider-name="Robinttt">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>TV365 video plugin</summary>
+        <summary lang="zh">TV365网络电视直播插件</summary>
+        <description>TV365 video plugin</description>
+        <description lang="zh">TV365网络电视直播插件，内置播放器对于mms类型的流媒体支持度比较好，其他类型如rtsp等可能无法播放。</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.sina"
+    name="新浪视频(Sina)"
+    version="1.0.3"
+    provider-name="wow1122">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">Sina video plugin</summary>
+        <summary lang="zh">新浪网视频插件</summary>
+        <description lang="en">online video from video.sina.com.cn</description>
+        <description lang="zh">观看新浪网在线视频</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.search"
+       name="视频搜索(VSearch)"
+       version="0.0.3"
+       provider-name="litian">
+  <requires>
+    <import addon="xbmc.python" version="1.0"/>
+    <import addon="script.module.keyboard.chinese" version="1.0.0"/>
+    <import addon="script.module.beautifulsoup"  version="3.2.0" optional="false"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource"
+            library="default.py">
+        <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <platform>all</platform>
+    <summary lang="en">Video search plugin.</summary>
+    <summary lang="zh">视频搜索插件</summary>
+    <description lang="en">Video Search.</description>
+    <description lang="zh">使用搜索引擎查找各大网站视频内容。</description>
+  </extension>
+</addon>
+
+<addon id="plugin.video.tencent"
+    name="腾讯视频(Tecent)"
+    version="1.0.5"
+    provider-name="wow1122">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <requires>
+        <import addon="script.module.keyboard.chinese" version="1.0.0"/>
+    </requires>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">Tencent video plugin</summary>
+        <summary lang="zh">腾讯网视频插件</summary>
+        <description lang="en">online video from v.qq.com</description>
+        <description lang="zh">观看腾讯网在线视频</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.somovie"
+    name="搜索电影(SoMovie)"
+    version="1.1.6"
+    provider-name="visualcjy@21cn.com">
+    <requires>
+        <import addon="script.module.keyboard.chinese" version="1.0.0"/>
+    </requires>
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">Search and play movie/video in supported video plugin</summary>
+        <summary lang="zh">在现有的几个视频插件网站搜索和播放电影</summary>
+        <description lang="en">Search and play movie/video in 5 Chinese video plugin. Support PinYin input and translate into Chinese by Google search engine.</description>
+        <description lang="zh">在现有的几个视频插件网站搜索和播放电影，支持中文搜索，但需要先安装好frfboy修正的script.module.keyboard.chinese中文输入插件。目前支持优酷、搜狐、奇艺、腾讯、新浪、天翼高清等。</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.tv189"
+    name="天翼视讯(TV189)"
+    version="1.0.1"
+    provider-name="Taxigps">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">TV189 Video plugin</summary>
+        <summary lang="zh">天翼视讯视频插件</summary>
+        <description lang="en">TV189.com is a professional online video service provider founded by Esurfing Media Co.,Ltd. TV189.com focuses on high-definition video content. All content on TV189.com is legal and strictly abides by copyright laws and regulations helping promote the healthy development of the video industry in China. Currently, TV189.com has a wide selection of video content, which covers movies, TV series, variety shows, documentaries, games and other popular programs. TV189.com brings together nearly 100 live TV cable channels and several leading content companies, and covers nearly 80% of the total video content in China.</description>
+        <description lang="zh">TV189.COM是中国电信股份有限公司视讯运营中心（以下简称“视讯运营中心”）推出的网络视频播放平台，是国内首家专注于提供超清（1080P）网络视频服务的大型专业网站。影视内容丰富多元，涵盖电影、电视剧、综艺、娱乐、纪实、游戏、原创等热门领域，还聚集了近百家卫视直播频道和数家国内知名网络视频合作方内容。覆盖了国内近80%的视频内容。</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.sohuvideo"
+    name="搜狐视频(SoHu)"
+    version="2.4.1"
+    provider-name="Taxigps">
+    <requires>
+        <import addon="script.module.keyboard.chinese" version="1.0.0"/>
+    </requires>
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">SoHu Video plugin</summary>
+        <summary lang="zh">搜狐视频插件</summary>
+        <description lang="en">Online videos from tv.sohu.com</description>
+        <description lang="zh">搜狐视频网站(tv.sohu.com)提供正版在线观看高清电影、高清电视剧、高清纪录片，包括正在影院热映，电视热播的最新大片，多年来最受网友喜欢的经典影视作品，国内外品质优秀的历史，地理，探索等纪录片，总计10万余集, 观看清晰度可达DVD标准</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.kankan"
+    name="迅雷看看(KanKan)"
+    version="1.0.3"
+    provider-name="Taxigps">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">KanKan video plugin</summary>
+        <summary lang="zh">迅雷看看视频插件</summary>
+        <description lang="en">online video from www.kankan.com</description>
+        <description lang="zh">迅雷看看是中国第一高清影视视频门户，免费提供电影、电视剧、综艺、音乐MV、动漫、新片、大片的高清在线点播和下载，是中国最大最全的正版影视发行平台。</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.program.utorrent"
+       name="uTorrent"
+       version="1.1.0"
+       provider-name="Taxigps">
+    <requires>
+        <import addon="xbmc.python" version="1.0"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>executable</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <platform>all</platform>
+        <summary lang="en">uTorrent Control Plugin</summary>
+        <summary lang="zh">uTorrent控制插件</summary>
+        <description lang="en">Manages your uTorrent queue from within XBMC![CR][CR]Install:[CR]1. Enable WebUI for uTorrent[CR]2. Enable Token Authentication for uTorrent[CR]3. Install the plug-in[CR]4. Enter username and password of uTorrent via 'Plug-in Settings'[CR]5. Enjoy!</description>
+        <description lang="zh">在XBMC中控制你的uTorrent下载队列。[CR][CR]安装说明：[CR]1. 起用uTorrent的WebUI[CR]2. 启用uTorrent的Token认证[CR]3. 安装本插件[CR]4. 在扩展功能设置界面输入uTorrent用户名和密码[CR]5. 祝你使用愉快！</description>
+    </extension>
+</addon>
+
+<addon id="plugin.video.kugoumv"
+    name="酷狗MV(KugouMV)"
+    version="1.0.0"
+    provider-name="runner6502@gmail.com">
+    <extension point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>KugouMV video plugin</summary>
+        <summary lang="zh">酷狗MV插件</summary>
+        <description>KugouMV video plugin</description>
+        <description lang="zh">酷狗Music Video</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.cntv-live"
+    name="中国网络电视台直播(CNTV Live)"
+    version="1.1.0"
+    provider-name="Robinttt">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">CNTV Live video plugin</summary>
+        <summary lang="zh">中国网络电视台直播插件</summary>
+        <description lang="en">CNTV Live video plugin[CR][CR]Note: [CR]1.The plugin will auto call CCTVPlayerOcxReg.exe to regist player ocx at the first run.[CR]2.The default key setting of the external player similar as XBMC: F8 - Mute / F9 - VolumeDown / F10 - VolumeUp / [ - ZoomIn / ] - ZoomOut / SPACE - Pause / X - Exit[CR]You can run key setting program to custom the key map for external player, file path:[CR]plugin.video.cntv-live\resources\player\KeymapSet.exe[CR]3.on the non-PRC OS environment, you need to do the following settings:[CR]On Windows 7 (similar for Windows XP):[CR]Go to "Control Panel"=>"Region and Language"=>Select Tab "Administrative"[CR]Click button "Change system locale" to "Chinese (Simplified, PRC)"[CR]and restart the machine as instructed.</description>
+        <description lang="zh">中国网络电视台直播插件[CR][CR]说明：[CR]1.首次进入本插件会自动运行CCTVPlayerOcxReg.exe进行播放控件注册；[CR]2.外挂播放器按键默认设置与XBMC相近：F8 - 静音 / F9 - 音量减 / F10 - 音量增 / [ - 画面缩小 / ] - 画面放大 / SPACE - 播放暂停 / X - 关闭程序[CR]你也可以运行插件文件夹下的设置程序调整按键：[CR]plugin.video.cntv-live\resources\player\KeymapSet.exe</description>
         <platform>windx wingl</platform>
     </extension>
 </addon>
 
-<addon id="plugin.video.ppstream"
-    name="PPS网络电视(PPStream)"
-    version="2.2.9"
-    provider-name="cmeng (originator: robinttt)">
+<addon id="weather.weatherchina" name="Weather China" version="0.0.4" provider-name="Taxigps">
+	<requires>
+		<import addon="xbmc.python" version="2.0"/>
+		<import addon="script.module.simplejson" version="2.0.10"/>
+	</requires>
+	<extension point="xbmc.python.weather" library="default.py"/>
+	<extension point="xbmc.addon.metadata">
+		<summary lang="en">Weather forecast from www.weather.com.cn</summary>
+		<summary lang="zh">来自www.weather.com.cn的天气预报</summary>
+		<description lang="en">Weather forecast provided by Weather China (http://www.weather.com.cn/)</description>
+		<description lang="zh">由中国天气网（http://www.weather.com.cn/）提供的天气预报信息。中国天气网是中国气象局面向社会和公众、以公益性为基础的气象服务门户网站。</description>
+		<platform>all</platform>
+	</extension>
+</addon>
+
+<addon id="plugin.video.5ivdo"
+    name="5ivdo(5ivdo)"
+    version="1.1.4"
+    provider-name="5ivdo">
     <extension
         point="xbmc.python.pluginsource"
         library="default.py">
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary lang="en">PPStream video plugin</summary>
-        <summary lang="zh">PPS网络电视</summary>
-        <description lang="en">PPS网络电视: (KeyMap Settings)[CR]Mute: F8  Vol-: F9  Vol+: F10  ZoomIn: [↓  ZoomOut: ]↑[CR]Rev: ,←  Next: .→  Pause: Space/Ent  Exit: x/Esc  About: F1[CR]
-To customize Keypmap:[CR]Run plugin.video.pps\resources\player\KeymapSet.exe
-For Non-PRC OS environment (Windows7|WindowsXP):[CR]"Control Panel"|"Region and Language"|"Administrative"[CR]Change system locale to "Chinese (Simplified PRC)"</description>
-        <description lang="zh">快捷键设置 (Keymap Settings):[CR]静音: F8  声音缩小: F9  声音放大: F10  画面缩小: [↓  画面放大: ]↑[CR]上一章节: ,←  下一章节: .→  播放暂停: 空格键/回车  关闭程序: x/Esc  关于: F1
-设置自定快捷键:[CR]请运行 plugin.video.pps\resources\player\KeymapSet.exe
-使用PPS影音收看影视节目，清晰流畅更新快。PPS网络电视是全球第一家集P2P直播点播于一身的网络电视软件。PPS网络电视播放流畅、完全免费，PPS网络电视是网民喜爱的装机必备软件。</description>
+        <summary lang="en">5ivdo video plugin</summary>
+        <summary lang="zh">我爱VDO</summary>
+        <description lang="en">online video from 5ivdo.com</description>
+        <description lang="zh">在线视频聚合，主站[http://www.5ivdo.com]。基于XBMC运行，能够支持优土，爱奇艺，腾讯，搜狐，乐视，新浪，风行等主要视频内容的在线播放，更多站点支持敬请期待。本站作为资源导航，只为个人服务，商业用途勿扰。你所体验的所有视频内容，版权归属相应网站，应对他们的工作心存感激。有任何意见或建议请加入QQ群[197687378]，或者关注官方微博[http://weibo.com/5ivdo]。让我们为创造更好的XBMC体验而努力！</description>
         <platform>all</platform>
     </extension>
 </addon>
@@ -311,148 +498,6 @@ For Non-PRC OS environment (Windows7|WindowsXP):[CR]"Control Panel"|"Region and 
     </extension>
 </addon>
 
-<addon id="plugin.video.qiyi"
-    name="奇艺视频(QIYI)"
-    version="2.1.1"
-    provider-name="taxigps">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">QIYI Video plugin</summary>
-        <summary lang="zh">奇艺视频插件</summary>
-        <description lang="en">QIYI (QIYI.COM) was founded by Baidu- world's the largest Chinese search engine, invested by Providence Equity Partners-U.S. private equity, QIYI is the first professional website dedicated to providing free, high-definition network video services.</description>
-        <description lang="zh">奇艺（QIYI.COM）是由百度创立的大型专业网站，专注于提供免费、高清网络视频服务。奇艺的优质版权视频丰富多元，涵盖了电影、电视剧、综艺、纪录片、动漫、旅游等众多内容形态。</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.search"
-       name="视频搜索(VSearch)"
-       version="0.0.3"
-       provider-name="litian">
-  <requires>
-    <import addon="xbmc.python" version="1.0"/>
-    <import addon="script.module.keyboard.chinese" version="1.0.0"/>
-    <import addon="script.module.beautifulsoup"  version="3.2.0" optional="false"/>
-  </requires>
-  <extension point="xbmc.python.pluginsource"
-            library="default.py">
-        <provides>video</provides>
-  </extension>
-  <extension point="xbmc.addon.metadata">
-    <platform>all</platform>
-    <summary lang="en">Video search plugin.</summary>
-    <summary lang="zh">视频搜索插件</summary>
-    <description lang="en">Video Search.</description>
-    <description lang="zh">使用搜索引擎查找各大网站视频内容。</description>
-  </extension>
-</addon>
-
-<addon id="plugin.video.sina"
-    name="新浪视频(Sina)"
-    version="1.0.3"
-    provider-name="wow1122">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">Sina video plugin</summary>
-        <summary lang="zh">新浪网视频插件</summary>
-        <description lang="en">online video from video.sina.com.cn</description>
-        <description lang="zh">观看新浪网在线视频</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.sohuvideo"
-    name="搜狐视频(SoHu)"
-    version="2.4.1"
-    provider-name="Taxigps">
-    <requires>
-        <import addon="script.module.keyboard.chinese" version="1.0.0"/>
-    </requires>
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">SoHu Video plugin</summary>
-        <summary lang="zh">搜狐视频插件</summary>
-        <description lang="en">Online videos from tv.sohu.com</description>
-        <description lang="zh">搜狐视频网站(tv.sohu.com)提供正版在线观看高清电影、高清电视剧、高清纪录片，包括正在影院热映，电视热播的最新大片，多年来最受网友喜欢的经典影视作品，国内外品质优秀的历史，地理，探索等纪录片，总计10万余集, 观看清晰度可达DVD标准</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.somovie"
-    name="搜索电影(SoMovie)"
-    version="1.1.6"
-    provider-name="visualcjy@21cn.com">
-    <requires>
-        <import addon="script.module.keyboard.chinese" version="1.0.0"/>
-    </requires>
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">Search and play movie/video in supported video plugin</summary>
-        <summary lang="zh">在现有的几个视频插件网站搜索和播放电影</summary>
-        <description lang="en">Search and play movie/video in 5 Chinese video plugin. Support PinYin input and translate into Chinese by Google search engine.</description>
-        <description lang="zh">在现有的几个视频插件网站搜索和播放电影，支持中文搜索，但需要先安装好frfboy修正的script.module.keyboard.chinese中文输入插件。目前支持优酷、搜狐、奇艺、腾讯、新浪、天翼高清等。</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.soptv"
-    name="SOP电视(soptv)"
-    version="0.2.1"
-    provider-name="htpcyh2@gmail.com">
-    <requires>
-        <import addon="script.module.keyboard.chinese" version="1.0.0"/>
-    </requires>
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">SOP TV plugin</summary>
-        <summary lang="zh">SOP网络电视插件</summary>
-        <description lang="en">Watch sopcast p2p network TV live broadcast. support 32bit Linux systems. example as openelec and xbmc live</description>
-        <description lang="zh">观看sopcast p2p 网络电视直播,支持32位openelec ,安装完插件请重新起动电脑,即可使用</description>
-        <platform>linux</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.tencent"
-    name="腾讯视频(Tecent)"
-    version="1.0.5"
-    provider-name="wow1122">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <requires>
-        <import addon="script.module.keyboard.chinese" version="1.0.0"/>
-    </requires>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">Tencent video plugin</summary>
-        <summary lang="zh">腾讯网视频插件</summary>
-        <description lang="en">online video from v.qq.com</description>
-        <description lang="zh">观看腾讯网在线视频</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
 <addon id="plugin.video.tudou"
     name="土豆视频(Tudou)"
     version="1.2.0"
@@ -471,142 +516,97 @@ For Non-PRC OS environment (Windows7|WindowsXP):[CR]"Control Panel"|"Region and 
     </extension>
 </addon>
 
-<addon id="plugin.video.tv189"
-    name="天翼视讯(TV189)"
+<addon id="plugin.video.funshion"
+    name="风行视频(Funshion)"
     version="1.0.1"
-    provider-name="Taxigps">
+    provider-name="taxigps">
     <extension
         point="xbmc.python.pluginsource"
         library="default.py">
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary lang="en">TV189 Video plugin</summary>
-        <summary lang="zh">天翼视讯视频插件</summary>
-        <description lang="en">TV189.com is a professional online video service provider founded by Esurfing Media Co.,Ltd. TV189.com focuses on high-definition video content. All content on TV189.com is legal and strictly abides by copyright laws and regulations helping promote the healthy development of the video industry in China. Currently, TV189.com has a wide selection of video content, which covers movies, TV series, variety shows, documentaries, games and other popular programs. TV189.com brings together nearly 100 live TV cable channels and several leading content companies, and covers nearly 80% of the total video content in China.</description>
-        <description lang="zh">TV189.COM是中国电信股份有限公司视讯运营中心（以下简称“视讯运营中心”）推出的网络视频播放平台，是国内首家专注于提供超清（1080P）网络视频服务的大型专业网站。影视内容丰富多元，涵盖电影、电视剧、综艺、娱乐、纪实、游戏、原创等热门领域，还聚集了近百家卫视直播频道和数家国内知名网络视频合作方内容。覆盖了国内近80%的视频内容。</description>
+        <summary lang="en">Funshion Video plugin</summary>
+        <summary lang="zh">风行网视频插件</summary>
+        <description lang="en">Online videos from www.funshion.com</description>
+        <description lang="zh">来自风行网（www.funshion.com）的网络视频内容。</description>
         <platform>all</platform>
     </extension>
 </addon>
 
-<addon id="plugin.video.tv365"
-    name="TV365"
-    version="1.1.0"
-    provider-name="Robinttt">
+<addon id="plugin.video.pps"
+    name="PPS影音(PPS.tv)"
+    version="1.1.8"
+    provider-name="cmeng (originator: yxnr)">
     <extension
         point="xbmc.python.pluginsource"
         library="default.py">
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary>TV365 video plugin</summary>
-        <summary lang="zh">TV365网络电视直播插件</summary>
-        <description>TV365 video plugin</description>
-        <description lang="zh">TV365网络电视直播插件，内置播放器对于mms类型的流媒体支持度比较好，其他类型如rtsp等可能无法播放。</description>
-        <platform>all</platform>
+        <summary lang="en">PPStream Network TV</summary>
+        <summary lang="zh">PPS影音</summary>
+        <description lang="en">PPStream Network TV: (KeyMap Settings)[CR]Mute: F8  Vol-: F9  Vol+: F10  ZoomIn: [↓  ZoomOut: ]↑[CR]Rev: ,←  Next: .→  Pause: Space/Ent  Exit: x/Esc  About: F1[CR]
+To customize Keypmap:[CR]Run plugin.video.pps\resources\player\KeymapSet.exe
+For Non-PRC OS environment (Windows7|WindowsXP):[CR]"Control Panel"|"Region and Language"|"Administrative"[CR]Change system locale to "Chinese (Simplified PRC)"</description>
+        <description lang="zh">快捷键设置 (Keymap Settings):[CR]静音: F8  声音缩小: F9  声音放大: F10  画面缩小: [↓  画面放大: ]↑[CR]上一章节: ,←  下一章节: .→  播放暂停: 空格键/回车  关闭程序: x/Esc  关于: F1
+设置自定快捷键:[CR]请运行 plugin.video.pps\resources\player\KeymapSet.exe
+使用PPS影音收看影视节目，清晰流畅更新快。PPS网络电视是全球第一家集P2P直播点播于一身的网络电视软件。PPS网络电视播放流畅、完全免费，PPS网络电视是网民喜爱的装机必备软件。</description>
+        <platform>windx wingl</platform>
     </extension>
 </addon>
 
-<addon id="plugin.video.yinyuetai"
-    name="音悦台MV(YinYueTai)"
-    version="1.6.9"
-    provider-name="cmeng (originator: Skyemperor)">
+<addon id="plugin.video.qiyi"
+    name="奇艺视频(QIYI)"
+    version="2.1.1"
+    provider-name="taxigps">
     <extension
         point="xbmc.python.pluginsource"
         library="default.py">
         <provides>video</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary lang="en">YinYueTai video plugin</summary>
-        <summary lang="zh">音悦台视频插件</summary>
-        <description lang="en">Online MV from yinyuetai.com[CR][CR]To Enable Video Auto Playback Option:[CR]---------------------------------[CR]- Navigate to Add-on settings[CR]- Video Continuous Playback: Enable/Disable</description>
-        <description lang="zh">观看音悦台在线MV[CR][CR]视频自动播放说明：[CR]--------------------------------[CR]- 找到 Add-on settings 文件列表[CR]- 选择视频连续播放": 是/否</description>
+        <summary lang="en">QIYI Video plugin</summary>
+        <summary lang="zh">奇艺视频插件</summary>
+        <description lang="en">QIYI (QIYI.COM) was founded by Baidu- world's the largest Chinese search engine, invested by Providence Equity Partners-U.S. private equity, QIYI is the first professional website dedicated to providing free, high-definition network video services.</description>
+        <description lang="zh">奇艺（QIYI.COM）是由百度创立的大型专业网站，专注于提供免费、高清网络视频服务。奇艺的优质版权视频丰富多元，涵盖了电影、电视剧、综艺、纪录片、动漫、旅游等众多内容形态。</description>
         <platform>all</platform>
     </extension>
 </addon>
 
-<addon id="plugin.video.youku"
-    name="优酷视频(YouKu)"
-    version="2.1.9"
-    provider-name="Taxigps">
-    <extension
-        point="xbmc.python.pluginsource"
-        library="default.py">
-        <provides>video</provides>
-    </extension>
-    <extension point="xbmc.addon.metadata">
-        <summary lang="en">YouKu video plugin</summary>
-        <summary lang="zh">优酷网视频插件</summary>
-        <description lang="en">online video from youku.com</description>
-        <description lang="zh">优酷（NYSE:YOKU），2006年12月21日正式推出。优酷以 "快者为王"为产品理 念，凭借"快速播放，快速发布，快速搜索"的产品特性，充分满足用户日益增长的互动需求及多元化视频体验，现已成为中国互联网领域最具影响力、最受用户喜爱的视频媒体。</description>
-        <platform>all</platform>
-    </extension>
-</addon>
-
-<addon id="plugin.video.youkuvideo" name="YouKu Video" version="0.9" provider-name="tacy.lee">
-  <requires>
-    <import addon="xbmc.python" version="2.1.0"/>
-    <import addon="script.module.xbmcswift2" version="2.4.0"/>
-    <import addon="script.module.keyboard.chinese"  version="1.2.8" optional="true"/>
-  </requires>
-  <extension point="xbmc.python.pluginsource" library="addon.py">
-    <provides>video</provides>
-  </extension>
-  <extension point="xbmc.addon.metadata">
-    <platform>all</platform>
-    <language></language>
-    <summary lang="en">YouKu Video</summary>
-    <summary lang="zh">优酷视频</summary>
-    <description lang="en">YouKu is china's largest video sharing site, YoukuVideo plugin support all channels play and video search. Please submit bug or issue to http://github.com/tacy/plugin.video.youkuvideo.</description>
-    <description lang="zh">优酷视频是中国最大的视频分享网站，插件支持优酷全频道播放、视频搜索(多播放源支持，包括优酷/搜狐/腾讯/爱奇艺/乐视/土豆/PPS）。如果有问题请提交到 http://github.com/tacy/plugin.video.youkuvideo</description>
-  </extension>
-</addon>
-
-<addon id="script.module.keyboard.chinese"
-    name="Chinese keyboard"
+<addon id="plugin.video.letv"
+    name="乐视网 (LeTV)"
     version="1.2.8"
-    provider-name="Taxigps">
-    <extension point="xbmc.python.module" library="lib" />
+    provider-name="cmeng">
+    <extension
+        point="xbmc.python.pluginsource"
+        library="default.py">
+        <provides>video</provides>
+    </extension>
     <extension point="xbmc.addon.metadata">
-        <summary lang="en">Chinese keyboard</summary>
-        <summary lang="zh">中文键盘</summary>
-        <description lang="en">Visual keyboard to input Chinese</description>
-        <description lang="zh">支持中文输入的虚拟键盘</description>
-        <license>GPL</license>
+        <summary lang="en">LeTV video plugin</summary>
+        <summary lang="zh">乐视网插件</summary>
+        <description lang="en">Letv video plugin[CR][CR]LeTV.com (Chinese: 乐视网), operated by Beijing LeTV Mobile Media and Technology Co. Ltd, is an online video portal in Beijing. It offers online video programs and movie viewing through legal channels.</description>
+        <description lang="zh">Letv video plugin[CR][CR]乐视网(LeTV.com)是以正版,高清影视剧为主的视频门户网站,为用户提供正版高清电影,电视剧,动漫,综艺,娱乐等视频在线观看,视频分享,视频搜索等服务</description>
         <platform>all</platform>
     </extension>
 </addon>
 
-<addon id="script.skinfont"
-    name="Skin Font" version="0.0.2" provider-name="taxigps">
-  <requires>
-    <import addon="xbmc.python" version="2.1.0"/>
-  </requires>
-  <extension point="xbmc.python.script" library="default.py">
-     <provides>executable</provides>
-  </extension>
-  <extension point="xbmc.addon.metadata">
-    <summary lang="en">Add Arial skin fontset</summary>
-    <summary lang="zh">为皮肤增加Arial字体</summary>
-    <description lang="en">Add Arial skin fontset</description>
-    <description lang="zh">有些皮肤使用的字体文件中没有汉字造成中文无法显示，本插件可为此类皮肤增加支持中文显示的Arial字体选项。</description>
-    <platform>all</platform>
-    <language></language>
-  </extension>
-</addon>
-
-<addon id="weather.weatherchina" name="Weather China" version="0.0.4" provider-name="Taxigps">
-	<requires>
-		<import addon="xbmc.python" version="2.0"/>
-		<import addon="script.module.simplejson" version="2.0.10"/>
-	</requires>
-	<extension point="xbmc.python.weather" library="default.py"/>
-	<extension point="xbmc.addon.metadata">
-		<summary lang="en">Weather forecast from www.weather.com.cn</summary>
-		<summary lang="zh">来自www.weather.com.cn的天气预报</summary>
-		<description lang="en">Weather forecast provided by Weather China (http://www.weather.com.cn/)</description>
-		<description lang="zh">由中国天气网（http://www.weather.com.cn/）提供的天气预报信息。中国天气网是中国气象局面向社会和公众、以公益性为基础的气象服务门户网站。</description>
-		<platform>all</platform>
-	</extension>
+<addon id="plugin.audio.baidufm"
+	name="百度随心听"
+	version="0.0.3"
+	provider-name="zhangyuanwei">
+	<extension
+		point="xbmc.python.pluginsource"
+		library="default.py">
+        <provides>audio</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Baidu fm audio plugin</summary>
+        <summary lang="zh">百度随心听插件</summary>
+        <description>Baidu fm audio plugin</description>
+        <description lang="zh">百度随心听插件</description>
+        <platform>all</platform>
+    </extension>
 </addon>
 </addons>
