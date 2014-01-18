@@ -36,7 +36,7 @@ UserAgent  = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/
 ACTION_PARENT_DIR     = 9
 ACTION_PREVIOUS_MENU  = (10, 92)
 ACTION_CONTEXT_MENU   = 117
-WORD_PER_PAGE = [9,6,5,4,3,3,3]
+#WORD_PER_PAGE = [9,6,5,4,3,3,3]
 
 CTRL_ID_BACK = 8
 CTRL_ID_SPACE = 32
@@ -54,13 +54,17 @@ CTRL_ID_HZLIST = 402
 
 class InputWindow(xbmcgui.WindowXMLDialog):
     def __init__( self, *args, **kwargs ):
-        self.totalpage = 1
+        self.totalpage = 0
         self.nowpage = 0
         self.words = ''
-        self.wordperpage = WORD_PER_PAGE[0]
+        self.py = ''
+        self.bg = 0
+        self.ed = 20
+        self.wordpgs = []   #word page metadata
         self.inputString = kwargs.get("default") or ""
         self.heading = kwargs.get("heading") or ""
         self.fetchCookie()
+        self.conn = httplib.HTTPConnection('olime.baidu.com')
         xbmcgui.WindowXMLDialog.__init__(self)
 
     def onInit(self):
@@ -69,21 +73,22 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         self.getControl(CTRL_ID_CODE).setLabel('')
         self.getControl(CTRL_ID_TEXT).setLabel(self.inputString)
         self.confirmed = False
-    
+
     # Routine to fetch cookie from http://shurufa.baidu.com/
     # http://olime.baidu.com access needs cookie to get fast response.
     # XBMC Dharma has problem of reading set-cookie if it is the first line of response.info()
     # So build own cookie instead, and also to speed up response
     def fetchCookie(self):
-        req = urllib2.Request('http://shurufa.baidu.com/')
+        #req = urllib2.Request('http://shurufa.baidu.com/')
+        req = urllib2.Request('http://ime.baidu.com/online.html')
         req.add_header('User-Agent', UserAgent)
-        response = urllib2.urlopen(req)  
-        response.close() 
+        response = urllib2.urlopen(req)
+        response.close()
         cdata = response.info().get('Set-Cookie')
         self.cookie = cdata.split(';')[0]
         if re.search('BAIDUID',self.cookie) is None: # just in case
             self.cookie='BAIDUID=5FF5CF0348C2CD89C15799855BBCB09A:FG=1'
-         
+
 #        # setup cookie support
 #        self.cj = cookielib.MozillaCookieJar(cookieFile)
 #        if os.path.isfile(cookieFile):
@@ -93,21 +98,21 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 #                os.makedirs(os.path.dirname(cookieFile))
 #
 #        # create opener for cookie
-#        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cj))          
+#        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cj))
 #        req = urllib2.Request('http://shurufa.baidu.com/')
 #        req.add_header('User-Agent', UserAgent)
-#        response = self.opener.open(req)     
-#        response.close() 
+#        response = self.opener.open(req)
+#        response.close()
 #
 #        self.cj.save(cookieFile, ignore_discard=True, ignore_expires=True)
 #        cdata =   response.info().get('Set-Cookie')
-#        
+#
 #        # XBMC Dharma has problem of reading set-cookie if it is the first line of response.info()
 #        # So build own cookie and write to file
 #        if not len(self.cj) and cdata:
 #            xdata =   re.compile('(.+?)=(.+?); max-age=([0-9]+);.+?domain=(.+?);').findall(cdata)
 #            cookie = '\t'.join([xdata[0][3],'TRUE','\\','FALSE',xdata[0][2],xdata[0][0],xdata[0][1]])
-#            
+#
 #            cfile = open(cookieFile, 'a')
 #            cookies = cfile.readlines()
 #            cookies.append(cookie)
@@ -116,7 +121,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 #            cfile = open(cookieFile,'w')
 #            cfile.writelines(cookies)
 #            cfile.close()
-        
+
     def onFocus( self, controlId ):
         self.controlId = controlId
 
@@ -153,8 +158,7 @@ class InputWindow(xbmcgui.WindowXMLDialog):
                 self.nowpage -=1
             self.changepages()
         elif controlID == CTRL_ID_RIGHT:#right
-            if self.nowpage<self.totalpage-1:
-                self.nowpage +=1
+            self.nowpage +=1
             self.changepages()
         elif controlID == CTRL_ID_SPACE:#space
             self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel() + ' ')
@@ -165,7 +169,8 @@ class InputWindow(xbmcgui.WindowXMLDialog):
                     self.getControl(CTRL_ID_CODE).setLabel(s)
                     self.getChineseWord(s)
                 elif controlID>=48 and controlID<=57:#0-9
-                    i = self.nowpage*(self.wordperpage+1)+(controlID-48)
+                    #i = self.nowpage*(self.wordperpage+1)+(controlID-48)
+                    i = self.wordpgs[self.nowpage][0] + (controlID - 48)
                     hanzi = self.words[i]
                     self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+ hanzi)
                     self.getControl(CTRL_ID_CODE).setLabel('')
@@ -183,9 +188,9 @@ class InputWindow(xbmcgui.WindowXMLDialog):
         #self.getControl(CTRL_ID_HEAD).setLabel(str(keycode))
 
         # xbmc remote keyboard control handler
-        if keycode >= 61728 and keycode <= 61823: 
+        if keycode >= 61728 and keycode <= 61823:
             keychar = chr(keycode - 61728 + ord(' '))
-            if keychar >='0' and keychar <= '9': 
+            if keychar >='0' and keychar <= '9':
                 self.onClick(ord(keychar))
             elif self.getControl(CTRL_ID_LANG).isSelected():
                 s = self.getControl(CTRL_ID_CODE).getLabel() + keychar
@@ -226,34 +231,57 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 
     def changepages (self):
         self.getControl(CTRL_ID_HZLIST).setLabel('')
-        num=0
-        if self.nowpage == 0:
-            hzlist = ''
-        else:
-            hzlist = '< '
-        for i in range(self.nowpage*(self.wordperpage+1), len(self.words)):
-            hzlist = hzlist+str(num)+'.'+self.words[i]+' '
-            num+=1
-            if num > self.wordperpage: break
+        hzlist = ''
+        if not self.wordpgs: return
+        if self.nowpage >= self.totalpage-1:
+            self.bg += 20
+            self.ed += 20
+            self.getChineseWord(self.py, self.bg, self.ed)
+            return
+        curwpg = self.wordpgs[self.nowpage]
+        for i, w in enumerate(self.words[curwpg[0]:curwpg[1]]):
+            hzlist = hzlist + str(i) + '.' + w +' '
+        if self.nowpage > 0:
+            hzlist = '<' + hzlist
         if self.nowpage < self.totalpage-1:
             hzlist = hzlist + '>'
         self.getControl(CTRL_ID_HZLIST).setLabel(hzlist)
 
-    def getChineseWord (self,py):
-        self.nowpage = 0
-        self.totalpage = 1
+    def getChineseWord (self, py, bg=0, ed=20):
         self.getControl(CTRL_ID_HZLIST).setLabel('')
         #if HANZI_MB.has_key(py):
         if py=='': return
-        self.words=self.getwords(py)
-        self.totalpage = int((len(self.words)+self.wordperpage)/(self.wordperpage+1)) #totalpage need to round up
-        num=0
+        if not bg:
+            self.nowpage = 0
+            self.totalpage = 0
+            self.wordpgs = []
+            self.words= []
+            self.py = py
+            self.bg = 0
+            self.ed = 20
+        wres = self.getwords(py, bg, ed)
+        if wres:
+            self.words.extend(wres)
+            self.wordpgs = []
+            inum = 0
+            for s, w in enumerate(self.words):
+                if len(''.join(self.words[inum:s+1]).decode('utf-8')) + (
+                        s+1-inum)*2 >30:
+                    self.wordpgs.append((inum, s))
+                    inum = s
+            if len(self.words) > inum:
+                self.wordpgs.append((inum, len(self.words)))
+            self.totalpage = len(self.wordpgs)
+        else:
+            self.nowpage = self.totalpage - 1
+
         hzlist = ''
-        for i in range(0, len(self.words)):
-            hzlist = hzlist+str(num)+'.'+self.words[i]+' '
-            num+=1
-            if num > self.wordperpage: break
-        if self.totalpage>1:
+        curwpg = self.wordpgs[self.nowpage]
+        for i, w in enumerate(self.words[curwpg[0]:curwpg[1]]):
+            hzlist = hzlist + str(i) + '.' + w +' '
+        if self.nowpage > 0:
+            hzlist = '<' + hzlist
+        if self.nowpage < self.totalpage-1:
             hzlist = hzlist + '>'
         self.getControl(CTRL_ID_HZLIST).setLabel(hzlist)
 
@@ -299,31 +327,41 @@ class InputWindow(xbmcgui.WindowXMLDialog):
 
     def getText(self):
         return self.inputString
-    
-    def getwords(self, py):
+
+    def getwords(self, py, bg, ed):
         t = time.time()
-        url = 'http://olime.baidu.com/py?py=' + py + '&rn=0&pn=20&ol=1&prd=shurufa.baidu.com&t=' + str(int(t))
-        req = urllib2.Request(url)
-        req.add_header('User-Agent', UserAgent)
-        
+        #url = 'http://olime.baidu.com/py?py=' + py + '&rn=0&pn=20&ol=1&prd=shurufa.baidu.com&t=' + str(int(t))
+        urlsuf = '/py?input={0}&inputtype=py&bg={1}&ed={2}&{3}'.format(
+            py, bg, ed,
+            'result=hanzi&resultcoding=unicode&ch_en=0&clientinfo=web')
+        try:
+            self.conn.request('GET', urlsuf, headers={'Cookies':self.cookie,})
+        except Exception as e:
+            self.conn = httplib.HTTPConnection('olime.baidu.com')
+            self.conn.request('GET', urlsuf, headers={'Cookies':self.cookie,})
+        httpdata = self.conn.getresponse().read()
+        #req = urllib2.Request(url)
+        #req.add_header('User-Agent', UserAgent)
+
         # need cookie to avoid bad gateway problem
         # if os.path.isfile(cookieFile):
         #    self.cj.load(ignore_discard=True, ignore_expires=True)
         # else: # last resort to use constant cookie if earlier cookie request failed
-        req.add_header('Cookie', self.cookie)
+        #req.add_header('Cookie', self.cookie)
 
         # httpdata: [[["\u822a\u7a7a\u6bcd\u8230",4,{"type":"IMEDICT"}],["\u6d77\u53e3\u6ee1\u8bb0",4,{"type":"NEWWORD"}]],"h'k'm'j"]
-        response = urllib2.urlopen(req)
-        httpdata = response.read()
-        response.close()
+        #response = urllib2.urlopen(req)
+        #httpdata = response.read()
+        #response.close()
         words = []
-        jsondata = simplejson.loads(httpdata)
-        wordcnt = len(jsondata[0][0][0])-1
-        self.wordperpage = WORD_PER_PAGE[wordcnt]
+        try:
+            jsondata = simplejson.loads(httpdata)
+        except ValueError:
+            return None
         for word in jsondata[0]:
             words.append(word[0].encode('utf-8'))
         #print match, words
-        return words    
+        return words
 
 class Keyboard:
     def __init__( self, default='', heading='' ):
