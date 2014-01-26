@@ -12,8 +12,8 @@ else:
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.2.8 2013-09-28 (cmeng)
-# - fix missing page selector
+# Version 1.2.9 2014-01-26 (cmeng)
+# - fix progListSeries() item pharsing error
 
 # See changelog.txt for previous history
 ########################################################################
@@ -400,12 +400,12 @@ def progListSeries(name, url, thumb):
         matchp = re.compile('<dl class="w120">(.+?)</dl>').findall(match[j])              
         totalItems = len(matchp)
         for i in range(0, len(matchp)):
-            match1 = re.compile('<img.+?src="(.+?)"').search(matchp[i])
-            p_img = match1.group(1)
-            match1 = re.compile('<p class="p1">.+?href="(.+?)"[\s]*title="(.+?)">(.+?)</a></p>').search(matchp[i])
-            p_url = match1.group(1)
-            p_name = p_name = match1.group(2)
-            sn = match1.group(3)
+            match1 = re.compile('<img.+?src="(.+?)"').findall(matchp[i])
+            p_img = match1[0]
+            match1 = re.compile('<p class="p1">.+?href="(.+?)"[\s]*title="(.+?)">(.+?)</a>').findall(matchp[i])
+            p_url = match1[0][0]
+            p_name = p_name = match1[0][1]
+            sn = match1[0][2]
             p_list = sn + ': ' + p_name
             
             li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_img)
@@ -709,7 +709,7 @@ def progListStarVideo(name, url, thumb):
 ##################################################################################
 def progListUgc(name, url):
     link = getHttpData(url)
-    match = re.compile('<div class="soyall">(.+?)</div>').findall(link)
+    match = re.compile('<div class="layout">(.+?)</div>').findall(link)
     currpage = re.compile('.+?_p([0-9]+).html').findall(url)
     if len(currpage):
         currpage = currpage[0]
@@ -717,7 +717,7 @@ def progListUgc(name, url):
         currpage = '1'
              
     # Fetch & build ugc list for user selection      
-    match = re.compile('<dl class="[tvinfo2|m_dl].+?">(.+?)</dl>').findall(match[0])
+    match = re.compile('<dl class="dl_list">(.+?)</dl>').findall(match[0])
     totalItems = len(match)   
     li = xbmcgui.ListItem(name + '（第' + str(currpage) + '页）[COLOR FF00FFFF]【' + name + '】[/COLOR]')
     u = sys.argv[0] + "?mode=8&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url)
