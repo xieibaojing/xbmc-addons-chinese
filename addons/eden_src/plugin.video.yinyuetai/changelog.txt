@@ -1,6 +1,10 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.7.1 2014-01-26 (cmeng)
+# Change listRecommendMV() access using ajax
+# Fix listFavouriteMV() item phrasing error
+
 # Version 1.6.9 2013-11-16 (cmeng)
 # - Update video link decode for vChart new changes
 

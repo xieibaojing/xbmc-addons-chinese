@@ -1,109 +1,60 @@
-######################################################
-# 音悦台MV
-######################################################
-# Version 1.7.1 2014-01-26 (cmeng)
-# Change listRecommendMV() access using ajax
-# Fix listFavouriteMV() item phrasing error
+﻿########################################################################
+# 乐视网(LeTv) by cmeng
+########################################################################
+# Version 1.2.9 2014-01-26 (cmeng)
+# - fix progListSeries() & progListUgc() item pharsing error
 
-# Version 1.6.9 2013-11-16 (cmeng)
-# - Update video link decode for vChart new changes
+# Version 1.2.8 2013-09-28 (cmeng)
+# - fix missing page selector
 
-# Version 1.6.8 2013-10-09 (cmeng)
-# - Update video link decode per site new changes
+# Version 1.2.7 2013-04-07 (cmeng)
+# - fix script error in progListVariety (use simplejson)
+# - enhance menu list information display
 
-# Version 1.6.7 2013-09-29 (cmeng)
-# - Update UI menu to per site change
-# - fixed video link decode error
+# Version 1.2.6 2012-12-23 (cmeng)
+# - Add support for continuous playback on ugc video list
 
-# Version 1.6.6 2013-09-28 (cmeng)
-# - Update items phrasing per latest site change
+# Version 1.2.5 2012-12-23 (cmeng)
+# - Update pattern match in ugc video list search
 
-# Version 1.6.5 2013-08-16 (cmeng)
-# - Add in missing import for gzip
+# Version 1.2.4 2012-08-09
+# - add found zero item massage in letvSearchList()
+# - allow 10 trails to fetch video url
+# - allow 3 trails to fetch general url data
 
-# Version 1.6.4 2013-07-20 (cmeng)
-# - Update site latest url & design changes for VChart
+# Version 1.2.3 2012-07-31
+# - correct script error in letvSearchList()
 
-# Version 1.6.3 2013-07-13 (cmeng)
-# - Update site latest url & design changes
-# - Add new menu "音悦台 - 正流行" 
+# Version 2.1.2 2012-07-29 (cmeng)
+# - hard coded list items to speed up main menu display
+# - correct error in getList() routine
+# - correct url query string error in progListMovie()
+# - allows 3 trials when accessing url data
+# - take care of inconsistency in ppstream listpage fetch:'综艺'=>'娱乐'
 
-# Version 1.6.2 2013-06-22 (cmeng)
-# - Update site latest url & design changes
+# Version 1.2.2 2012-07-14
+# - Update playVideoLeTV algorithm
+# - Need to use urllib.quote(keyword) in searchLeTV
 
-# Version 1.6.1 2013-04-28 (cmeng)
-# - Update per latest site design changes
+# Version 1.2.1 2012-07-06
+# - Add support for Proxy Setting
 
-# Version 1.6.0 2013-02-23 (cmeng)
-# - Update per site design changes
-# - Update 音悦台 - V榜 video list generation
-# - Fixed 全部MV search filter to '排序方式:最新发布' 
-
-# Version 1.5.10 2012-12-08 (cmeng)
-# - Fix video link search for listFocusMV webpage
-
-# Version 1.5.9 2012-11-24 (cmeng)
-# - Fix video link category search for 全部MV webpage
-# - Fix '\"' escape sequence in matching
-
-# Version 1.5.8 2012-11-24 (cmeng)
-# - Update video link for 全部MV webpage
-
-# Version 1.5.7 2012-10-14 (cmeng)
-# - Update video link for Vchart webpage
-
-# Version 1.5.6 2012-07-30 (cmeng)
-# - Take care of exception where p-thumb is not available in listArtist()
-# - XBMC Dharma needs URL Referer to successfully fetch the images
-
-# Version 1.5.5 2012-07-24 (cmeng)
-# - Resolve continuous playback disabled not working
-
-# Version 1.5.4 2012-07-24 (cmeng)
-# - Change auto playback to continuous playback (play from here)
-
-# Version 1.5.3 2012-07-22 (cmeng)
-# - Add V-Chart Time List selection
-
-# Version 1.5.2 2012-07-20 (cmeng)
-# - Add All MV selection menu items
-# - Add V-Chart selection menu items
-# - Show list items before start auto play-back if enable
-# - Add various auto play-back support for other than MV list
-
-# Version 1.5.1 2012-07-15 (cmeng)
-# - Playlist needs to be cleared
-# - Stop xbmc from throwing error while fetching video link 
-
-# Version 1.5.0 2012-07-15 (cmeng)
-# - Improve UI response; avoid fetching video link when create directory
-# - Improve menu presentation
-# - Auto queue and play for 周榜
-# - Improve v_link fetch reliability
-# - Remove local image storage support - no auto clean up mechanism
-# - Add cookie and proxy support
-
-# Version 1.4.2 2012-06-18 (cmeng)
-# - img url link given as full path
-#    => update def get_Thumb(icon):
+# Version 1.2.0 2012-06-28
+# - Add Setting for user default video resolution selection
+# - Update HD/SD video link decode algorithm
+# - Refine special handling for '动漫' video listing
+# 
+# Version 1.1.0 2012-06-27
+# - Add in LeTV search function
+# - Refine video link decode algorithm
+# - Add in cookie handler
+# - Add in HTTP error handler
 #
-# Version 1.4.1 2012-02-19 (cmeng)
-# - xbmcaddon.Addon() needs 1 parameter for Dharma
-# - remove extra " in Artist name listing
-# - addLink: name cannot contain "/" e.g. 12/02/25
-
-# Version 1.4.0 2012-1-8 (Taxigps)
-# - changed for eden - not use os.getcwd()
-
-# Version 1.3.1 2011-12-22 (cmeng)
-# - add support for video queue list
-# - repair AllMV submenu broken link
-
-# Version 1.3.0 2011-12-11 (cmeng)
-# - Change coding to utf-8 for non-chinese Windows OS
-# - Add & clean up ctl list
-# - Repair broken links
-# - Highlight selected page title
-
-# Version 1.2.0  2011-2-24 (Originator: Skyemperor))
-######################################################
+# Version 1.0.0 2012-06-24
+# - Add in 明星 category selection
+# - Update video link decode algorithm
+# - Correct update video list error
+#
+# Version 0.2.0 2012-06-23
+# - First Release 
+########################################################################

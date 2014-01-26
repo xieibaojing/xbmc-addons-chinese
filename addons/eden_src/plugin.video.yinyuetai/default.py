@@ -14,8 +14,9 @@ else:
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.6.9 2013-11-16 (cmeng)
-# - Update video link decode for vChart new changes
+# Version 1.7.1 2014-01-26 (cmeng)
+# Change listRecommendMV() access using ajax
+# Fix listFavouriteMV() item phrasing error
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -34,7 +35,7 @@ FCS_LIST = [['all','全部'],['ml','内地'],['ht','港台'],['us','欧美'],['k
 MVR_LIST = [['all','全部推荐'],['ML','内地推荐'],['HT','港台推荐'],['US','欧美推荐'],['KR','韩语推荐'],['JP','日语推荐']]
 MVR_DATE = [['today','今日'],['week','本周'],['month','本月']]
 
-MVF_LIST = [['newRecommend','最新推荐'],['newFavorite','最新收藏'],['newComment','最新评论'],['newCreate','最新创建'],['hotView','热门播放'],['hotRecommend','热门推荐'],['hotFavorite','热门收藏'],['hotComment','热门评论'],['promo','编辑推荐'],['all','全部悦单']]
+MVF_LIST = [['newRecommend','最新推荐'],['newFavorite','最新收藏'],['newComment','最新评论'],['hotView','热门播放'],['hotRecommend','热门推荐'],['hotFavorite','热门收藏'],['hotComment','热门评论'],['promo','编辑推荐'],['all','全部悦单']]
 MVO_LIST = [['all','全部热门'],['today','24小时热门'],['week','本周热门'],['month','本月热门']]
 AREA_LIST = [['','全部地区'],['ML','内地'],['HT','港台'],['US','欧美'],['KR','韩国'],['JP','日本']]
 PAGE_LIST = [['1','TOP:1-20'],['2','TOP:21-40'],['3','TOP:41-50']]
@@ -249,9 +250,6 @@ def listVChart(name,area,date,timelist):
     # fetch user specified parameters
     if area is None: area = '内地篇'
     fltrArea  = fetchID(VCHART_LIST, area)
-
-#     if page is None: page = 'TOP:1-20'
-#     fltrPage  = fetchID(PAGE_LIST, page)
     
     if timelist is None:
         timelist = getTimeList(fltrArea)
@@ -263,34 +261,12 @@ def listVChart(name,area,date,timelist):
     li = xbmcgui.ListItem('[COLOR FF00FFFF]'+name+'[/COLOR]【[COLOR FFFF0000]'+area+'[/COLOR]/[COLOR FF00FF00]'+year+'[/COLOR]/[COLOR FF5555FF]'+date+'[/COLOR]】（按此选择）')
     u = sys.argv[0] + "?mode=11&name="+urllib.quote_plus(name)+"&area="+area+"&date="+date
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
- 
-#     li = xbmcgui.ListItem('[COLOR FF00FFFF]'+name+'[/COLOR]【[COLOR FFFF0000]'+area+'[/COLOR]/[COLOR FF00FF00]'+page+'[/COLOR]】（按此选择）')
-#     u = sys.argv[0] + "?mode=11&name="+urllib.quote_plus(name)+"&area="+area+"&page="+page
-
-#    url = 'http://www.yinyuetai.com/vchart/v?area='+fltrArea+'&date='+fltrDate
-#    link=getHttpData(url)
-#    if link == None: return
-#
-#    #matchs=re.compile('<div class="top_line">(.+?)<div class="infobox">').findall(link)
-#    #if len(matchs) == 0:
-#    matchp=re.compile('<div class="lft"><span class="yellow">发榜日：</span>(.+?)</div>').findall(link)
-#    if len(matchp):
-#        rdate = matchp[0]
-#        matchp=re.compile('<div class="lft"><span class="yellow">揭榜时间：</span>(.+?)</div>').findall(link)
-#        rtime = matchp[0]
-#        msg = '[COLOR FF00FFFF]发榜日：'+rdate+'[CR]揭榜时间：'+rtime+'[/COLOR]     请稍侯再试!'
-#        dialog = xbmcgui.Dialog()
-#        ok = dialog.ok(__addonname__, msg)
-#        return
-    # http://vchart.yinyuetai.com/vchart/v?area=HT&date=20130701
-    # 'http://vchart.yinyuetai.com/vchart/ajax/vchart?date=20130624&area=HT&currentUrl=/vchart/v/area=HT&date=20130624  
     
     url = 'http://vchart.yinyuetai.com/vchart/ajax/vchart?date='+fltrDate+'&area='+fltrArea+'&currentUrl=/vchart/v/area='+fltrArea+'%26date='+fltrDate  
     link = getHttpData(url)
     if link == None: return
 
     matchli = re.compile('<li name="vlist_li".+?>(.+?)</ul></div></div></li>').findall(link)
-    print matchli
     if len(matchli):
         totalItems=len(matchli)
         playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
@@ -615,67 +591,59 @@ def performChangesAllMV(name,url,area,artist,version,tag, genre,fname,order,page
 ##################################################################################
 # http://www.yinyuetai.com/lookVideo-area/ML/4
 # http://www.yinyuetai.com/mv/include/recommend-list?area=ML&page=1&pageType=page
+# http://mv.yinyuetai.com/ajax/recommend-list?page=1
 ##################################################################################
-def listRecommendMV(name,area,page):   
-    # fetch user specified parameters
-    if area == None: area = '全部推荐'
-    fltrArea  = fetchID(MVR_LIST, area)
-    if page is None: page = '今日'
-    fltrPage  = fetchID(MVR_DATE, page)
-
-    #url = 'http://www.yinyuetai.com/mv/include/recommend-list?area='+fltrCat+'&page='+str(page)+'&pageType=page' 
-    url = 'http://www.yinyuetai.com/mv/include/hot-'+fltrPage+'-mvlist?area='+fltrArea
+def listRecommendMV(name, page):
+    if page == None: page ='1'
+    p_url = "http://mv.yinyuetai.com/ajax/recommend-list?page="    
+    url = p_url + page    
 
     # Fetch & build video titles list for user selection, highlight user selected filter  
-    li = xbmcgui.ListItem('[COLOR FF00FFFF]'+name+'[/COLOR]【[COLOR FFFF0000]'+area+'[/COLOR]/[COLOR FF00FF00]'+page+'[/COLOR]】（按此选择）')
-    u = sys.argv[0] + "?mode=14&name="+urllib.quote_plus(name)+"&area="+area+"&page="+page
+    li = xbmcgui.ListItem('[COLOR FF00FFFF]'+name+'[/COLOR]【[COLOR FF00FF00]Page: '+page+'[/COLOR]】')
+    u = sys.argv[0] + "?mode=4&name="+urllib.quote_plus(name)+"&page="+page
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
-    
+
     link=getHttpData(url)
     if link == None: return
 
-    #matchli=re.compile('<liiv class="itemr"(.+?)</div></div></div>').findall(link)
-    #matchs=re.compile('<ul class="hotList"(.+?)</ul>').findall(link)
-    matchli=re.compile('<li>(.+?)</li>').findall(link)
+    playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
+    playlist.clear()
 
-    if len(matchli):        
-        totalItems=len(matchli)
-        playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
-        playlist.clear()
-        j=0
-        for item in matchli:
-            url1=re.compile('<a href="(.+?)" target="_blank"><img src="(.+?)" alt="(.+?)"/>').findall(item)
-            p_url = 'http://www.yinyuetai.com' + url1[0][0]
+    # fetch and build the video series episode list
+    content = simplejson.loads(link)
+    vlist = content['output']
+    totalItems = len(vlist)
+    for i in range(0, totalItems):
+        vid = str(vlist[i]['id'])
+        #v_url  = 'http://www.yinyuetai.com/mv/get-video-info?videoId=' + vid
+        v_url = 'http://www.yinyuetai.com/video/' + vid
 
-            p_thumb = url1[0][1]
-            p_thumb += '|Referer=http://www.yinyuetai.com'
+        p_thumb = vlist[i]['bigHeadImg']
+        p_title = vlist[i]['filterTitle'].encode('utf-8')
+        p_artist = vlist[i]['artistName'].encode('utf-8') 
 
-            p_list = p_name = url1[0][2]
-            
-            artist=re.compile('<a href="/fanclub/.+?class="special">(.+?)</a>').findall(item)
-            p_artist = artist[0]
-               
-            j+=1
-            p_list = str(j)+'. '+p_name+' [COLOR FF00FFFF]['+p_artist +'][/COLOR]'
-                
-            li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
-            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
-            u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
-            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
-            playlist.add(p_url, li)
-            
-        # Fetch and build page selection menu
-#         matchp=re.compile('<div class="page-nav">(.+?)</div>').findall(link)   
-#         if len(matchp):   
-#             matchp1=re.compile('<a href=".+?>([0-9]+)</a>', re.DOTALL).findall(matchp[0])    
-#             plist=[str(page)]
-#             for num in matchp1:
-#                 if num not in plist:
-#                     plist.append(num)
-#                     li = xbmcgui.ListItem("... 第" + num + "页")
-#                     u = sys.argv[0] + "?mode=4&name="+urllib.quote_plus(name)+"&cat="+cat+"&page="+num
-#                     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
-
+        p_list = p_name = str(i+1) + '. ' + p_title
+        p_list += ' [COLOR FF00FFFF][' + p_artist + '][/COLOR]'
+       
+        li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
+        li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+        u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(v_url)+"&thumb="+urllib.quote_plus(p_thumb)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+        playlist.add(v_url, li)
+        
+    # Fetch and build page selection menu
+    p_itemCount= content['count']
+    p_pageNum = content['pageNum']
+    p_pageSize = content['pageSize']
+    p_pageTotal = p_itemCount / p_pageSize 
+        
+    for num in range(p_pageTotal):
+        page = num + 1
+        if (page) != p_pageNum:
+            li = xbmcgui.ListItem("... 第" + str(page) + "页")
+            u = sys.argv[0] + "?mode=4&name="+urllib.quote_plus(name)+"&page="+str(page)
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+    
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -734,10 +702,11 @@ def listFavouriteMV(name,cat,order,page):
         playlist.clear()
         j=0
         for item in matchli:
-            match=re.compile('<a href="(.+?)" target="_blank" title="(.+?)">.+?<img src="(.+?)"').findall(item)
+            match=re.compile('<a href="(.+?)" target="_blank" title="(.+?)">[\s]*<img src="(.+?)"').findall(item)
             #p_url = 'http://www.yinyuetai.com' + match[0][0]
             p_url = match[0][0]
             p_name = match[0][1]
+            p_name = p_name.replace("&lt;", "<").replace("&gt;", ">")
             p_thumb = match[0][2]
             p_thumb += '|Referer=http://www.yinyuetai.com'
             
@@ -1138,7 +1107,7 @@ ctl = {
             1    : ('listVChart(name,area,date,timelist)','音悦台 - 音悦V榜','',True),
             2    : ('listFocusMV(name,url,cat)','音悦台 - MV首播','/ajax/shoubo?area=',True),
             3    : ('listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)','音悦台 - 全部MV','/mv/all',True),           
-            4    : ('listRecommendMV(name,area,page)','音悦台 - 推荐MV','/lookVideo-area/MV',True),   
+            4    : ('listRecommendMV(name, page)','音悦台 - 推荐MV','/ajax/recommend-list?page=1',True),   
             5    : ('listFavouriteMV(name,cat,order,page)','音悦台 - 全部悦单','/pl/playlist_newRecommend',True), 
             6    : ('listArtist(name,area,geshou,fname,page)','音悦台 - 歌手','/fanAll',True),
             7    : ('listArtistMV(name,url,thumb,page)','显示歌手MV','/fanAll',True),
