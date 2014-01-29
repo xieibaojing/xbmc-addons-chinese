@@ -9,11 +9,11 @@ else:
 __addon__     = xbmcaddon.Addon()
 __addonname__ = __addon__.getAddonInfo('name')
 
-CHANNEL_LIST = [['电影','ach22'],['电视剧','ach30'],['综艺','ach31'],['动漫','ach9'],['财富','ich24'],['科技','ich21'],['游戏','ich10'],['搞笑','ich5'],['美容','ich34'],['女性','ich27'],['乐活','ich3'],['健康','ich33'],['教育','ich25']]
-ORDER_LIST = [['1','人气最旺'], ['2','最新发布'], ['3','评论最多'], ['5','挖得最多']]
+CHANNEL_LIST = [['电影','ach5'],['电视剧','ach3'],['综艺','ach6'],['动漫','ach4'],['财富','ich24'],['科技','ich21'],['游戏','ich10'],['搞笑','ich5'],['美容','ich34'],['女性','ich27'],['乐活','ich3'],['健康','ich33'],['教育','ich25']]
+ORDER_LIST = [['1','最新发布'], ['2','最具人气']]
 ORDER_LIST2 = [['1','人气最旺'], ['2','最新发布'], ['3','评论最多'], ['4','分享最多'], ['5','挖得最多'], ['6','评分最高']]
 RES_LIST = ['high', 'super']
-TYPES1 = ('ach22', 'ach30', 'ach31') # 电影, 电视剧, 综艺
+TYPES1 = ('ach5', 'ach3', 'ach6') # 电影, 电视剧, 综艺
 TYPES2 = ('ich24', 'ich21', 'ich10', 'ich5', 'ich34', 'ich27', 'ich3', 'ich33', 'ich25') # 财富, 科技, 游戏, 搞笑, 美容, 女性, 乐活, 健康, 教育
 UserAgent = 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)'
 
@@ -68,37 +68,53 @@ def getList(listpage,type,area,genre,stat,year):
     genrelist = []
     statlist = []
     yearlist = []
-    if type in TYPES1: # 电影, 电视剧, 综艺
-        match = re.compile('<h3>地区：</h3>(.+?)</div>', re.DOTALL).search(listpage)
+    if type in ('ach5', 'ach3'): # 电影, 电视剧
+        match = re.compile('<h3>地区(.+?)</div>', re.DOTALL).search(listpage)
         arealist = re.compile('<li\s*>\s*<a href="ach\d+a([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
         getCurrent(match.group(1), arealist, area)
-        match = re.compile('<h3>类型：</h3>(.+?)</div>', re.DOTALL).search(listpage)
+        match = re.compile('<h3>类型(.+?)</div>', re.DOTALL).search(listpage)
         genrelist = re.compile('<li\s*>\s*<a href="ach\d+a[\-\d]+b([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
         getCurrent(match.group(1), genrelist, genre)
-        match = re.compile('<h3>状态：</h3>(.+?)</div>', re.DOTALL).search(listpage)
+        match = re.compile('<h3>状态(.+?)</div>', re.DOTALL).search(listpage)
         statlist = re.compile('<li\s*>\s*<a href="ach\d+a[\-\d]+b[\-\d]+c([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
         getCurrent(match.group(1), statlist, stat)
-        match = re.compile('<h3>(年代|上映)：</h3>(.+?)</div>', re.DOTALL).search(listpage)
-        yearlist = re.compile('<li\s*>\s*<a href="ach\d+a[\-\d]+b[\-\d]+c[\-\d]+d([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(2))
-        getCurrent(match.group(2), yearlist, year)
-    elif type == 'ach9': # 动漫
-        match = re.compile('<h3>版本：</h3>(.+?)</div>', re.DOTALL).search(listpage)
-        yearlist = re.compile('<li\s*>\s*<a href="ach\d+a([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
+        match = re.compile('<h3>年代(.+?)</div>', re.DOTALL).search(listpage)
+        if type == 'ach5':
+            yearlist = re.compile('<li\s*>\s*<a href="ach\d+a[\-\d]+b[\-\d]+c[\-\d]+d[\-\d]+e([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
+        else:
+            yearlist = re.compile('<li\s*>\s*<a href="ach\d+a[\-\d]+b[\-\d]+c[\-\d]+d([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
         getCurrent(match.group(1), yearlist, year)
-        match = re.compile('<h3>地区：</h3>(.+?)</div>', re.DOTALL).search(listpage)
+    elif type == 'ach6': # 综艺
+        match = re.compile('<h3>地区(.+?)</div>', re.DOTALL).search(listpage)
+        arealist = re.compile('<li\s*>\s*<a href="ach\d+a([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
+        getCurrent(match.group(1), arealist, area)
+        match = re.compile('<h3>状态(.+?)</div>', re.DOTALL).search(listpage)
+        statlist = re.compile('<li\s*>\s*<a href="ach\d+a[\-\d]+b([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
+        getCurrent(match.group(1), statlist, stat)
+        match = re.compile('<h3>上映(.+?)</div>', re.DOTALL).search(listpage)
+        yearlist = re.compile('<li\s*>\s*<a href="ach\d+a[\-\d]+b[\-\d]+c([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
+        getCurrent(match.group(1), yearlist, year)
+        match = re.compile('<h3>类型(.+?)</div>', re.DOTALL).search(listpage)
+        genrelist = re.compile('<li\s*>\s*<a href="ach\d+a[\-\d]+b[\-\d]+c[\-\d]+d([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
+        getCurrent(match.group(1), genrelist, genre)
+    elif type == 'ach4': # 动漫
+        match = re.compile('<h3>地区(.+?)</div>', re.DOTALL).search(listpage)
         arealist = re.compile('<li\s*>\s*<a href="ach\d+a[\-\d]+b([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
         getCurrent(match.group(1), arealist, area)
-        match = re.compile('<h3>类型：</h3>(.+?)</div>', re.DOTALL).search(listpage)
+        match = re.compile('<h3>类型(.+?)</div>', re.DOTALL).search(listpage)
         genrelist = re.compile('<li\s*>\s*<a href="ach\d+a[\-\d]+b[\-\d]+c([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
         getCurrent(match.group(1), genrelist, genre)
-        match = re.compile('<h3>状态：</h3>(.+?)</div>', re.DOTALL).search(listpage)
+        match = re.compile('<h3>状态(.+?)</div>', re.DOTALL).search(listpage)
         statlist = re.compile('<li\s*>\s*<a href="ach\d+a[\-\d]+b[\-\d]+c[\-\d]+d([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
         getCurrent(match.group(1), statlist, stat)
+        match = re.compile('<h3>上映(.+?)</div>', re.DOTALL).search(listpage)
+        yearlist = re.compile('<li\s*>\s*<a href="ach\d+a[\-\d]+b[\-\d]+c[\-\d]+d[\-\d]+e([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
+        getCurrent(match.group(1), yearlist, year)
     elif type in TYPES2: # 财富, 科技, 游戏, 搞笑, 美容, 女性, 乐活, 健康, 教育
-        match = re.compile('<h3>类型：</h3>(.+?)</div>', re.DOTALL).search(listpage)
+        match = re.compile('<h3>类型(.+?)</div>', re.DOTALL).search(listpage)
         genrelist = re.compile('<li\s*>\s*<a href="ich\d+a([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
         getCurrent(match.group(1), genrelist, genre)
-        match = re.compile('<h3>发布时间：</h3>(.+?)</div>', re.DOTALL).search(listpage)
+        match = re.compile('<h3>发布时间(.+?)</div>', re.DOTALL).search(listpage)
         yearlist = re.compile('<li\s*>\s*<a href="ich.+?so\d+pe([\-\d]+)[^"]*">(.+?)</a>\s*</li>', re.DOTALL).findall(match.group(1))
         getCurrent(match.group(1), yearlist, year)
     return arealist,genrelist,statlist,yearlist
@@ -111,29 +127,32 @@ def rootList():
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True,totalItems)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-#          id     a       b     c      d     so    pa    pe
-# 电影   ach22  area   genre  stat   year  order  page
-# 电视剧 ach30  area   genre  stat   year  order  page
-# 综艺   ach31  area   genre  stat   year  order  page
-# 动漫   ach9   ver    area   genre  stat  order  page
-# 财富   ich24  genre                                   time
-# 科技   ich21  genre                                   time
-# 游戏   ich10  genre                                   time
-# 搞笑   ich5   genre                                   time
-# 教育   ich25  genre                                   time
+#          id     a       b     c      d      e    sort    pa    pe
+# 电影   ach5   area   genre  stat          year   order
+# 电视剧 ach3   area   genre  stat   year          order
+# 综艺   ach6   area   stat   year   genre         order
+# 动漫   ach4   ver    area   genre  stat   year   order
+# 财富   ich24  genre                                     page  time
+# 科技   ich21  genre                                     page  time
+# 游戏   ich10  genre                                     page  time
+# 搞笑   ich5   genre                                     page  time
+# 教育   ich25  genre                                     page  time
 #
 # 注：area/地区；type/类型；stat/状态；year/年代；ver/版本；time/发布时间
 #　　 ver值用year参数保存和传递
 #     time值用year参数保存和传递
 def progList(name,type,area,genre,stat,year,order,page):
-    para = ''
-    if type in TYPES1: # 电影, 电视剧, 综艺
-        para = 'a%sb%sc%sd%se-2f-2g-2h-2i-2j-2k-2l-2m-2n-2o-2so%spe-2pa%s.html' % (area, genre, stat, year, order, page)
-    elif type == 'ach9': # 动漫
-        para = 'a%sb%sc%sd%se-2f-2g-2h-2i-2j-2k-2l-2m-2n-2o-2so%spe-2pa%s.html' % (year, area, genre, stat, order, page)
+    url = ''
+    if type == 'ach5': # 电影
+        url = 'http://www.tudou.com/list/%sa%sb%sc%sd-2e%sf-2g-2h-2i-2j-2k-2l-2m-2n-2sort%scla-2hot-2.html' % (type, area, genre, stat, year, order)
+    elif type == 'ach6': # 电视剧
+        url = 'http://www.tudou.com/list/%sa%sb%sc%sd%se-2f-2g-2h-2i-2j-2k-2l-2m-2n-2sort%scla-2hot-2.html' % (type, area, stat, year, genre, order)
+    elif type == 'ach6': # 综艺
+        url = 'http://www.tudou.com/list/%sa%sb%sc%sd%se-2f-2g-2h-2i-2j-2k-2l-2m-2n-2sort%scla-2hot-2.html' % (type, area, stat, year, genre, order)
+    elif type == 'ach4': # 动漫
+        url = 'http://www.tudou.com/list/%sa-2b%sc%sd%se%sf-2g-2h-2i-2j-2k-2l-2m-2n-2sort%scla-2hot-2.html' % (type, area, genre, stat, year, order)
     elif type in TYPES2: # 财富, 科技, 游戏, 搞笑, 美容, 女性, 乐活, 健康, 教育
-        para = 'a%sb-2c-2d-2e-2f-2g-2h-2i-2j-2k-2l-2m-2n-2o-2so%spe%spa%s.html' % (genre, order, year, page)
-    url = 'http://www.tudou.com/cate/%s%s' % (type, para)
+        url = 'http://www.tudou.com/cate/%sa%sb-2c-2d-2e-2f-2g-2h-2i-2j-2k-2l-2m-2n-2o-2so%spe%spa%s.html' % (type, genre, order, year, page)
     link = GetHttpData(url)
     match = re.compile('<div class="page-nav">(.+?)</div>', re.DOTALL).search(link)
     plist = []
@@ -145,14 +164,16 @@ def progList(name,type,area,genre,stat,year,order,page):
         totalpages = int(match1[len(match1)-1][0])
     else:
         totalpages = 1
-    match = re.compile('<div class="category-filter">(.+?)<div class="content">', re.DOTALL).search(link)
+    match = re.compile('<div class="filter_h"(.+?)<div class="c fix"', re.DOTALL).search(link)
+    if not match:
+        match = re.compile('<div class="category-filter">(.+?)<div class="content">', re.DOTALL).search(link)
     if match:
         listpage = match.group(1)
     else:
         listpage = ''
-    match = re.compile('<div class="pack pack_[^"]+">(.+?)<span class="ext_arrow"></span>', re.DOTALL).findall(link)
-    if not match:
-        match = re.compile('<div class="pack pack_[^"]+">(.+?)<li class="d_nums">', re.DOTALL).findall(link)
+    match = re.compile('<div\s*class="pack pack_[^"]+">(.+?)</div>\s*</div>', re.DOTALL).findall(link)
+    #if not match:
+    #    match = re.compile('<div class="pack pack_[^"]+">(.+?)<li class="d_nums">', re.DOTALL).findall(link)
     totalItems = len(match) + 1 + len(plist)
     currpage = int(page)
 
@@ -184,16 +205,16 @@ def progList(name,type,area,genre,stat,year,order,page):
     for i in range(0,len(match)):
         match1 = re.compile('<div class="txt">\s*<h6 class="caption">\s*<a [^>]+>(.+?)</a>\s*</h6>').search(match[i])
         p_name = match1.group(1)
-        match1 = re.compile('<a .*?class="vinf".*?>(.*?)</a>').search(match[i])
+        match1 = re.compile('<span class="vtime"><span class="bg"></span><span class="di">(.*?)</span></span>').search(match[i])
         if match1 and match1.group(1):
             info = match1.group(1)
             p_name1 = '%s（%s）' % (p_name, info)
         else:
             info = ''
             p_name1 = p_name
-        match1 = re.compile('<div class="pic">\s*<a href="(.+?)"').search(match[i])
+        match1 = re.compile('<div class="pic">\s*<a.*?href="(.+?)"').search(match[i])
         p_url = match1.group(1)
-        match1 = re.compile('<img class="quic" src="(.+?)"').search(match[i])
+        match1 = re.compile('<img class="[^"]+" alt="(.+?)"').search(match[i])
         if match1:
             p_thumb = match1.group(1)
             id = p_url.split('/')[-1][:-5]
@@ -210,7 +231,7 @@ def progList(name,type,area,genre,stat,year,order,page):
                 mode = 2
                 isdir = True
         else:
-            match1 = re.compile('class="pack_clipImg" src="(.+?)"').search(match[i])
+            match1 = re.compile('<img .*?src="(.+?)"').search(match[i])
             p_thumb = match1.group(1)
             mode = 3
             isdir = False
