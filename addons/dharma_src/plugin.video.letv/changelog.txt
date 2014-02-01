@@ -1,6 +1,9 @@
 ﻿########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
+# Version 1.3.0 2014-02-01 (cmeng)
+# - use site new layout and access for UGC_LIST
+
 # Version 1.2.9 2014-01-26 (cmeng)
 # - fix progListSeries() & progListUgc() item pharsing error
 

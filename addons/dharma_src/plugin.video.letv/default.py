@@ -3,7 +3,7 @@ import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, o
 import math, os.path, httplib, time
 import cookielib
 import ChineseKeyboard
-
+        
 if sys.version_info < (2, 7):
     import simplejson
 else:
@@ -12,8 +12,8 @@ else:
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.2.9 2014-01-26 (cmeng)
-# - fix progListSeries() & progListUgc() item pharsing error
+# Version 1.3.0 2014-02-01 (cmeng)
+# - use site new layout and access for UGC_LIST
 
 # See changelog.txt for previous history
 ########################################################################
@@ -29,6 +29,8 @@ cookieFile = __profile__ + 'cookies.letv'
 
 UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 VIDEO_LIST = [['list/c1','电影'],['list/c2','电视剧'],['list/c3','动漫'],['list/c11','综艺'],['starlist/i','明星']]
+UGC_LIST = [['4','体育','&o=1'],['3','娱乐','&o=9'],['9','音乐','&o=17'],['20','风尚','&o=1'],['16','纪录片','&o=1'],['22','财经','&o=1'],['14','汽车','&o=1'],['23','旅游','&o=1']]
+
 VIDEO_RES = [["标清",'sd'],["高清",'hd'],["普通",''],["未注","null"]]
 SORT_LIST = [['_o1','最新更新'],['_o3','最热播放'],['_o7','最新上映'],['_o2','最高评分']]
 GENDER_LIST = [['_g-1','全部'],['_g1','男'],['_g2','女']]
@@ -199,14 +201,24 @@ def mainMenu():
             u = sys.argv[0] + "?mode=1&name=" + urllib.quote_plus(name) + "&id=" + urllib.quote_plus(id)+ "&page=1"  + "&cat=全部" + "&area=全部" + "&year=全部" + "&order=最新更新" + "&listpage=" + urllib.quote_plus(listpage)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     
-    # fetch the url for ugc channels, exclude those already in VIDEO_LIST 
-    for p_url, name in match:
-        list = [x[1] for x in VIDEO_LIST]
-        if name in list: continue # skip if already listed
-        i = i + 1
-        li = xbmcgui.ListItem(str(i) + '. ' + name)
-        u = sys.argv[0] + "?&mode=8" + "&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(p_url)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    link = getHttpData('http://list.letv.com/listn/c1_t-1_a-1_y-1_s1_lg-1_ph-1_md_o9_d1_p.html')
+    match = re.compile('<div class="channel_list.+?">(.+?)</div>').findall(link)[0]
+    ugclist = re.compile('href="(.+?)".*?>(.+?)</a>').findall(match)
+
+    listpage=""
+    cat = "[COLOR FFFF0000]全部[/COLOR]"
+    p_url = 'http://list.letv.com' 
+    # fetch the url for ugc channels, exclude those already in VIDEO_LIST
+    # list = [x[1] for x in UGC_LIST]
+    for x_url, name in ugclist:
+        for catx, namex, order in UGC_LIST: 
+            if (name == namex):
+                i = i + 1
+                url = p_url + x_url
+                li = xbmcgui.ListItem(str(i) + '. ' + name)
+                u = sys.argv[0] + "?mode=8"+"&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url)+"&cat="+urllib.quote_plus(cat)+"&order="+urllib.quote_plus(order)+"&page=1"+"&listpage="+listpage
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+                break
 
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))  
@@ -699,6 +711,78 @@ def progListStarVideo(name, url, thumb):
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
     xbmcplugin.setContent(int(sys.argv[1]), name)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+##################################################################################
+# Routine to fetch and build video filter list
+# tuple to list conversion and strip spaces    
+##################################################################################
+def getListUGC(listpage):
+    titlelist = []
+    catlist = []
+    itemList = []
+    orderlist =[]
+
+    # extract categories selection
+    match = re.compile('<li>(.+?)</li>').findall(listpage)
+    for k, list in enumerate(match):
+        title = re.compile('<h2.+?>(.+?)</h2>').findall(list)
+        itemLists = re.compile('href="(.+?)"><b.+?>(.+?)</b>').findall(list)
+        if (len(itemLists) > 1):
+            itemList  = [[x[0],x[1].strip()] for x in itemLists]
+    
+            item1 = itemList[0][0].split('_')
+            item2 = itemList[1][0].split('_')
+            ilist = len(item1)
+            # find the variable location
+            for j in range(ilist):
+                if (item1[j] == item2[j]): continue
+                break
+            icnt = len(itemList)
+            for i in range (icnt):
+                itemx = itemList[i][0].split('_')
+                itemList[i][0] = itemx[j]
+        
+            titlelist.append(title[0])
+            catlist.append(itemList)
+
+    # extract order selection
+    titlelist.append(re.compile('<span>(.+?)</span>').findall(listpage)[0])
+    match = re.compile('<lo>(.+?)</lo>').findall(listpage)
+    itemLists = re.compile('data-order="(.+?)".+?>(.+?)</a>').findall(listpage)
+    itemList  = [[x[0],x[1].strip()] for x in itemLists]
+    catlist.append(itemList)
+    return titlelist, catlist   
+
+##################################################################################
+# Routine to update video list as per user selected filters
+# - for 明星
+# - 按字母  (Categories)
+# - 按地区 (Areas)
+# - 按职业 (Professional)
+# - 按性别 (Gender)
+##################################################################################
+def updateListUGC(name, url, cat, order, page, listpage):
+    dialog = xbmcgui.Dialog()
+    titlelist, catlist  = getListUGC(listpage)
+
+    cat =''
+    selection = ''
+    for icat, title in enumerate(titlelist):
+        list = [x[1] for x in catlist[icat]]
+        sel = dialog.select(title, list)
+        if sel == -1: sel = 0
+        selx = catlist[icat][sel][0]
+        ctype = catlist[icat][sel][1]
+        if (ctype == '全部'):
+            ctype += title[1:]
+        # order.append([catlist[icat][sel][0], catlist[icat][sel][1]])
+        cat += COLOR_LIST[icat%5] + ctype + '[/COLOR]|'
+        selcat = re.compile('([a-z]+)').findall(selx)[0]
+        catlen = len(selcat)
+        selection += '&'+selcat+'='+selx[catlen:]
+    order = selection
+    cat = cat[:-1]            
+    progListUgc(name, url, cat, order, page , listpage)
        
 ##################################################################################
 # Routine to fetch and build the ugc selection menu
@@ -706,72 +790,82 @@ def progListStarVideo(name, url, thumb):
 # - selected page & filters (user selectable)
 # - ugc items list
 # - user selectable pages
+# http://list.letv.com/apin/chandata.json?a=50006&c=3&d=2&md=&o=9&p=2&vt=440141
 ##################################################################################
-def progListUgc(name, url):
-    link = getHttpData(url)
-    match = re.compile('<div class="layout">(.+?)</div>').findall(link)
-    currpage = re.compile('.+?_p([0-9]+).html').findall(url)
-    if len(currpage):
-        currpage = currpage[0]
-    else:
-        currpage = '1'
-             
-    # Fetch & build ugc list for user selection      
-    match = re.compile('<dl class="dl_list">(.+?)</dl>').findall(match[0])
-    totalItems = len(match)   
-    li = xbmcgui.ListItem(name + '（第' + str(currpage) + '页）[COLOR FF00FFFF]【' + name + '】[/COLOR]')
-    u = sys.argv[0] + "?mode=8&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url)
-    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
- 
+def progListUgc(name, url, cat, order, page, listpage):
+    fltrCategory = fetchID(UGC_LIST, name) 
+    if page == None: page ='1'
+    p_url = "http://list.letv.com/apin/chandata.json?c=%s&d=2&md=&p=%s%s"
+    
+    if (listpage == None):
+        link = getHttpData(url)
+        listpage = re.compile('<ul class="label_list.+?>(.+?)</ul>').findall(link)[0]
+        listpage += re.compile('<div class="sort_navy.+?">(.+?)</div>').findall(link)[0].replace('li','lo')
+    p_url = p_url % (fltrCategory, page, order)    
+    
+    # Fetch & build video titles list for user selection, highlight user selected filter  
+    li = xbmcgui.ListItem(name + '（第' + str(page) + '页）【' + cat + '】（按此选择)')
+    u = sys.argv[0]+"?mode=9&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url)+"&cat="+urllib.quote_plus(cat)+"&order="+urllib.quote_plus(order)+"&page=1"+"&listpage="+urllib.quote_plus(listpage)
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+
+    link=getHttpData(p_url)
+    if link == None: return
+
     playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
     playlist.clear()
-    for i in range(0, len(match)):
-        #match1 = re.compile('<dt><a target="_blank" title="(.+?)" href="(.+?)">').search(match[i])
-        match1 = re.compile('title="(.+?)"').findall(match[i])
-        p_name = match1[0]
 
-        match1 = re.compile('href="(.+?)"').findall(match[i])
-        p_url = match1[0]
-        
-        p_name = str(i+1)+'. '+p_name
-        p_list = '[COLOR FF00FF00]' + p_name +'[/COLOR]'
-        
-        match1 = re.compile('>片长：([:0-9\s]+)*</').findall(match[i])      
-        if match1: p_list += ' [COLOR FFFF00FF][' + match1[0].strip() + '][/COLOR]' 
-          
-        match1 = re.compile('<b class="(.+?)"></b>').search(match[i])
-        if match1:
-            p_res = match1.group(1)
-            p_res = fetchID(VIDEO_RES, p_res)
-            p_list += ' [COLOR FF00FFFF][' +  p_res + '][/COLOR]'
-        
-        match1 = re.compile('演唱者：<span><i>(.+?)</').findall(match[i])      
-        if match1: p_list += ' [COLOR FFFFFF00][' + match1[0] + '][/COLOR]' 
-
-        match1 = re.compile('时间：.+?>(.+?)</i').findall(match[i])      
-        if match1: p_list += ' [' + match1[0] + ']' 
-
-        match1 = re.compile('<img.+?src=[ ]*"(.+?)"').findall(match[i])
-        p_thumb = match1[0]
+    # fetch and build the video series episode list
+    content = simplejson.loads(link)
+    vlist = content['data_list']
+    totalItems = len(vlist)
+    for i in range(0, totalItems):
+        vid = str(vlist[i]['vid'])
+        v_url  = 'http://www.letv.com/ptv/vplay/%s.html' % vid
+        p_title = vlist[i]['name'].encode('utf-8')
+        try: p_thumb = vlist[i]['images']['160*90']
+        except: pass
             
-        li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
-        u = sys.argv[0] + "?mode=20&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url) + "&thumb=" + urllib.quote_plus(p_thumb)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
-        playlist.add(p_url, li)            
+        p_list = p_name = str(i+1) + '. ' + p_title + ' '
+        p_artist = vlist[i]['actor']
+        if ((p_artist != None) and len(p_artist)):
+            p_list += '[COLOR FFFF00FF]['
+            for actor in p_artist:
+                p_list +=  actor.encode('utf-8') + ' '
+            p_list = p_list[:-1] + '][/COLOR]'
 
-    # Fetch and build user selectable page number 
-    matchp = re.compile('<div class="page".+?>(.+?)</div>').findall(link)
-    if len(matchp): matchp1 = re.compile('<a href="(.+?)">([0-9]+)</a>').findall(matchp[0])      
-    if len(matchp1):
-        plist=[]
-        for url, num in matchp1:
-            if num not in plist:
-                plist.append(num)
-                li = xbmcgui.ListItem("... 第" + num + "页")
-                u = sys.argv[0] + "?mode=8&name=" + urllib.quote_plus(name) + "&url=" + urllib.quote_plus(url)
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems) 
-    xbmcplugin.setContent(int(sys.argv[1]), 'movie')
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))  
+        p_dx = int(vlist[i]['duration'])
+        if (p_dx != None):
+            p_duration= "[%02d:%02d]" %  (int(p_dx / 60), (p_dx % 60))
+            p_list += '[COLOR FFFFFF00]' + p_duration +'[/COLOR]'
+
+        p_album = vlist[i]['albumName']
+        if (p_album != None):
+            p_album = p_album.encode('utf-8') 
+            p_list += '[COLOR FF00FFFF][' + p_album + '][/COLOR]'
+       
+        li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
+        li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+        u = sys.argv[0]+"?mode=20"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(v_url)+"&thumb="+urllib.quote_plus(p_thumb)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+        playlist.add(v_url, li)
+        
+    # Fetch and build page selection menu
+    p_itemCount= content['video_count']
+    p_pageSize = 30
+    p_pageNum = int(page)
+    p_pageStart = max((p_pageNum-5), 0) 
+    p_pageEnd = p_pageNum + 9
+    p_pageTotal = p_itemCount / p_pageSize 
+        
+    for num in range(p_pageStart, p_pageEnd):
+        page = num + 1
+        if (page) != p_pageNum:
+            li = xbmcgui.ListItem("... 第" + str(page) + "页")
+            u = sys.argv[0]+"?mode=8"+"&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url)+"&cat="+urllib.quote_plus(cat)+"&order="+urllib.quote_plus(order)+"&page="+str(page)+"&listpage="+urllib.quote_plus(listpage)
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
+    
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))    
     
 #################################################################################
 # Get user input for LeTV site search
@@ -1014,7 +1108,6 @@ def playVideoUgc(name,url,thumb):
                     pass   
 
             if v_url == None: continue
-            print "url: ", v_url
             playlistA.remove(p_url) # remove old url
             playlistA.add(v_url, li, x)  # keep a copy of v_url in Audio Playlist
         else:
@@ -1136,7 +1229,10 @@ elif mode == 5:
 elif mode == 6:
     updateListSeriess(name, id, thumb, page)
 elif mode == 8:
-    progListUgc(name, url)    
+    progListUgc(name, url, cat, order, page, listpage)
+elif mode == 9:
+    updateListUGC(name, url, cat, order, page, listpage) 
+
 elif mode == 10:
     playVideoLetv(name,url)
 elif mode == 20:
