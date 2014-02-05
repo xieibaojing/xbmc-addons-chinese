@@ -12,9 +12,10 @@ else:
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.3.1 2014-02-03 (cmeng)
-# - use site new layout and access for UGC_VIDEO
-# - completely overhaul the UI access
+# Version 1.3.2 2014-02-05 (cmeng)
+# - Flvcd access aborted if consecutive attempt failures >= 5 v_url decodes
+# - comment out li.setInfo causing problem in xbmc 13
+# - Improved UI e.g. generate initial categories selection for display 
 
 # See changelog.txt for previous history
 ########################################################################
@@ -172,13 +173,22 @@ def getListSEL(listpage):
 def updateListSEL(name, url, cat, filtrs, page, listpage):
     dialog = xbmcgui.Dialog()
     titlelist, catlist  = getListSEL(listpage)
+    fltr = filtrs[1:].replace('=','').split('&')
 
     cat =''
     selection = ''
     for icat, title in enumerate(titlelist):
+        fltrList = [x[0] for x in catlist[icat]]
         list = [x[1] for x in catlist[icat]]
-        sel = dialog.select(title, list)
-        if sel == -1: sel = 0
+        sel = -1
+        if (page): # 0: auto extract cat only
+            sel = dialog.select(title, list)
+        if sel == -1:
+            # return last choice selected if ESC by user
+            if len(fltr) == len(titlelist):
+                sel = fltrList.index(fltr[icat])
+            else: # default for first time entry
+                sel = 0
         selx = catlist[icat][sel][0]
         ctype = catlist[icat][sel][1]
         if (ctype == '全部'):
@@ -191,7 +201,8 @@ def updateListSEL(name, url, cat, filtrs, page, listpage):
     filtrs = selection
     cat = cat[:-1]
     
-    if (name == '电影' or name == '电视剧' or name == '动漫' or name == '综艺'):
+    if (not page): return(cat)
+    elif (name == '电影' or name == '电视剧' or name == '动漫' or name == '综艺'):
         progListMovie(name, url, cat, filtrs, page , listpage)
     elif (name == '明星'):
         progListStar(name, url, cat, filtrs, page , listpage)
@@ -215,7 +226,7 @@ def mainMenu():
     
     totalItems = len(ugclist)
     listpage=""
-    cat = "[COLOR FFFF0000]全部-无过滤[/COLOR]"
+    cat = "[COLOR FFFF0000]全部[/COLOR]"
     p_url = 'http://list.letv.com'
     i = 0
 
@@ -267,9 +278,9 @@ def progListMovie(name, url, cat, filtrs, page, listpage):
         match = re.compile('<div class="sort_navy.+?">(.+?)</div>').findall(link)
         if len(match):
             listpage += match[0].replace('li','lo')
+        cat = updateListSEL(name, url, cat, filtrs, 0, listpage)    
     p_url = p_url % (fltrCategory, page, filtrs)
     
-    print name, url, cat, filtrs, page
     # Fetch & build video titles list for user selection, highlight user selected filtrs  
     li = xbmcgui.ListItem(name + '（第' + str(page) + '页）【' + cat + '】（按此选择)')
     u = sys.argv[0]+"?mode=9&name="+urllib.quote_plus(name)+"&url="+urllib.quote_plus(url)+"&cat="+urllib.quote_plus(cat)+"&filtrs="+urllib.quote_plus(filtrs)+"&page=1"+"&listpage="+urllib.quote_plus(listpage)
@@ -330,20 +341,21 @@ def progListMovie(name, url, cat, filtrs, page, listpage):
         if ((p_dx != None) and (p_dx > 0)):
             p_duration= "[%02d:%02d]" %  (int(p_dx / 60), (p_dx % 60))
             p_list += '[COLOR FFFFFF00]' + p_duration +'[/COLOR]'
-
-        p_artist = vlist[i]['starring']
-        if ((p_artist != None) and len(p_artist)):
+            
+        p_artists = vlist[i]['starring']
+        if ((p_artists != None) and len(p_artists)):
+            p_artist = ""
             p_list += '['
-            for key in p_artist:
-                p_list += p_artist[key].encode('utf-8') + ' '
-            p_list = p_list[:-1] + ']'
+            for key in p_artists:
+                p_artist += p_artists[key].encode('utf-8') + ' '
+            p_list += p_artist[:-1] + ']'            
         else:
             p_subcategory = vlist[i]['subCategoryName']
-            if ((p_artist != None)):
+            if ((p_subcategory != None)):
                 p_list += '[' + p_subcategory.encode('utf-8') + ']'
 
         li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
-        li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+        # li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
         u = sys.argv[0]+"?mode="+mode+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(v_url)+"&thumb="+urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, dir, totalItems)
         
@@ -540,6 +552,7 @@ def progListStar(name, url, cat, filtrs, page, listpage):
         match = re.compile('<div class="sort_navy.+?">(.+?)</div>').findall(link)
         if len(match):
             listpage += match[0].replace('li','lo')
+        cat = updateListSEL(name, url, cat, filtrs, 0, listpage)    
     p_url = p_url % (fltrCategory, page, filtrs)    
     
     # Fetch & build video titles list for user selection, highlight user selected filter  
@@ -578,7 +591,7 @@ def progListStar(name, url, cat, filtrs, page, listpage):
             p_list += '[COLOR FFFF00FF][' + p_birthday.encode('utf-8') + '][/COLOR]'
 
         li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
-        li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_name})
+        # li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_name})
         u = sys.argv[0]+"?mode=5"+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(v_url)+"&thumb="+urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
         
@@ -668,7 +681,7 @@ def progListStarVideo(name, url, page, thumb):
             p_list += '[COLOR FFFFFF00]' + p_duration +'[/COLOR]'
 
         li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
-        li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_name})
+        # li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_name})
         u = sys.argv[0]+"?mode=20"+"&name="+urllib.quote_plus(p_name)+"&url="+urllib.quote_plus(v_url)+"&thumb="+urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
         playlist.add(v_url, li)
@@ -716,6 +729,7 @@ def progListUgc(name, url, cat, filtrs, page, listpage):
         link = getHttpData(url)
         listpage = re.compile('<ul class="label_list.+?>(.+?)</ul>').findall(link)[0]
         listpage += re.compile('<div class="sort_navy.+?">(.+?)</div>').findall(link)[0].replace('li','lo')
+        cat = updateListSEL(name, url, cat, filtrs, 0, listpage)    
     p_url = p_url % (fltrCategory, page, filtrs)    
     
     # Fetch & build video titles list for user selection, highlight user selected filter  
@@ -759,7 +773,7 @@ def progListUgc(name, url, cat, filtrs, page, listpage):
             p_list += '[COLOR FF00FFFF][' + p_album + '][/COLOR]'
        
         li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
-        li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+        # li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
         u = sys.argv[0]+"?mode=20"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(v_url)+"&thumb="+urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
         playlist.add(v_url, li)
@@ -1006,9 +1020,17 @@ def playVideoUgc(name,url,thumb):
 
     v_pos = int(name.split('.')[0])-1
     psize = playlistA.size()
+    errcnt = 0
     k=0
     
     for x in range(psize):
+        # abort if 5 or more access failures and no video playback
+        if (errcnt >= 5 and k == 0):
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '无法播放：多次未匹配到视频文件，请选择其它视频')
+            # print "flvcd access aborted due to Error Count >= 5"
+            break 
+        
         if x < v_pos: continue
         p_item=playlistA.__getitem__(x)
         p_url=p_item.getfilename(x)
@@ -1020,25 +1042,28 @@ def playVideoUgc(name,url,thumb):
         
         if re.search('http://www.letv.com/', p_url):  #fresh search
             f_url = "http://www.flvcd.com/parse.php?kw="+p_url+"&format="+str(videoRes)
-            for i in range(10): # Retry specified trials before giving up (seen 9 trials max)
+            for i in range(5): # Retry specified trials before giving up (seen 9 trials max)
                 try: # stop xbmc from throwing error to prematurely terminate video search
                     link = getHttpData(f_url)
                     v_url=re.compile('下载地址：\s*<a href="(.+?)" target="_blank" class="link"').findall(link)
+                    # v_url=re.compile('location:\s*<a href="(.+?)" target="_blank" class="link"').findall(link)
                     if len(v_url):
-                        v_url = v_url[0] 
+                        v_url = v_url[0]
                         break
                 except:
                     pass   
 
-            if v_url == None: continue
+            if not len(v_url):
+                errcnt += 1 # increment consequetive unsuccessful access
+                continue
+            err_cnt = 0 # reset error count
             playlistA.remove(p_url) # remove old url
             playlistA.add(v_url, li, x)  # keep a copy of v_url in Audio Playlist
         else:
             v_url = p_url
             
         playlist.add(v_url, li, k)
-        k +=1 
-
+        k +=1
         if k == 1:
             xbmc.Player(1).play(playlist)
         if videoplaycont == 'false': break
