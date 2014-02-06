@@ -8,14 +8,15 @@ else:
 ########################################################################
 # 风行视频(Funshion)"
 ########################################################################
-# v1.0.1 2013.12.24 (cmeng)
-# - Temporary fix for video playback    
+# v1.0.2 2013.12.24 (cmeng)
+# - Fix for phrasing error for new site design
 
 # Plugin constants 
 __addon__     = xbmcaddon.Addon()
 __addonname__ = __addon__.getAddonInfo('name')
 
-CHANNEL_LIST = [['电影','movie'],['电视剧','tv'],['动漫','cartoon'],['综艺','variety'],['娱乐','ent'],['体育','sports'],['视频','video']]
+CHANNEL_LISTx = [['电影','movie'],['电视剧','tv'],['动漫','cartoon'],['综艺','variety'],['娱乐','ent'],['体育','sports'],['视频','video']]
+CHANNEL_LIST = [['电影','movie'],['电视剧','tv'],['动漫','cartoon'],['综艺','variety'],['娱乐','ent'],['体育','sports']]
 ORDER_LIST = [['mo','最近更新'], ['z4','最受欢迎'], ['ka','评分最高'], ['re','最新上映']]
 RES_LIST = [['tv','标清'], ['dvd','高清'], ['high-dvd','超清']]
 LANG_LIST = [['chi','国语'], ['arm','粤语'], ['und','原声']]
@@ -72,29 +73,29 @@ def getList(listpage,type,area,genre,stat,year):
     statlist = []
     yearlist = []
     if type in TYPES1: # 电影, 电视剧, 动漫, 综艺
-        match = re.compile('<li><label>按地区：</label>(.+?)</li>', re.DOTALL).search(listpage)
-        arealist = re.compile("<a\s+href='/list/%s/.*?\.r-([^'\.]+)[^>]*><span>(.+?)</span></a>" % (type), re.DOTALL).findall(match.group(1))
+        match = re.compile('<div class="select-subtitle">地区</div>(.+?)</div>', re.DOTALL).search(listpage)
+        arealist = re.compile('<a\s+href="/%s/r-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
         arealist.insert(0,['','全部地区'])
-        match = re.compile('<li><label>按类型：</label>(.+?)</li>', re.DOTALL).search(listpage)
-        genrelist = re.compile("<a\s+href='/list/%s/c-(.+?)\.o-[^>]*><span>(.+?)</span></a>" % (type), re.DOTALL).findall(match.group(1))
+        match = re.compile('<div class="select-subtitle">类型</div>(.+?)</div>', re.DOTALL).search(listpage)
+        genrelist = re.compile('<a\s+href="/%s/c-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
         genrelist.insert(0,['','全部类型'])
-        match = re.compile('<li><label>按区间：</label>(.+?)</li>', re.DOTALL).search(listpage)
-        yearlist = re.compile("<a\s+href='/list/%s/.*?\.p-([^\.]+)\.[^>]*>(.+?)</a>" % (type), re.DOTALL).findall(match.group(1))
+        match = re.compile('<div class="select-subtitle">区间</div>(.+?)</div>', re.DOTALL).search(listpage)
+        yearlist = re.compile('<a\s+href="/%s/p-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
         yearlist.insert(0,['','全部年份'])
-        statlist = re.compile("<a\s+href='/list/%s/.*?\.u-(\d+)[^>]*>(.+?)</a>" % (type), re.DOTALL).findall(match.group(1))
+        statlist = re.compile('<a\s+href="/%s/u-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
         statlist.insert(0,['','全部更新'])
     else:
         if type in TYPES2: # 娱乐, 视频
-            match = re.compile('<li><label>按类型：</label>(.+?)</li>', re.DOTALL).search(listpage)
-            genrelist = re.compile("<a\s+href='/list/%s/c-([^'\.]+)[^>]*><span>(.+?)</span></a>" % (type), re.DOTALL).findall(match.group(1))
+            match = re.compile('<div class="select-subtitle">类型</div>(.+?)</div>', re.DOTALL).search(listpage)
+            genrelist = re.compile('<a\s+href="/%s/c-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
             genrelist.insert(0,['','全部类型'])
         else:
-            match = re.compile('<li><label>按项目：</label>(.+?)</li>', re.DOTALL).search(listpage)
-            genrelist = re.compile("<a\s+href='/list/%s/.*?s-([^'\.]+)[^>]*><span>(.+?)</span></a>" % (type), re.DOTALL).findall(match.group(1))
+            match = re.compile('<div class="select-subtitle">项目</div>(.+?)</div>', re.DOTALL).search(listpage)
+            genrelist = re.compile('<a\s+href="/%s/s-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
             genrelist.insert(0,['','全部项目'])
         if type in TYPES3: # 娱乐, 体育
-            match = re.compile('<li><label>按更新：</label>(.+?)</li>', re.DOTALL).search(listpage)
-            statlist = re.compile("<a\s+href='/list/%s/.*?m-(\d+)[^>]*><span>(.+?)</span></a>" % (type), re.DOTALL).findall(match.group(1))
+            match = re.compile('<div class="select-subtitle">时间</div>(.+?)</li>', re.DOTALL).search(listpage)
+            statlist = re.compile('<a\s+href="/%s/m-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
         
     return arealist,genrelist,statlist,yearlist
 
@@ -112,11 +113,11 @@ def progList(name,type,area,genre,stat,year,order,page):
         # http://www.funshion.com/list/tv/c-e788b1e68385.o-z4.p-2013.pg-2.pt-vp.r-e58685e59cb0.u-4
         if genre:
             para.append('c-%s' % (genre))
-        para.append('o-%s' % (order))
+        # para.append('o-%s' % (order))
         if year:
             para.append('p-%s' % (year))
         para.append('pg-%s' % (page))
-        para.append('pt-vp')
+        # para.append('pt-vp')
         if area:
             para.append('r-%s' % (area))
         if stat:
@@ -129,12 +130,14 @@ def progList(name,type,area,genre,stat,year,order,page):
             if not stat:
                 stat = '0'
             para.append('m-%s' % (stat))
-        para.append('o-%s' % (order))
+        # para.append('o-%s' % (order))
         para.append('pg-%s' % (page))
         if type == 'sports':
             if genre:
                 para.append('s-%s' % (genre))
-    url = 'http://www.funshion.com/list/%s/%s' % (type, '.'.join(para))
+    # url = 'http://www.funshion.com/list/%s/%s' % (type, '.'.join(para))
+    url = 'http://list.funshion.com/%s/s-e6ada3e78987/%s' % (type, '.'.join(para))
+    
     link = GetHttpData(url)
     match = re.compile('<p class="page-index">(.+?)</p>', re.DOTALL).search(link)
     plist = []
@@ -143,12 +146,15 @@ def progList(name,type,area,genre,stat,year,order,page):
         for num in match1:
             if (num not in plist) and (num != page):
                 plist.append(num)
-    match = re.compile('<div class="sort"(.+?)</ul>', re.DOTALL).search(link)
+    match = re.compile('<div class="select-title"(.+?</div>)</div>', re.DOTALL).search(link)
     if match:
         listpage = match.group(1)
     else:
         listpage = ''
-    match = re.compile('(<div class="video-block[^"]*">.+?)</div>\s*</div>', re.DOTALL).findall(link)
+    if type in ('ent', 'sports'):
+        match = re.compile("<div class='item-unit fx-%s'>(.+?)</div></div>" % "video", re.DOTALL).findall(link)
+    else:  
+        match = re.compile("<div class='item-unit fx-%s'>(.+?)</div></div>" % type, re.DOTALL).findall(link)
     totalItems = len(match) + 1 + len(plist)
     currpage = int(page)
 
@@ -161,27 +167,23 @@ def progList(name,type,area,genre,stat,year,order,page):
     u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(name)+"&type="+urllib.quote_plus(type)+"&area="+urllib.quote_plus(area)+"&genre="+urllib.quote_plus(genre)+"&stat="+urllib.quote_plus(stat)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     for i in range(0,len(match)):
-        if type in ('tv', 'cartoon', 'variety'): # 电视剧, 动漫, 综艺
+        if type in ('tv', 'cartoon', 'variety'): # 电视剧, 动漫,  综艺
             isdir = True
             mode = 2
-        elif type == 'movie': # 电影
+        elif type in ('movie'): # 电影
             isdir = False
             mode = 3
         else:                 # 娱乐, 体育, 视频
             isdir = False
             mode = 4
-        if type in TYPES1: # 电影, 电视剧, 动漫, 综艺
-            match1 = re.compile('<div class="trumb" rel="(\d+)">').search(match[i])
-            p_id = match1.group(1)
-        else:
-            match1 = re.compile('/play/(\d+)"').search(match[i])
-            p_id = match1.group(1)
-        match1 = re.compile('class="(title theight|title|tit)"[^>]*>(.+?)</a>').search(match[i])
-        p_name = match1.group(2)
-        match1 = re.compile('_lazysrc="(.*?)"').search(match[i])
-        if not match1:
-            match1 = re.compile('<img src="(.*?)"').search(match[i])
+
+        match1 = re.compile("/vplay/[a-z]+-(.+?)/").search(match[i])
+        p_id = match1.group(1)
+
+        match1 = re.compile('<img src="(.*?)".+?title="(.+?)"').search(match[i])
         p_thumb = match1.group(1)
+        p_name = match1.group(2)
+        
         match1 = re.compile("<span class='sright'>(.+?)</span>").search(match[i])
         if match1 and match1.group(1):
             p_name1 = p_name + '（' + match1.group(1) + '）'
@@ -204,7 +206,7 @@ def progList(name,type,area,genre,stat,year,order,page):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def seriesList(name,id,thumb):
-    url = 'http://api.funshion.com/ajax/get_web_fsp/%s/mp4' % (id)
+    url = 'http://api.funshion.com/ajax/get_web_fsp/%s/mp4?isajax=1' % (id)
     link = GetHttpData(url)
     json_response = simplejson.loads(link)
     items = json_response['data']['fsps']['mult']
@@ -251,7 +253,7 @@ def PlayVideo(name,id,thumb,id2):
         ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
         return
 
-    print json_response['data']['fsps']['mult']
+    # print json_response['data']['fsps']['mult']
     hashid = json_response['data']['fsps']['mult'][0]['hashid'].encode('utf-8')
     url = 'http://jobsfe.funshion.com/query/v1/mp4/%s.json' % (hashid)
     link = GetHttpData(url)
