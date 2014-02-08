@@ -8,31 +8,31 @@ else:
 ########################################################################
 # 风行视频(Funshion)"
 ########################################################################
-# v1.0.3 2014.02.08 (cmeng)
-# - Redesign & Simplify category selection fetch and URL filter generation
-# - Fix more phrasing error for new site design
-# - Enhance UI
+# v1.0.4 2014.02.08 (cmeng)
+# Add new user video selection: 新闻,搞笑,时尚,生活,旅游,科技 
+# Add continuous auto playback option for UGC video TYPES3
 
 # Plugin constants 
 __addon__     = xbmcaddon.Addon()
 __addonname__ = __addon__.getAddonInfo('name')
 
-CHANNEL_LISTx = [['电影','movie'],['电视剧','tv'],['动漫','cartoon'],['综艺','variety'],['娱乐','ent'],['体育','sports'],['视频','video']]
-CHANNEL_LIST = [['电影','movie'],['电视剧','tv'],['动漫','cartoon'],['综艺','variety'],['娱乐','ent'],['体育','sports']]
+CHANNEL_LIST = [['电影','movie'],['电视剧','tv'],['动漫','cartoon'],['综艺','variety'],['新闻','news'],['娱乐','ent'],['体育','sports'],['搞笑','joke'],['时尚','fashion'],['生活','life'],['旅游','tour'],['科技','tech']]
 ORDER_LIST = [['mo','最近更新'], ['z4','最受欢迎'], ['ka','评分最高'], ['re','最新上映']]
 COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]','[COLOR FFFF00FF]']
 
 RES_LIST = [['tv','标清'], ['dvd','高清'], ['high-dvd','超清']]
 LANG_LIST = [['chi','国语'], ['arm','粤语'], ['und','原声']]
-TYPES1 = ('movie', 'tv', 'cartoon', 'variety') # 电影, 电视剧, 动漫, 综艺
-TYPES2 = ('ent', 'video') # 娱乐, 视频
-TYPES3 = ('ent', 'sports') # 娱乐, 体育
+TYPES1 = ('movie','tv','cartoon','variety') # 电影,电视剧,动漫,综艺
+TYPES2 = ('ent','video') # 娱乐, 视频
+TYPES3 = ('ent','news','sports','joke','fashion','life','tour','tech') # 娱乐,新闻,体育,搞笑,时尚,生活,旅游,科技 
 UserAgent = 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)'
 
+########################################################################
 def log(txt):
     message = '%s: %s' % (__addonname__, txt)
     xbmc.log(msg=message, level=xbmc.LOGDEBUG)
 
+########################################################################
 def getHttpData(url):
     print "url-link: " + url
     log("%s::url - %s" % (sys._getframe().f_code.co_name, url))
@@ -65,6 +65,7 @@ def getHttpData(url):
             httpdata = httpdata.decode(charset, 'ignore').encode('utf8', 'ignore')
     return httpdata
 
+########################################################################
 def searchDict(dlist,idx):
     for i in range(0,len(dlist)):
         if dlist[i][0] == idx:
@@ -194,14 +195,13 @@ def progList(name, type, cat, filtrs, page, listpage):
     elif type in ('movie'): # 电影
         isdir = False
         mode = 3
-    else:                 # 娱乐, 体育, 视频
+    else: # 娱乐,新闻,体育,搞笑,时尚,生活,旅游,科技
         isdir = False
         mode = 4
+        playlist=xbmc.PlayList(0) # use Music playlist for temporary storage
+        playlist.clear()
  
-    if type in ('ent', 'sports'):
-        match = re.compile("<div class='item-unit fx-%s'>(.+?)</div></div>" % "video", re.DOTALL).findall(link)
-    else:  
-        match = re.compile("<div class='item-unit fx-%s'>(.+?)</div></div>" % type, re.DOTALL).findall(link)
+    match = re.compile("<div class='item-unit fx-.+?'>(.+?)</div></div>", re.DOTALL).findall(link)
     totalItems = len(match) + 1
     
     for i in range(0,len(match)):
@@ -211,12 +211,11 @@ def progList(name, type, cat, filtrs, page, listpage):
         match1 = re.compile('<img src=.+?_lazysrc=[\'|"]+(.+?)[\'|"]+.+?title="(.+?)"').findall(match[i])
         p_thumb = match1[0][0]
         p_name = match1[0][1].replace('&quot;','"')
- 
+
+        p_name1 = str(i+1) + '. ' + p_name + ' '
         match1 = re.compile("<span class='sright'>(.+?)</span>").findall(match[i])
         if len(match1):
-            p_name1 = p_name + ' (' + match1[0] + ') '
-        else:
-            p_name1 = p_name + ' '
+            p_name1 += '(' + match1[0] + ') '
 
         match1 = re.compile('class="item-score">(.+?)</span>').findall(match[i])
         if len(match1):
@@ -238,18 +237,11 @@ def progList(name, type, cat, filtrs, page, listpage):
             p_desp = match1[0]
             p_name1 += ' (' + p_desp + ')'
 
-#         p_artists = vlist[i]['starring']
-#         if ((p_artists != None) and len(p_artists)):
-#             p_artist = ""
-#             p_list += '['
-#             for key in p_artists:
-#                 p_artist += p_artists[key].encode('utf-8') + ' '
-#             p_list += p_artist[:-1] + ']'            
-
-        li = xbmcgui.ListItem(str(i + 1) + '. ' + p_name1, iconImage = '', thumbnailImage = p_thumb)
-        u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(p_name)+"&id="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)+"&type="+urllib.quote_plus(type)
+        li = xbmcgui.ListItem(p_name1, iconImage = '', thumbnailImage = p_thumb)
+        u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(p_name1)+"&id="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)+"&type="+urllib.quote_plus(type)
         li.setInfo(type = "Video", infoLabels = {"Title":p_name})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, isdir, totalItems)
+        if (mode == 4): playlist.add(p_id, li)
 
     # Construct page selection
     match = re.compile('class="page-index">(.+?)<span class=\'pglast\'>', re.DOTALL).findall(link)
@@ -371,23 +363,53 @@ def PlayVideox(name,id,thumb,id2):
 
 ##################################################################################
 def PlayVideo2(name,id,thumb,type):
-    if type == 'video':
-        url = 'http://api.funshion.com/ajax/get_media_data/ugc/%s' % (id)
-    else:
-        url = 'http://api.funshion.com/ajax/get_media_data/video/%s' % (id)
-    link = getHttpData(url)
-    json_response = simplejson.loads(link)
-    hashid = json_response['data']['hashid'].encode('utf-8')
-    filename = json_response['data']['filename'].encode('utf-8')
-    url = 'http://jobsfe.funshion.com//query/v1/mp4/%s.json?file=%s' % (hashid, filename)
-    link = getHttpData(url)
-    json_response = simplejson.loads(link)
-    if json_response['return'].encode('utf-8') == 'succ':
-        listitem = xbmcgui.ListItem(name,thumbnailImage=thumb)
-        xbmc.Player().play(json_response['playlist'][0]['urls'][0], listitem)
-    else:
-        ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
+    videoplaycont = __addon__.getSetting('video_vplaycont')
 
+    playlistA=xbmc.PlayList(0)
+    playlist=xbmc.PlayList(1)
+    playlist.clear()
+
+    v_pos = int(name.split('.')[0])-1
+    psize = playlistA.size()
+    k=0
+    
+    for x in range(psize):
+        if x < v_pos: continue
+        p_item=playlistA.__getitem__(x)
+        p_url=p_item.getfilename(x)
+        p_list =p_item.getdescription(x)
+
+        #li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = thumb)
+        li = xbmcgui.ListItem(p_list)
+        li.setInfo(type = "Video", infoLabels = {"Title":p_list})  
+        
+        if not re.search('http://', p_url):  #fresh search
+            if type == 'video':
+                url = 'http://api.funshion.com/ajax/get_media_data/ugc/%s' % (p_url)
+            else:
+                url = 'http://api.funshion.com/ajax/get_media_data/video/%s' % (p_url)
+            
+            link = getHttpData(url)
+            json_response = simplejson.loads(link)
+            hashid = json_response['data']['hashid'].encode('utf-8')
+            filename = json_response['data']['filename'].encode('utf-8')
+            url = 'http://jobsfe.funshion.com//query/v1/mp4/%s.json?file=%s' % (hashid, filename)
+            link = getHttpData(url)
+            json_response = simplejson.loads(link)
+            if json_response['return'].encode('utf-8') == 'succ':
+                v_url = json_response['playlist'][0]['urls'][0]
+                playlistA.remove(p_url) # remove old url
+                playlistA.add(v_url, li, x)  # keep a copy of v_url in Audio Playlist
+            else: continue
+        else:
+            v_url = p_url
+            
+        playlist.add(v_url, li, k)
+        k +=1
+        if k == 1:
+            xbmc.Player(1).play(playlist)
+        if videoplaycont == 'false': break
+    
 ##################################################################################
 def get_params():
     param = []

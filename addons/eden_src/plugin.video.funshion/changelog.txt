@@ -1,6 +1,10 @@
 ﻿########################################################################
 # 风行视频(Funshion)"
 ########################################################################
+# v1.0.4 2014.02.08 (cmeng)
+# Add new user video selection: 新闻,搞笑,时尚,生活,旅游,科技 
+# Add continuous auto playback option for UGC video TYPES3
+
 # v1.0.3 2014.02.08 (cmeng)
 # - Redesign & Simplify category selection fetch and URL filter generation
 # - Fix more phrasing error for new site design
