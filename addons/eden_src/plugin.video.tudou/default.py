@@ -145,7 +145,7 @@ def progList(name,type,area,genre,stat,year,order,page):
     url = ''
     if type == 'ach5': # 电影
         url = 'http://www.tudou.com/list/%sa%sb%sc%sd-2e%sf-2g-2h-2i-2j-2k-2l-2m-2n-2sort%scla-2hot-2.html' % (type, area, genre, stat, year, order)
-    elif type == 'ach6': # 电视剧
+    elif type == 'ach3': # 电视剧
         url = 'http://www.tudou.com/list/%sa%sb%sc%sd%se-2f-2g-2h-2i-2j-2k-2l-2m-2n-2sort%scla-2hot-2.html' % (type, area, stat, year, genre, order)
     elif type == 'ach6': # 综艺
         url = 'http://www.tudou.com/list/%sa%sb%sc%sd%se-2f-2g-2h-2i-2j-2k-2l-2m-2n-2sort%scla-2hot-2.html' % (type, area, stat, year, genre, order)
