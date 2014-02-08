@@ -8,8 +8,10 @@ else:
 ########################################################################
 # 风行视频(Funshion)"
 ########################################################################
-# v1.0.2 2013.12.24 (cmeng)
-# - Fix for phrasing error for new site design
+# v1.0.3 2014.02.08 (cmeng)
+# - Redesign & Simplify category selection fetch and URL filter generation
+# - Fix more phrasing error for new site design
+# - Enhance UI
 
 # Plugin constants 
 __addon__     = xbmcaddon.Addon()
@@ -18,6 +20,8 @@ __addonname__ = __addon__.getAddonInfo('name')
 CHANNEL_LISTx = [['电影','movie'],['电视剧','tv'],['动漫','cartoon'],['综艺','variety'],['娱乐','ent'],['体育','sports'],['视频','video']]
 CHANNEL_LIST = [['电影','movie'],['电视剧','tv'],['动漫','cartoon'],['综艺','variety'],['娱乐','ent'],['体育','sports']]
 ORDER_LIST = [['mo','最近更新'], ['z4','最受欢迎'], ['ka','评分最高'], ['re','最新上映']]
+COLOR_LIST = ['[COLOR FFFF0000]','[COLOR FF00FF00]','[COLOR FFFFFF00]','[COLOR FF00FFFF]','[COLOR FFFF00FF]']
+
 RES_LIST = [['tv','标清'], ['dvd','高清'], ['high-dvd','超清']]
 LANG_LIST = [['chi','国语'], ['arm','粤语'], ['und','原声']]
 TYPES1 = ('movie', 'tv', 'cartoon', 'variety') # 电影, 电视剧, 动漫, 综艺
@@ -29,7 +33,7 @@ def log(txt):
     message = '%s: %s' % (__addonname__, txt)
     xbmc.log(msg=message, level=xbmc.LOGDEBUG)
 
-def GetHttpData(url):
+def getHttpData(url):
     print "url-link: " + url
     log("%s::url - %s" % (sys._getframe().f_code.co_name, url))
     req = urllib2.Request(url)
@@ -67,147 +71,205 @@ def searchDict(dlist,idx):
             return dlist[i][1]
     return ''
 
-def getList(listpage,type,area,genre,stat,year):
-    arealist = []
-    genrelist = []
-    statlist = []
-    yearlist = []
-    if type in TYPES1: # 电影, 电视剧, 动漫, 综艺
-        match = re.compile('<div class="select-subtitle">地区</div>(.+?)</div>', re.DOTALL).search(listpage)
-        arealist = re.compile('<a\s+href="/%s/r-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
-        arealist.insert(0,['','全部地区'])
-        match = re.compile('<div class="select-subtitle">类型</div>(.+?)</div>', re.DOTALL).search(listpage)
-        genrelist = re.compile('<a\s+href="/%s/c-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
-        genrelist.insert(0,['','全部类型'])
-        match = re.compile('<div class="select-subtitle">区间</div>(.+?)</div>', re.DOTALL).search(listpage)
-        yearlist = re.compile('<a\s+href="/%s/p-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
-        yearlist.insert(0,['','全部年份'])
-        statlist = re.compile('<a\s+href="/%s/u-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
-        statlist.insert(0,['','全部更新'])
-    else:
-        if type in TYPES2: # 娱乐, 视频
-            match = re.compile('<div class="select-subtitle">类型</div>(.+?)</div>', re.DOTALL).search(listpage)
-            genrelist = re.compile('<a\s+href="/%s/c-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
-            genrelist.insert(0,['','全部类型'])
-        else:
-            match = re.compile('<div class="select-subtitle">项目</div>(.+?)</div>', re.DOTALL).search(listpage)
-            genrelist = re.compile('<a\s+href="/%s/s-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
-            genrelist.insert(0,['','全部项目'])
-        if type in TYPES3: # 娱乐, 体育
-            match = re.compile('<div class="select-subtitle">时间</div>(.+?)</li>', re.DOTALL).search(listpage)
-            statlist = re.compile('<a\s+href="/%s/m-(.+?)" >(.+?)</a>' % (type), re.DOTALL).findall(match.group(1))
-        
-    return arealist,genrelist,statlist,yearlist
+##################################################################################
+# Routine to fetch and build video filter list
+# Common routine for all categories
+##################################################################################
+def getListSEL(listpage):
+    titlelist = []
+    catlist = []
+    itemList = []
 
+    # extract categories selection
+    match = re.compile('<div class="sort-.+?fix">(.+?)</ul>', re.DOTALL).findall(listpage)
+    for k, list in enumerate(match):
+        title = re.compile('<div class="select-subtitle">(.+?)</div>').findall(list)
+        itemLists = re.compile('<a href="/[a-z]+?/(.+?)/".+?>(.+?)</a>').findall(list)
+        if (len(itemLists) > 1):
+            itemList  = [[x[0],x[1].strip()] for x in itemLists]
+    
+            item1 = itemList[0][0].split('.')
+            item2 = itemList[1][0].split('.')
+            ilist = len(item1)
+            # find the variable location
+            for j in range(ilist):
+                if (item1[j] == item2[j]): continue
+                break
+
+            icnt = len(itemList)
+            for i in range (icnt-1, -1, -1): # must do in reverse to remove item
+                if (itemList[i][1] == "取消选中"):
+                    itemList.remove(itemList[i])
+                    continue
+                itemx = itemList[i][0].split('.')
+                itemList[i][0] = itemx[j]
+            titlelist.append(title[0])
+            catlist.append(itemList)
+
+    # extract order selection if any
+    matchp = re.compile('<div class="sort-tab-line bgcfff fix">(.+?)</div>', re.DOTALL).findall(listpage)
+    if len(matchp):
+        titlelist.append('排序方式')
+        itemLists = re.compile('<a href="/[a-z]+/(.+?)\..+?><span>(.+?)</span>').findall(matchp[0])
+        itemList  = [[x[0],x[1].strip()] for x in itemLists]
+    catlist.append(itemList)
+
+    return titlelist, catlist   
+
+##################################################################################
+# Routine to update video list as per user selected filtrs
+##################################################################################
+def updateListSEL(name, type, cat, filtrs, page, listpage):
+    dialog = xbmcgui.Dialog()
+    titlelist, catlist  = getListSEL(listpage)
+    fltr = filtrs[1:].split('.')
+
+    # print titlelist, catlist
+    cat =''
+    selection = ''
+    for icat, title in enumerate(titlelist):
+        fltrList = [x[0] for x in catlist[icat]]
+        list = [x[1] for x in catlist[icat]]
+        sel = -1
+        if (page): # page=0: auto extract cat only
+            sel = dialog.select(title, list)
+        if sel == -1:
+            # return last choice selected if ESC by user
+            if len(fltr) == len(titlelist):
+                sel = fltrList.index(fltr[icat])
+            else: # default for first time entry
+                sel = 0
+        ctype = catlist[icat][sel][1]
+        if (ctype == '全部'):
+            ctype += title
+        cat += COLOR_LIST[icat%5] + ctype + '[/COLOR]|'
+        selx = catlist[icat][sel][0]
+        selection += '.'+selx
+    filtrs = selection
+    cat = cat[:-1]
+    
+    if (not page): return(cat)
+    else:
+        progList(name, type, cat, filtrs, page, listpage)        
+
+##################################################################################
 def rootList():
     totalItems = len(CHANNEL_LIST)
+    cat = "全部"
     for name, type in CHANNEL_LIST:
         li = xbmcgui.ListItem(name)
-        u = sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&type="+urllib.quote_plus(type)+"&area=&genre=&stat=&year=&order=z4&page=1"
+        u = sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&type="+urllib.quote_plus(type)+"&cat="+cat+"&filtrs=&page=1"+"&listpage="
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True,totalItems)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def progList(name,type,area,genre,stat,year,order,page):
-    para = []
-    if type in TYPES1: # 电影, 电视剧, 动漫, 综艺
-        # http://www.funshion.com/list/tv/c-e788b1e68385.o-z4.p-2013.pg-2.pt-vp.r-e58685e59cb0.u-4
-        if genre:
-            para.append('c-%s' % (genre))
-        # para.append('o-%s' % (order))
-        if year:
-            para.append('p-%s' % (year))
-        para.append('pg-%s' % (page))
-        # para.append('pt-vp')
-        if area:
-            para.append('r-%s' % (area))
-        if stat:
-            para.append('u-%s' % (stat))
-    else:
-        if type in TYPES2: # 娱乐, 视频
-            if genre:
-                para.append('c-%s' % (genre))
-        if type in TYPES3: # 娱乐, 体育
-            if not stat:
-                stat = '0'
-            para.append('m-%s' % (stat))
-        # para.append('o-%s' % (order))
-        para.append('pg-%s' % (page))
-        if type == 'sports':
-            if genre:
-                para.append('s-%s' % (genre))
-    # url = 'http://www.funshion.com/list/%s/%s' % (type, '.'.join(para))
-    url = 'http://list.funshion.com/%s/s-e6ada3e78987/%s' % (type, '.'.join(para))
+##################################################################################
+def progList(name, type, cat, filtrs, page, listpage):
+    if page is None: page = 1
+    p_url = 'http://list.funshion.com/%s/pg-%s%s/'
+    if  (listpage == None):
+        url = p_url % (type, page, '.s-e6ada3e78987')
+        link = getHttpData(url)
+
+        match = re.compile('<div class="select-title"(.+?</div>)</div>', re.DOTALL).findall(link)
+        if match:
+            listpage = match[0]
+        match = re.compile('<div class="sort-tab fix">(.+?</div>)', re.DOTALL).findall(link)
+        if len(match):
+            listpage += match[0]
+        cat = updateListSEL(name, type, cat, filtrs, 0, listpage)
+    url = p_url % (type, page, filtrs)
+
+    # Fetch & build video titles list for user selection, highlight user selected filtrs  
+    li = xbmcgui.ListItem(name + '（第' + str(page) + '页）【' + cat + '】（按此选择)')
+    u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(name)+"&type="+type+"&cat="+urllib.quote_plus(cat)+"&filtrs="+urllib.quote_plus(filtrs)+"&page=1"+"&listpage="+urllib.quote_plus(listpage)
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     
-    link = GetHttpData(url)
-    match = re.compile('<p class="page-index">(.+?)</p>', re.DOTALL).search(link)
-    plist = []
-    if match:
-        match1 = re.compile('pg-(\d+)', re.DOTALL).findall(match.group(1))
-        for num in match1:
-            if (num not in plist) and (num != page):
-                plist.append(num)
-    match = re.compile('<div class="select-title"(.+?</div>)</div>', re.DOTALL).search(link)
-    if match:
-        listpage = match.group(1)
-    else:
-        listpage = ''
+    link=getHttpData(url)
+    if link == None: return
+
+    # Movie, Video, Series, Variety & Music types need different routines
+    if type in ('tv', 'cartoon', 'variety'): # 电视剧, 动漫,  综艺
+        isdir = True
+        mode = 2
+    elif type in ('movie'): # 电影
+        isdir = False
+        mode = 3
+    else:                 # 娱乐, 体育, 视频
+        isdir = False
+        mode = 4
+ 
     if type in ('ent', 'sports'):
         match = re.compile("<div class='item-unit fx-%s'>(.+?)</div></div>" % "video", re.DOTALL).findall(link)
     else:  
         match = re.compile("<div class='item-unit fx-%s'>(.+?)</div></div>" % type, re.DOTALL).findall(link)
-    totalItems = len(match) + 1 + len(plist)
-    currpage = int(page)
-
-    arealist,genrelist,statlist,yearlist = getList(listpage,type,area,genre,stat,year)
-    areastr = searchDict(arealist,area)
-    genrestr = searchDict(genrelist,genre)
-    statstr = searchDict(statlist,stat)
-    yearstr = searchDict(yearlist,year)
-    li = xbmcgui.ListItem(name+'（第'+str(currpage)+'页）【[COLOR FFFF0000]' + areastr + '[/COLOR]/[COLOR FF00FF00]' + genrestr + '[/COLOR]/[COLOR FFFFFF00]' + statstr + '[/COLOR]/[COLOR FF00FFFF]' + yearstr + '[/COLOR]/[COLOR FF0000FF]' + searchDict(ORDER_LIST,order) + '[/COLOR]】（按此选择）')
-    u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(name)+"&type="+urllib.quote_plus(type)+"&area="+urllib.quote_plus(area)+"&genre="+urllib.quote_plus(genre)+"&stat="+urllib.quote_plus(stat)+"&year="+urllib.quote_plus(year)+"&order="+order+"&page="+urllib.quote_plus(listpage)
-    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
+    totalItems = len(match) + 1
+    
     for i in range(0,len(match)):
-        if type in ('tv', 'cartoon', 'variety'): # 电视剧, 动漫,  综艺
-            isdir = True
-            mode = 2
-        elif type in ('movie'): # 电影
-            isdir = False
-            mode = 3
-        else:                 # 娱乐, 体育, 视频
-            isdir = False
-            mode = 4
-
-        match1 = re.compile("/vplay/[a-z]+-(.+?)/").search(match[i])
-        p_id = match1.group(1)
-
-        match1 = re.compile('<img src="(.*?)".+?title="(.+?)"').search(match[i])
-        p_thumb = match1.group(1)
-        p_name = match1.group(2)
-        
-        match1 = re.compile("<span class='sright'>(.+?)</span>").search(match[i])
-        if match1 and match1.group(1):
-            p_name1 = p_name + '（' + match1.group(1) + '）'
+        match1 = re.compile("/vplay/[a-z]+-(.+?)/").findall(match[i])
+        p_id = match1[0]
+ 
+        match1 = re.compile('<img src=.+?_lazysrc=[\'|"]+(.+?)[\'|"]+.+?title="(.+?)"').findall(match[i])
+        p_thumb = match1[0][0]
+        p_name = match1[0][1].replace('&quot;','"')
+ 
+        match1 = re.compile("<span class='sright'>(.+?)</span>").findall(match[i])
+        if len(match1):
+            p_name1 = p_name + ' (' + match1[0] + ') '
         else:
-            p_name1 = p_name
-        if match[i].find('class="video-block mvsp"')>0:
-            p_name1 += ' [超清]'
-        elif match[i].find('class="video-block mvhd"')>0:
-            p_name1 += ' [高清]'
+            p_name1 = p_name + ' '
+
+        match1 = re.compile('class="item-score">(.+?)</span>').findall(match[i])
+        if len(match1):
+            p_rating = match1[0]
+            p_name1 += '[COLOR FFFF00FF][' + p_rating + '][/COLOR]'
+            
+        if match[i].find("class='ico-dvd spdvd'")>0:
+            p_name1 += ' [COLOR FFFFFF00][超清][/COLOR]'
+        elif match[i].find("class='ico-dvd hdvd'")>0:
+            p_name1 += ' [COLOR FF00FFFF][高清][/COLOR]'
+    
+        match1 = re.compile('<i class="mark-update">([0-9:]+)</i>').findall(match[i])
+        if len(match1):
+            p_duration = match1[0]
+            p_name1 += '[COLOR FFFFFF00][' + p_duration + '][/COLOR]'
+        
+        match1 = re.compile('<p class="item-dp">(.+?)</p>').findall(match[i])
+        if len(match1):
+            p_desp = match1[0]
+            p_name1 += ' (' + p_desp + ')'
+
+#         p_artists = vlist[i]['starring']
+#         if ((p_artists != None) and len(p_artists)):
+#             p_artist = ""
+#             p_list += '['
+#             for key in p_artists:
+#                 p_artist += p_artists[key].encode('utf-8') + ' '
+#             p_list += p_artist[:-1] + ']'            
+
         li = xbmcgui.ListItem(str(i + 1) + '. ' + p_name1, iconImage = '', thumbnailImage = p_thumb)
         u = sys.argv[0]+"?mode="+str(mode)+"&name="+urllib.quote_plus(p_name)+"&id="+urllib.quote_plus(p_id)+"&thumb="+urllib.quote_plus(p_thumb)+"&type="+urllib.quote_plus(type)
         li.setInfo(type = "Video", infoLabels = {"Title":p_name})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, isdir, totalItems)
 
-    for num in plist:
-        li = xbmcgui.ListItem("... 第" + num + "页")
-        u = sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&type="+urllib.quote_plus(type)+"&area="+urllib.quote_plus(area)+"&genre="+urllib.quote_plus(genre)+"&stat="+urllib.quote_plus(stat)+"&year="+year+"&order="+order+"&page="+num
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems) 
+    # Construct page selection
+    match = re.compile('class="page-index">(.+?)<span class=\'pglast\'>', re.DOTALL).findall(link)
+    if match:
+        match1 = re.compile("<a href='.+?'>(\d+)</a>", re.DOTALL).findall(match[0])
+        plist=[str(page)]
+        for num in match1:
+            if (num not in plist):
+                plist.append(num)
+                li = xbmcgui.ListItem("... 第" + num + "页")
+                u = sys.argv[0]+"?mode=1&name="+urllib.quote_plus(name)+"&type="+urllib.quote_plus(type)+"&cat="+urllib.quote_plus(cat)+"&filtrs="+urllib.quote_plus(filtrs)+"&page="+num+"&listpage="+urllib.quote_plus(listpage)
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems) 
+
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
+##################################################################################
 def seriesList(name,id,thumb):
     url = 'http://api.funshion.com/ajax/get_web_fsp/%s/mp4?isajax=1' % (id)
-    link = GetHttpData(url)
+    link = getHttpData(url)
     json_response = simplejson.loads(link)
     items = json_response['data']['fsps']['mult']
     totalItems = len(items)
@@ -224,6 +286,7 @@ def seriesList(name,id,thumb):
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
+##################################################################################
 def selResolution(items):
     ratelist = []
     for i in range(0,len(items)):
@@ -245,9 +308,10 @@ def selResolution(items):
         sel = 0
     return items[ratelist[sel][2]][1], ratelist[sel][1]
 
+##################################################################################
 def PlayVideo(name,id,thumb,id2):
     url = 'http://api.funshion.com/ajax/get_web_fsp/%s/mp4' % (id)
-    link = GetHttpData(url)
+    link = getHttpData(url)
     json_response = simplejson.loads(link)
     if not json_response['data']:
         ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
@@ -256,7 +320,7 @@ def PlayVideo(name,id,thumb,id2):
     # print json_response['data']['fsps']['mult']
     hashid = json_response['data']['fsps']['mult'][0]['hashid'].encode('utf-8')
     url = 'http://jobsfe.funshion.com/query/v1/mp4/%s.json' % (hashid)
-    link = GetHttpData(url)
+    link = getHttpData(url)
     json_response = simplejson.loads(link)
     if json_response['return'].encode('utf-8') == 'succ':
         listitem = xbmcgui.ListItem(name,thumbnailImage=thumb)
@@ -264,9 +328,10 @@ def PlayVideo(name,id,thumb,id2):
     else:
         ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
 
+##################################################################################
 def PlayVideox(name,id,thumb,id2):
     url = 'http://api.funshion.com/ajax/get_webplayinfo/%s/%s/mp4' % (id, id2)
-    link = GetHttpData(url)
+    link = getHttpData(url)
     json_response = simplejson.loads(link)
     if not json_response['playinfos']:
         ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
@@ -296,7 +361,7 @@ def PlayVideox(name,id,thumb,id2):
     lang = searchDict(LANG_LIST,langid)
     name = '%s(%s %s)' % (name, lang, res)
     url = 'http://jobsfe.funshion.com/query/v1/mp4/%s.json' % (hashid)
-    link = GetHttpData(url)
+    link = getHttpData(url)
     json_response = simplejson.loads(link)
     if json_response['return'].encode('utf-8') == 'succ':
         listitem = xbmcgui.ListItem(name,thumbnailImage=thumb)
@@ -304,17 +369,18 @@ def PlayVideox(name,id,thumb,id2):
     else:
         ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
 
+##################################################################################
 def PlayVideo2(name,id,thumb,type):
     if type == 'video':
         url = 'http://api.funshion.com/ajax/get_media_data/ugc/%s' % (id)
     else:
         url = 'http://api.funshion.com/ajax/get_media_data/video/%s' % (id)
-    link = GetHttpData(url)
+    link = getHttpData(url)
     json_response = simplejson.loads(link)
     hashid = json_response['data']['hashid'].encode('utf-8')
     filename = json_response['data']['filename'].encode('utf-8')
     url = 'http://jobsfe.funshion.com//query/v1/mp4/%s.json?file=%s' % (hashid, filename)
-    link = GetHttpData(url)
+    link = getHttpData(url)
     json_response = simplejson.loads(link)
     if json_response['return'].encode('utf-8') == 'succ':
         listitem = xbmcgui.ListItem(name,thumbnailImage=thumb)
@@ -322,44 +388,7 @@ def PlayVideo2(name,id,thumb,type):
     else:
         ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
 
-def performChanges(name,listpage,type,area,genre,stat,year,order):
-    arealist,genrelist,statlist,yearlist = getList(listpage,type,area,genre,stat,year)
-    change = False
-    dialog = xbmcgui.Dialog()
-    if len(arealist)>0:
-        list = [x[1] for x in arealist]
-        sel = dialog.select('地区', list)
-        if sel != -1:
-            area = arealist[sel][0]
-            change = True
-    if len(genrelist)>0:
-        list = [x[1] for x in genrelist]
-        sel = dialog.select('类型', list)
-        if sel != -1:
-            genre = genrelist[sel][0]
-            change = True
-    if len(statlist)>0:
-        list = [x[1] for x in statlist]
-        sel = dialog.select('更新', list)
-        if sel != -1:
-            stat = statlist[sel][0]
-            change = True
-    if len(yearlist)>0:
-        list = [x[1] for x in yearlist]
-        sel = dialog.select('年份', list)
-        if sel != -1:
-            year = yearlist[sel][0]
-            change = True
-
-    list = [x[1] for x in ORDER_LIST]
-    sel = dialog.select('排序方式', list)
-    if sel != -1:
-        order = ORDER_LIST[sel][0]
-        change = True
-
-    if change:
-        progList(name,type,area,genre,stat,year,order,'1')
-
+##################################################################################
 def get_params():
     param = []
     paramstring = sys.argv[2]
@@ -381,15 +410,12 @@ params = get_params()
 mode = None
 name = None
 type = ''
-area = ''
-genre = ''
-stat = ''
-year = ''
-order = ''
-page = '1'
+filtrs = ''
+page = None
 id = None
 thumb = None
 id2 = '1'
+listpage = None
 
 try:
     id2 = int(params["id2"])
@@ -408,23 +434,7 @@ try:
 except:
     pass
 try:
-    order = urllib.unquote_plus(params["order"])
-except:
-    pass
-try:
-    year = urllib.unquote_plus(params["year"])
-except:
-    pass
-try:
-    stat = urllib.unquote_plus(params["stat"])
-except:
-    pass
-try:
-    genre = urllib.unquote_plus(params["genre"])
-except:
-    pass
-try:
-    area = urllib.unquote_plus(params["area"])
+    name = urllib.unquote_plus(params["name"])
 except:
     pass
 try:
@@ -432,7 +442,15 @@ try:
 except:
     pass
 try:
-    name = urllib.unquote_plus(params["name"])
+    cat = urllib.unquote_plus(params["cat"])
+except:
+    pass
+try:
+    filtrs = urllib.unquote_plus(params["filtrs"])
+except:
+    pass
+try:
+    listpage = urllib.unquote_plus(params["listpage"])
 except:
     pass
 try:
@@ -443,7 +461,7 @@ except:
 if mode == None:
     rootList()
 elif mode == 1:
-    progList(name,type,area,genre,stat,year,order,page)
+    progList(name, type, cat, filtrs, page, listpage)
 elif mode == 2:
     seriesList(name,id,thumb)
 elif mode == 3:
@@ -451,4 +469,4 @@ elif mode == 3:
 elif mode == 4:
     PlayVideo2(name,id,thumb,type)
 elif mode == 10:
-    performChanges(name,page,type,area,genre,stat,year,order)
+    updateListSEL(name, type, cat, filtrs, page, listpage)

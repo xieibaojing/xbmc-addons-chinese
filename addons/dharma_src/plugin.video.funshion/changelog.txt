@@ -1,7 +1,12 @@
 ﻿########################################################################
 # 风行视频(Funshion)"
 ########################################################################
-# v1.0.2 2013.12.24 (cmeng)
+# v1.0.3 2014.02.08 (cmeng)
+# - Redesign & Simplify category selection fetch and URL filter generation
+# - Fix more phrasing error for new site design
+# - Enhance UI
+
+# v1.0.2 2014.02.07 (cmeng)
 # - Fix for phrasing error for new site design
 
 v1.0.1 2013.12.24 (cmeng)
