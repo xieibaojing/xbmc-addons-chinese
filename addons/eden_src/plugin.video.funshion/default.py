@@ -8,9 +8,9 @@ else:
 ########################################################################
 # 风行视频(Funshion)"
 ########################################################################
-# v1.0.4 2014.02.08 (cmeng)
-# Add new user video selection: 新闻,搞笑,时尚,生活,旅游,科技 
-# Add continuous auto playback option for UGC video TYPES3
+# v1.0.5 2014.02.13 (cmeng)
+# - Trap KeyError exception during json load in PlayVideo & PlayVideo2 routine
+# - Use higher resoluton images for thumbnail display
 
 # Plugin constants 
 __addon__     = xbmcaddon.Addon()
@@ -302,6 +302,7 @@ def selResolution(items):
 
 ##################################################################################
 def PlayVideo(name,id,thumb,id2):
+    print 'http://api.funshion.com/ajax/get_webplayinfo/%s/%s/mp4' % (id, id2)
     url = 'http://api.funshion.com/ajax/get_web_fsp/%s/mp4' % (id)
     link = getHttpData(url)
     json_response = simplejson.loads(link)
@@ -310,7 +311,11 @@ def PlayVideo(name,id,thumb,id2):
         return
 
     # print json_response['data']['fsps']['mult']
-    hashid = json_response['data']['fsps']['mult'][0]['hashid'].encode('utf-8')
+    try:
+        hashid = json_response['data']['fsps']['mult'][0]['hashid'].encode('utf-8')
+    except:
+        ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
+        return
     url = 'http://jobsfe.funshion.com/query/v1/mp4/%s.json' % (hashid)
     link = getHttpData(url)
     json_response = simplejson.loads(link)
@@ -320,6 +325,8 @@ def PlayVideo(name,id,thumb,id2):
     else:
         ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
 
+##################################################################################
+# Retrieve json file not further support ['dub_one'] key
 ##################################################################################
 def PlayVideox(name,id,thumb,id2):
     url = 'http://api.funshion.com/ajax/get_webplayinfo/%s/%s/mp4' % (id, id2)
@@ -390,13 +397,23 @@ def PlayVideo2(name,id,thumb,type):
                 url = 'http://api.funshion.com/ajax/get_media_data/video/%s' % (p_url)
             
             link = getHttpData(url)
-            json_response = simplejson.loads(link)
-            hashid = json_response['data']['hashid'].encode('utf-8')
-            filename = json_response['data']['filename'].encode('utf-8')
-            url = 'http://jobsfe.funshion.com//query/v1/mp4/%s.json?file=%s' % (hashid, filename)
+            try:
+                json_response = simplejson.loads(link)
+                hashid = json_response['data']['hashid'].encode('utf-8')
+                filename = json_response['data']['filename'].encode('utf-8')
+            except:
+                # print "Json Video1: " + str(x) + ". " + link
+                continue
+            url = 'http://jobsfe.funshion.com/query/v1/mp4/%s.json?file=%s' % (hashid, filename)
+
             link = getHttpData(url)
-            json_response = simplejson.loads(link)
-            if json_response['return'].encode('utf-8') == 'succ':
+            try: # prevent system occassion throw error
+                json_response = simplejson.loads(link)
+                status = json_response['return'].encode('utf-8')
+            except:
+                print "Json Video2: " + str(x) + ". " + link
+                continue
+            if status == 'succ':
                 v_url = json_response['playlist'][0]['urls'][0]
                 playlistA.remove(p_url) # remove old url
                 playlistA.add(v_url, li, x)  # keep a copy of v_url in Audio Playlist
