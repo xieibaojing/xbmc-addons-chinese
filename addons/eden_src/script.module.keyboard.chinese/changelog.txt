@@ -1,38 +1,7 @@
-﻿##############################################################################
-# Chinese Keyboard Addon Module Change History
-##############################################################################
-# Version 1.2.6 2012-08-07 (cmeng)
-# - fix xbmc Dharma cookie handling problem
-# - simplify cookie access to speed up response
+﻿v2.0.0 2014-02-08
+ - Delete skin files and change to use DialogKeyboard.xml
+ - Calculate Chinese words list width to fit output label size
+ - Auto get more Chinese words when skip to last page
 
-# Version 1.2.5 2012-08-05 (cmeng)
-# - Add cookie handler support
-# - Add support for xbmc remote keyboard entry
-
-# Version 1.2.4 2012-02-19 (cmeng)
-# - Remove repeated last word selection from previous page 
-# - Need to round up self.totalpage count
-
-# Version 1.2.3 2012-02-19 (cmeng)
-# - Limit hzlist to 7 items for double word to take care certain ttf size
-
-# Version 1.2.2 2012-02-11 (cmeng)
-# - Skip Baidu http request if py is an empty string
-
-# Version 1.2.1 2012-02-11 (cmeng)
-# - Dynamic word selection per page based on word length
-# - Add scancode for Eden: < & > arrow buttons
-
-# Version 1.2.0 2012-02-10 (cmeng)
-# - Add cookie to http data request to avoid forcibly closed by the remote host
-# - Common module for both Eden and Dharma (0-9 scancode-non overlapping  
-# - Change words per page to 10 for user faster selection
-# - Retain hzlist for user repeated word selection
-# - Add < & > arrow for page scrolling using keyboard
-
-# Version 1.1.1(Eden) / 1.0.4(Dharma) 2012-02-06 (taxigps)
-# - Different 0-9 scan code for Eden and Dharma
-
-# Version 1.0.0 Mar 2011 (taxigps)
-# - Original Release
-##############################################################################
+v1.0.0 2011-03-31
+ - Original Release

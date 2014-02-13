@@ -1,386 +1,376 @@
-# -*- coding: utf-8 -*-
-import os, sys, re
-from traceback import print_exc
+﻿# -*- coding: utf-8 -*-
 
-import xbmc, xbmcgui
-from xbmcaddon import Addon
-import urllib2, urllib, httplib, time
-#import cookielib
+import sys
+import xbmc, xbmcgui, xbmcaddon
 if sys.version_info < (2, 7):
     import simplejson
 else:
     import json as simplejson
+import httplib
 
-##############################################################################
-# Chinese Keyboard Addon Module Change History
-# Version 1.2.6 2012-08-07 (cmeng)
-# - fix xbmc Dharma cookie handling problem
-# - simplify cookie access to speed up response
+__addon__      = xbmcaddon.Addon()
+__cwd__        = __addon__.getAddonInfo('path').decode("utf-8")
+__language__   = __addon__.getLocalizedString
 
-# See changelog.txt for earlier history
-##############################################################################
+ACTION_PREVIOUS_MENU = 10
 
-__settings__ = Addon( "script.module.keyboard.chinese" )
-__addonDir__ = __settings__.getAddonInfo( "path" )
-__language__ = __settings__.getLocalizedString
-__profile__  = xbmc.translatePath( __settings__.getAddonInfo('profile') )
+FONTSIZE = 10
 
-XBMC_SKIN  = xbmc.getSkinDir()
-SKINS_PATH = os.path.join( __addonDir__, "resources", "skins" )
-ADDON_SKIN = ( "default", XBMC_SKIN )[ os.path.exists( os.path.join( SKINS_PATH, XBMC_SKIN ) ) ]
-MEDIA_PATH = os.path.join( SKINS_PATH, ADDON_SKIN, "media" )
+CAPS, LOWER, SYMBOLS = range(3)
+symbol_map = ")!@#$%^&*([]{}-_=+;:\'\",.<>/?\\|`~    "
 
-#cookieFile = __profile__ + 'cookies.baidu'
+CTL_BUTTON_DONE       = 300
+CTL_BUTTON_CANCEL     = 301
+CTL_BUTTON_CHINESE    = 302  # use SHIFT for chinese switch
+CTL_BUTTON_CAPS       = 303
+CTL_BUTTON_SYMBOLS    = 304
+CTL_BUTTON_LEFT       = 305
+CTL_BUTTON_RIGHT      = 306
+CTL_BUTTON_IP_ADDRESS = 307
+
+CTL_LABEL_EDIT        = 310
+CTL_LABEL_HEADING     = 311
+
+CTL_BUTTON_BACKSPACE  = 8
+
 UserAgent  = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
+BAIDU_API_BASE = 'olime.baidu.com'
+BAIDU_API_URL  = '/py?input=%s&inputtype=py&bg=%d&ed=%d&result=hanzi&resultcoding=unicode&ch_en=0&clientinfo=web'
 
-ACTION_PARENT_DIR     = 9
-ACTION_PREVIOUS_MENU  = (10, 92)
-ACTION_CONTEXT_MENU   = 117
-#WORD_PER_PAGE = [9,6,5,4,3,3,3]
+class HttpClient(object):
+    def __init__(self, address):
+        self.address = address
+        self.conn = httplib.HTTPConnection(address)
+        self.headers = {'User-Agent':UserAgent}
 
-CTRL_ID_BACK = 8
-CTRL_ID_SPACE = 32
-CTRL_ID_RETN = 300
-CTRL_ID_LANG = 302
-CTRL_ID_CAPS = 303
-CTRL_ID_SYMB = 304
-CTRL_ID_LEFT = 305
-CTRL_ID_RIGHT = 306
-CTRL_ID_IP = 307
-CTRL_ID_TEXT = 310
-CTRL_ID_HEAD = 311
-CTRL_ID_CODE = 401
-CTRL_ID_HZLIST = 402
+    def Get(self, url):
+        try:
+            self.conn.request(method='GET', url=url, headers=self.headers)
+        except Exception as e:
+            self.conn = httplib.HTTPConnection(self.address)
+            self.conn.request(method='GET', url=url, headers=self.headers)
+        res = self.conn.getresponse()
+        httpdata = res.read()
+        if 'Cookie' not in self.headers and res.getheader('Set-Cookie'):
+            self.headers['Cookie'] = res.getheader('Set-Cookie').split(';')[0]
+        return httpdata
 
 class InputWindow(xbmcgui.WindowXMLDialog):
     def __init__( self, *args, **kwargs ):
-        self.totalpage = 0
-        self.nowpage = 0
-        self.words = ''
-        self.py = ''
-        self.bg = 0
-        self.ed = 20
-        self.wordpgs = []   #word page metadata
-        self.inputString = kwargs.get("default") or ""
-        self.heading = kwargs.get("heading") or ""
-        self.fetchCookie()
-        self.conn = httplib.HTTPConnection('olime.baidu.com')
+        self.strEdit = kwargs.get("default").decode('utf-8') or u""
+        self.strHeading = kwargs.get("heading") or ""
+        self.bIsConfirmed = False
+        self.bChinese = False
+        self.keyType = LOWER
+        self.words = []
+        self.hzcode = ''
+        self.pos = 0
+        self.num = 0
+        self.HTTP = HttpClient(BAIDU_API_BASE)
         xbmcgui.WindowXMLDialog.__init__(self)
 
     def onInit(self):
-        self.setKeyToChinese()
-        self.getControl(CTRL_ID_HEAD).setLabel(self.heading)
-        self.getControl(CTRL_ID_CODE).setLabel('')
-        self.getControl(CTRL_ID_TEXT).setLabel(self.inputString)
-        self.confirmed = False
+        self.initControl()
+        self.getControl(CTL_LABEL_HEADING).setLabel(self.strHeading)
+        self.getControl(CTL_LABEL_EDIT).setLabel(self.strEdit)
+        self.getControl(CTL_BUTTON_CHINESE).setLabel('中文')
+        self.UpdateButtons()
 
-    # Routine to fetch cookie from http://shurufa.baidu.com/
-    # http://olime.baidu.com access needs cookie to get fast response.
-    # XBMC Dharma has problem of reading set-cookie if it is the first line of response.info()
-    # So build own cookie instead, and also to speed up response
-    def fetchCookie(self):
-        #req = urllib2.Request('http://shurufa.baidu.com/')
-        req = urllib2.Request('http://ime.baidu.com/online.html')
-        req.add_header('User-Agent', UserAgent)
-        response = urllib2.urlopen(req)
-        response.close()
-        cdata = response.info().get('Set-Cookie')
-        self.cookie = cdata.split(';')[0]
-        if re.search('BAIDUID',self.cookie) is None: # just in case
-            self.cookie='BAIDUID=5FF5CF0348C2CD89C15799855BBCB09A:FG=1'
+    def initControl(self):
+        pEdit = self.getControl(CTL_LABEL_EDIT)
+        px = pEdit.getX()
+        py = pEdit.getY()
+        pw = pEdit.getWidth()
+        ph = pEdit.getHeight()
+        self.listw = pw - 95
+        self.CTL_HZCODE = xbmcgui.ControlLabel(px, py + ph, 90, 30, '')
+        self.CTL_HZLIST = xbmcgui.ControlLabel(px + 95, py + ph, pw - 95, 30, '')
+        self.addControl(self.CTL_HZCODE)
+        self.addControl(self.CTL_HZLIST)
 
-#        # setup cookie support
-#        self.cj = cookielib.MozillaCookieJar(cookieFile)
-#        if os.path.isfile(cookieFile):
-#            self.cj.load(ignore_discard=True, ignore_expires=True)
-#        else:
-#            if not os.path.isdir(os.path.dirname(cookieFile)):
-#                os.makedirs(os.path.dirname(cookieFile))
-#
-#        # create opener for cookie
-#        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cj))
-#        req = urllib2.Request('http://shurufa.baidu.com/')
-#        req.add_header('User-Agent', UserAgent)
-#        response = self.opener.open(req)
-#        response.close()
-#
-#        self.cj.save(cookieFile, ignore_discard=True, ignore_expires=True)
-#        cdata =   response.info().get('Set-Cookie')
-#
-#        # XBMC Dharma has problem of reading set-cookie if it is the first line of response.info()
-#        # So build own cookie and write to file
-#        if not len(self.cj) and cdata:
-#            xdata =   re.compile('(.+?)=(.+?); max-age=([0-9]+);.+?domain=(.+?);').findall(cdata)
-#            cookie = '\t'.join([xdata[0][3],'TRUE','\\','FALSE',xdata[0][2],xdata[0][0],xdata[0][1]])
-#
-#            cfile = open(cookieFile, 'a')
-#            cookies = cfile.readlines()
-#            cookies.append(cookie)
-#            cfile.close()
-#
-#            cfile = open(cookieFile,'w')
-#            cfile.writelines(cookies)
-#            cfile.close()
-
-    def onFocus( self, controlId ):
+    def onFocus(self, controlId):
         self.controlId = controlId
 
-    def onClick( self, controlID ):
-        if controlID == CTRL_ID_CAPS:#big
-            self.getControl(CTRL_ID_SYMB).setSelected(False)
-            if self.getControl(CTRL_ID_CAPS).isSelected():
-                self.getControl(CTRL_ID_LANG).setSelected(False)
-            self.setKeyToChinese()
-        elif controlID == CTRL_ID_IP:#ip
-            dialog = xbmcgui.Dialog()
-            value = dialog.numeric( 3, __language__(2), '' )
-            self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+value)
-        elif controlID == CTRL_ID_SYMB:#num
-            self.setKeyToChinese()
-        elif controlID == CTRL_ID_LANG:#en/ch
-            if self.getControl(CTRL_ID_LANG).isSelected():
-                self.getControl(CTRL_ID_CAPS).setSelected(False)
-            self.setKeyToChinese()
-        elif controlID == CTRL_ID_BACK:#back
-            if self.getControl(CTRL_ID_LANG).isSelected() and len(self.getControl(CTRL_ID_CODE).getLabel())>0:
-                self.getControl(CTRL_ID_CODE).setLabel(self.getControl(CTRL_ID_CODE).getLabel()[0:-1])
-                self.getChineseWord(self.getControl(CTRL_ID_CODE).getLabel())
-            else:
-                self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel().decode("utf-8")[0:-1])
-        elif controlID == CTRL_ID_RETN:#enter
-            newText = self.getControl(CTRL_ID_TEXT).getLabel()
-            if not newText: return
-            self.inputString = newText
-            self.confirmed = True
+    def onClick(self, controlID):
+        if controlID == CTL_BUTTON_DONE:
+            self.OnOK()
+        elif controlID == CTL_BUTTON_CANCEL:
             self.close()
-        elif controlID == CTRL_ID_LEFT:#left
-            if self.nowpage>0:
-                self.nowpage -=1
-            self.changepages()
-        elif controlID == CTRL_ID_RIGHT:#right
-            self.nowpage +=1
-            self.changepages()
-        elif controlID == CTRL_ID_SPACE:#space
-            self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel() + ' ')
+        elif controlID == CTL_BUTTON_CHINESE:
+            self.OnChinese()
+        elif controlID == CTL_BUTTON_CAPS:
+            if self.keyType == LOWER:
+                self.keyType = CAPS
+            elif self.keyType == CAPS:
+                self.keyType = LOWER
+            self.UpdateButtons()
+        elif controlID == CTL_BUTTON_SYMBOLS:
+            self.OnSymbols()
+        elif controlID == CTL_BUTTON_LEFT:
+            if self.bChinese and len(self.words) > 0:
+                self.ChangeWordList(-1)
+        elif controlID == CTL_BUTTON_RIGHT:
+            if self.bChinese and len(self.words) > 0:
+                self.ChangeWordList(1)
+        elif controlID == CTL_BUTTON_IP_ADDRESS:
+            self.OnIPAddress()
         else:
-            if self.getControl(CTRL_ID_LANG).isSelected() and not self.getControl(CTRL_ID_SYMB).isSelected():
-                if controlID>=65 and controlID<=90:
-                    s = self.getControl(CTRL_ID_CODE).getLabel() + self.getControl(controlID).getLabel().lower()
-                    self.getControl(CTRL_ID_CODE).setLabel(s)
-                    self.getChineseWord(s)
-                elif controlID>=48 and controlID<=57:#0-9
-                    #i = self.nowpage*(self.wordperpage+1)+(controlID-48)
-                    i = self.wordpgs[self.nowpage][0] + (controlID - 48)
-                    hanzi = self.words[i]
-                    self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+ hanzi)
-                    self.getControl(CTRL_ID_CODE).setLabel('')
-                    #Comment out to allow user to reselect the last hzlist
-                    #self.getControl(CTRL_ID_HZLIST).setLabel('')
-                    #self.words = []
-            else:
-                self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+self.getControl(controlID).getLabel().encode('utf-8'))
+            self.OnClickButton(controlID)
 
     def onAction(self,action):
-        #s1 = str(action.getId())
-        #s2 = str(action.getButtonCode())
-        #print "======="+s1+"========="+s2+"=========="
+        actionID = action.getId()
         keycode = action.getButtonCode()
-        #self.getControl(CTRL_ID_HEAD).setLabel(str(keycode))
+        ch = keycode & 0xFF
+        #self.getControl(CTL_LABEL_HEADING).setLabel('%d %d %X %d' %(actionID, keycode, keycode, ch))
 
-        # xbmc remote keyboard control handler
-        if keycode >= 61728 and keycode <= 61823:
-            keychar = chr(keycode - 61728 + ord(' '))
-            if keychar >='0' and keychar <= '9':
-                self.onClick(ord(keychar))
-            elif self.getControl(CTRL_ID_LANG).isSelected():
-                s = self.getControl(CTRL_ID_CODE).getLabel() + keychar
-                self.getControl(CTRL_ID_CODE).setLabel(s)
-                self.getChineseWord(s)
-            else:
-                self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+keychar)
-        elif keycode == 61706:
-            self.onClick(CTRL_ID_RETN)
-
-        # Hard keyboard handler
-        elif keycode >= 61505 and keycode <= 61530: #a-z
-            if self.getControl(CTRL_ID_LANG).isSelected():
-                keychar = chr(keycode - 61505 + ord('a'))
-                s = self.getControl(CTRL_ID_CODE).getLabel() + keychar
-                self.getControl(CTRL_ID_CODE).setLabel(s)
-                self.getChineseWord(s)
-            else:
-                if self.getControl(CTRL_ID_CAPS).isSelected():
-                    keychar = chr(keycode - 61505 + ord('A')) #A-Z
-                else:
-                    keychar = chr(keycode - 61505 + ord('a'))
-                self.getControl(CTRL_ID_TEXT).setLabel(self.getControl(CTRL_ID_TEXT).getLabel()+keychar)
-        elif keycode >= 61488 and keycode <= 61497: #0-9(Eden)-no overlapping code with Dharma
-            self.onClick( keycode-61488+48 )
-        elif keycode >= 61536 and keycode <= 61545: #0-9(Dharma)-no overlapping code with Eden
-            self.onClick( keycode-61536+48 )
-        elif keycode == 61500 or keycode == 192700: #Eden & Dharma scancode difference
-            self.onClick( CTRL_ID_LEFT ) # <
-        elif keycode == 61502 or keycode == 192702: #Eden & Dharma scancode difference
-            self.onClick( CTRL_ID_RIGHT ) # >
-        elif keycode == 61472:
-            self.onClick( CTRL_ID_SPACE )
-        elif keycode == 61448:
-            self.onClick( CTRL_ID_BACK )
-        elif action.getId() in ACTION_PREVIOUS_MENU:
+        if keycode >= 0xF000 and keycode < 0xF100:
+        # input from the keyboard
+            # Ignore non-printing characters
+            if not ((0 <= ch and ch < 0x8) or (0xE <= ch and ch < 0x1B) or (0x1C <= ch and ch < 0x20) or (0x7f < ch)):
+                if ch == 0x8: # backspace
+                    self.Backspace()
+                elif ch == 0x9: pass # Tab (do nothing)
+                elif ch == 0xB: pass # Non-printing character, ignore
+                elif ch == 0xC: pass # Non-printing character, ignore
+                elif ch == 0xA or ch == 0xD: pass # enter (do nothing)
+                elif ch == 0x1B: # escape
+                    self.close()
+                elif ch == 0x7f: pass # Delete (do nothing)
+                else:  # use character input
+                    if ch >= ord('A') and ch <= ord('Z'):
+                        if self.bChinese:
+                            self.hzcode += chr(ch + 32)
+                            self.CTL_HZCODE.setLabel(self.hzcode)
+                            self.GetChineseWord()
+                        else:
+                            if self.keyType <> CAPS:
+                                ch += 32
+                            self.Character(chr(ch))
+                    elif self.bChinese and ch >= ord('0') and ch <= ord('9'):
+                        i = self.pos + ch -48
+                        if i < (self.pos + self.num):
+                            self.hzcode = ""
+                            self.CTL_HZCODE.setLabel(self.hzcode)
+                            self.Character(self.words[i])
+                    elif self.bChinese and ch in (ord('<'), ord(',')) and len(self.words) > 0:
+                        self.ChangeWordList(-1)
+                    elif self.bChinese and ch in (ord('>'), ord('.')) and len(self.words) > 0:
+                        self.ChangeWordList(1)
+                    else:
+                        self.Character(chr(ch))
+        elif action.getId() == ACTION_PREVIOUS_MENU:
             self.close()
 
-    def changepages (self):
-        self.getControl(CTRL_ID_HZLIST).setLabel('')
-        hzlist = ''
-        if not self.wordpgs: return
-        if self.nowpage >= self.totalpage-1:
-            self.bg += 20
-            self.ed += 20
-            self.getChineseWord(self.py, self.bg, self.ed)
-            return
-        curwpg = self.wordpgs[self.nowpage]
-        for i, w in enumerate(self.words[curwpg[0]:curwpg[1]]):
-            hzlist = hzlist + str(i) + '.' + w +' '
-        if self.nowpage > 0:
-            hzlist = '<' + hzlist
-        if self.nowpage < self.totalpage-1:
-            hzlist = hzlist + '>'
-        self.getControl(CTRL_ID_HZLIST).setLabel(hzlist)
-
-    def getChineseWord (self, py, bg=0, ed=20):
-        self.getControl(CTRL_ID_HZLIST).setLabel('')
-        #if HANZI_MB.has_key(py):
-        if py=='': return
-        if not bg:
-            self.nowpage = 0
-            self.totalpage = 0
-            self.wordpgs = []
-            self.words= []
-            self.py = py
-            self.bg = 0
-            self.ed = 20
-        wres = self.getwords(py, bg, ed)
-        if wres:
-            self.words.extend(wres)
-            self.wordpgs = []
-            inum = 0
-            for s, w in enumerate(self.words):
-                if len(''.join(self.words[inum:s+1]).decode('utf-8')) + (
-                        s+1-inum)*2 >30:
-                    self.wordpgs.append((inum, s))
-                    inum = s
-            if len(self.words) > inum:
-                self.wordpgs.append((inum, len(self.words)))
-            self.totalpage = len(self.wordpgs)
-        else:
-            self.nowpage = self.totalpage - 1
-
-        hzlist = ''
-        curwpg = self.wordpgs[self.nowpage]
-        for i, w in enumerate(self.words[curwpg[0]:curwpg[1]]):
-            hzlist = hzlist + str(i) + '.' + w +' '
-        if self.nowpage > 0:
-            hzlist = '<' + hzlist
-        if self.nowpage < self.totalpage-1:
-            hzlist = hzlist + '>'
-        self.getControl(CTRL_ID_HZLIST).setLabel(hzlist)
-
-    def setKeyToChinese (self):
-        self.getControl(CTRL_ID_CODE).setLabel('')
-        if self.getControl(CTRL_ID_SYMB).isSelected():
-            #if self.getControl(CTRL_ID_LANG).isSelected():
-            #    pass
-            #else:
-                i = 48
-                for c in ')!@#$%^&*(':
-                    self.getControl(i).setLabel(c)
-                    i+=1
-                    if i > 57: break
-                i = 65
-                for c in '[]{}-_=+;:\'",.<>/?\\|`~':
-                    self.getControl(i).setLabel(c)
-                    i+=1
-                    if i > 90: break
-                for j in range(i,90+1):
-                    self.getControl(j).setLabel('')
-        else:
-            for i in range(48, 57+1):
-                keychar = chr(i - 48 + ord('0'))
-                self.getControl(i).setLabel(keychar)
-            if self.getControl(CTRL_ID_CAPS).isSelected():
-                for i in range(65, 90+1):
-                    keychar = chr(i - 65 + ord('A'))
-                    self.getControl(i).setLabel(keychar)
-            else:
-                for i in range(65, 90+1):
-                    keychar = chr(i - 65 + ord('a'))
-                    self.getControl(i).setLabel(keychar)
-        if self.getControl(CTRL_ID_LANG).isSelected():
-            self.getControl(400).setVisible(True)
-            self.nowpage = 0
-            self.changepages()
-        else:
-            self.getControl(400).setVisible(False)
-
     def isConfirmed(self):
-        return self.confirmed
+        return self.bIsConfirmed
 
     def getText(self):
-        return self.inputString
+        return self.strEdit.encode('utf-8')
 
-    def getwords(self, py, bg, ed):
-        t = time.time()
-        #url = 'http://olime.baidu.com/py?py=' + py + '&rn=0&pn=20&ol=1&prd=shurufa.baidu.com&t=' + str(int(t))
-        urlsuf = '/py?input={0}&inputtype=py&bg={1}&ed={2}&{3}'.format(
-            py, bg, ed,
-            'result=hanzi&resultcoding=unicode&ch_en=0&clientinfo=web')
-        try:
-            self.conn.request('GET', urlsuf, headers={'Cookies':self.cookie,})
-        except Exception as e:
-            self.conn = httplib.HTTPConnection('olime.baidu.com')
-            self.conn.request('GET', urlsuf, headers={'Cookies':self.cookie,})
-        httpdata = self.conn.getresponse().read()
-        #req = urllib2.Request(url)
-        #req.add_header('User-Agent', UserAgent)
+    def UpdateButtons(self):
+        if self.bChinese:
+            # show the button depressed
+            self.getControl(CTL_BUTTON_CHINESE).setSelected(True)
+            self.CTL_HZCODE.setVisible(True)
+            self.CTL_HZLIST.setVisible(True)
+        else:
+            self.getControl(CTL_BUTTON_CHINESE).setSelected(False)
+            self.CTL_HZCODE.setVisible(False)
+            self.CTL_HZLIST.setVisible(False)
+        if self.keyType == CAPS:
+            self.getControl(CTL_BUTTON_CAPS).setSelected(True)
+        else:
+            self.getControl(CTL_BUTTON_CAPS).setSelected(False)
+        if self.keyType == SYMBOLS:
+            self.getControl(CTL_BUTTON_SYMBOLS).setSelected(True)
+        else:
+            self.getControl(CTL_BUTTON_SYMBOLS).setSelected(False)
+        # set numerals
+        for iButton in range(48, 57+1):
+            if self.keyType == SYMBOLS:
+                aLabel = symbol_map[iButton - 48]
+            else:
+                aLabel = chr(iButton - 48 + ord('0'))
+            self.getControl(iButton).setLabel(aLabel)
+        # set correct alphabet characters...
+        for iButton in range(65, 90+1):
+            # set the correct case...
+            if self.keyType == LOWER:
+                # make lower case
+                aLabel = chr(iButton - 65 + ord('a'))
+            elif self.keyType == SYMBOLS:
+                aLabel = symbol_map[iButton - 65 + 10]
+            else:
+                aLabel = chr(iButton - 65 + ord('A'))
+            self.getControl(iButton).setLabel(aLabel)
 
-        # need cookie to avoid bad gateway problem
-        # if os.path.isfile(cookieFile):
-        #    self.cj.load(ignore_discard=True, ignore_expires=True)
-        # else: # last resort to use constant cookie if earlier cookie request failed
-        #req.add_header('Cookie', self.cookie)
+    def OnOK(self):
+        self.bIsConfirmed = True
+        self.close()
 
-        # httpdata: [[["\u822a\u7a7a\u6bcd\u8230",4,{"type":"IMEDICT"}],["\u6d77\u53e3\u6ee1\u8bb0",4,{"type":"NEWWORD"}]],"h'k'm'j"]
-        #response = urllib2.urlopen(req)
-        #httpdata = response.read()
-        #response.close()
-        words = []
-        try:
-            jsondata = simplejson.loads(httpdata)
-        except ValueError:
-            return None
-        for word in jsondata[0]:
-            words.append(word[0].encode('utf-8'))
-        #print match, words
-        return words
+    def OnChinese(self):
+        self.bChinese = not self.bChinese
+        self.UpdateButtons()
+
+    def OnSymbols(self):
+        if self.keyType == SYMBOLS:
+            self.keyType = LOWER
+        else:
+            self.keyType = SYMBOLS
+        self.UpdateButtons()
+
+    def OnIPAddress(self):
+        dialog = xbmcgui.Dialog()
+        ip = dialog.numeric( 3, xbmc.getLocalizedString(14068), '' )
+        self.strEdit += ip
+        self.UpdateLabel()
+
+    def UpdateLabel(self):
+        self.getControl(CTL_LABEL_EDIT).setLabel(self.strEdit)
+
+    def Backspace(self):
+        if self.bChinese and len(self.hzcode)>0:
+            self.hzcode = self.hzcode[:-1]
+            self.CTL_HZCODE.setLabel(self.hzcode)
+            self.GetChineseWord()
+        elif len(self.strEdit) > 0:
+            self.strEdit = self.strEdit[:-1]
+            self.UpdateLabel()
+
+    def OnClickButton(self, controlId):
+        if controlId == CTL_BUTTON_BACKSPACE:
+            self.Backspace()
+        else:
+            self.GetCharacter(controlId)
+
+    def GetCharacter(self, iButton):
+        if iButton >= 48 and iButton <= 57:
+            # First the number buttons
+            if self.keyType == SYMBOLS:
+                self.OnSymbols()
+                self.Character(symbol_map[iButton -48])
+            elif self.bChinese:
+                i = self.pos + iButton -48
+                if i < (self.pos + self.num):
+                    self.hzcode = ""
+                    self.CTL_HZCODE.setLabel(self.hzcode)
+                    self.Character(self.words[i])
+            else:
+                self.Character(chr(iButton))
+        elif iButton == 32:
+            # space button
+            self.Character(chr(iButton))
+        elif iButton >= 65 and iButton < 91:
+            # alphabet character buttons
+            if self.keyType == SYMBOLS:
+                self.OnSymbols()
+                self.Character(symbol_map[iButton - 65 + 10]);
+                return
+            if self.keyType == LOWER:
+                # make lower case
+                iButton += 32;
+                if self.bChinese:
+                  self.hzcode += chr(iButton)
+                  self.CTL_HZCODE.setLabel(self.hzcode)
+                  self.GetChineseWord()
+                  return
+            self.Character(chr(iButton))
+
+    def Character(self, str):
+        self.strEdit += str
+        self.UpdateLabel()
+
+    def GetChineseWord(self, isFirstPage=True):
+        if isFirstPage:
+            self.pos = 0
+            self.words = []
+            self.api_bg = 0  # baidu api begin num
+            self.api_ed = 20 # baidu api end num
+            self.api_all = False
+        else:
+            if self.api_all:
+                return False
+            self.api_bg += 20
+            self.api_ed += 20
+        self.CTL_HZLIST.setLabel("")
+        if len(self.hzcode) > 0:
+            url = BAIDU_API_URL % (self.hzcode, self.api_bg, self.api_ed)
+            httpdata = self.HTTP.Get(url)
+            try:
+                jsondata = simplejson.loads(httpdata)
+            except ValueError:
+                return False
+            for word in jsondata[0]:
+                self.words.append(word[0])
+            if len(jsondata[0]) < 20:
+                self.api_all = True
+            if isFirstPage:
+                self.ChangeWordList(0)
+            return True
+
+    def getStringWidth(self, str):
+        gbkstr = str.encode('gbk')
+        return(len(gbkstr) * FONTSIZE)
+
+    def ChangeWordList(self, direct):
+        hzlist = ""
+        width = FONTSIZE * 2 # width for '<' and '>'
+        spacewidth = FONTSIZE # ' '
+        numwidth = FONTSIZE * 2 # '1.'
+
+        if direct >= 0:
+            self.pos += self.num
+            if direct == 0 or self.pos > len(self.words) - 1:
+                self.pos = 0
+            i = 0
+            while True:
+                if i == len(self.words) - self.pos:
+                    if self.api_all or not self.GetChineseWord(False):
+                        break
+                if (i > 0 and width + self.getStringWidth(self.words[self.pos + i]) + numwidth > self.listw) or i > 9:
+                    break
+                hzlist += chr(i + 48) + '.' + self.words[self.pos + i].encode('utf-8') + ' '
+                width += self.getStringWidth(self.words[self.pos + i]) + numwidth + spacewidth
+                i += 1
+            self.num = i
+        else:
+            if self.pos == 0:
+                return
+            for i in range(9+1):
+                if (i > 0 and width + self.getStringWidth(self.words[self.pos - i]) + numwidth > self.listw) or self.pos - i < 0:
+                    i -= 1
+                    break
+                width += self.getStringWidth(self.words[self.pos - i]) + numwidth + spacewidth
+            self.num = i + 1
+            self.pos = self.pos - self.num
+            for i in range(self.num):
+                hzlist += chr(i + 48) + '.' + self.words[self.pos + i].encode('utf-8') + ' '
+
+        #self.getControl(CTL_LABEL_HEADING).setLabel('pos:%d num:%d' %(self.pos, self.num))
+        hzlist.rstrip()
+        if self.pos > 0: hzlist = '<' + hzlist
+        if (self.pos + self.num < len(self.words)) or self.GetChineseWord(False):
+            hzlist += '>'
+        self.CTL_HZLIST.setLabel(hzlist)
 
 class Keyboard:
     def __init__( self, default='', heading='' ):
-        self.confirmed = False
-        self.inputString = default
-        self.heading = heading
+        self.bIsConfirmed = False
+        self.strEdit = default
+        self.strHeading = heading
 
     def doModal (self):
-        self.win = InputWindow("DialogKeyboardChinese.xml", __addonDir__, ADDON_SKIN, heading=self.heading, default=self.inputString )
+        self.win = InputWindow("DialogKeyboard.xml", __cwd__, heading=self.strHeading, default=self.strEdit )
         self.win.doModal()
-        self.confirmed = self.win.isConfirmed()
-        self.inputString = self.win.getText()
+        self.bIsConfirmed = self.win.isConfirmed()
+        self.strEdit = self.win.getText()
         del self.win
 
     def setHeading(self, heading):
-        self.heading = heading
+        self.strHeading = heading
 
     def isConfirmed(self):
-        return self.confirmed
+        return self.bIsConfirmed
 
     def getText(self):
-        return self.inputString
+        return self.strEdit
