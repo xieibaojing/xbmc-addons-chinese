@@ -1,15 +1,15 @@
 ﻿########################################################################
 # PPS影音(PPS.tv)
 ########################################################################
-# PPS影音(PPS.tv)
+# Version 1.1.9 2014-02-16 (cmeng)
+# - Update Search UI
+
 # Version 1.1.8 2013-12-07 (cmeng)
 # - Omit menu items with dj='1' for selection
 
-# PPS影音(PPS.tv)
 # Version 1.1.7 2013-12-01 (cmeng)
 # - Update pps URL links
 
-# PPS影音(PPS.tv)
 # Version 1.1.6 2013-09-22 (cmeng)
 # - Update pps URL link
 

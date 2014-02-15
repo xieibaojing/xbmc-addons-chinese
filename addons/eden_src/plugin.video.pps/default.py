@@ -6,8 +6,8 @@ import ChineseKeyboard
 
 ########################################################################
 # PPS影音(PPS.tv)
-# Version 1.1.8 2013-12-07 (cmeng)
-# - Omit menu items with dj='1' for selection
+# Version 1.1.9 2014-02-16 (cmeng)
+# - Update Search UI
 
 # See changelog.txt for previous history
 ########################################################################
@@ -135,7 +135,7 @@ def menu_main(id,category=''):
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
 
     #添加一个“PPS搜索”
-    li = xbmcgui.ListItem('[COLOR FFFF00FF] PPS.TV 网络电视搜索:[/COLOR][COLOR FF00FF00]【点此进行】[/COLOR]'+'[COLOR FF00FFFF]共计：[/COLOR][ '+str(j)+' ]')
+    li = xbmcgui.ListItem('[COLOR FFFF00FF]PPS.TV 网络电视[/COLOR][COLOR FFFFFF00] (主页) [/COLOR][COLOR FF00FFFF]共计：'+str(j)+'[/COLOR]【[COLOR FF00FF00]点此输入搜索内容[/COLOR]】')
     li.setInfo(type="Video", infoLabels={"Title":name, "Episode":1})
     u=sys.argv[0]+"?mode=search&name="+urllib.quote_plus('PPS搜索')
     xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
@@ -391,7 +391,7 @@ def Search(mname):
     text = unicode(text, 'gb18030','replace').encode('utf8')
     text = text.replace('gb18030', 'utf-8')
     text = text.replace('GB18030', 'utf-8')
-
+ 
     image_en = __addon__.getSetting('image_en')
     root = ElementTree.fromstring(text)
     #文件
@@ -400,7 +400,7 @@ def Search(mname):
     for node in elemroot:
         CHON=0
         CHBKID=""
-        CHBKVM='0.0'
+        CHBKVM=0.0
         year='1990'
 
         elemtop = node.find('ID')
@@ -423,7 +423,8 @@ def Search(mname):
             
         elemtop = node.find("Name")
         CHName = elemtop.text
-        if CHBKVM: CHName += ' [COLOR FFFF00FF]['+str(CHBKVM)+'][/COLOR]'
+        if CHBKVM and (CHBKVM > 0.01):
+            CHName += ' [COLOR FFFF00FF]['+str(CHBKVM)+'][/COLOR]'
         elemtop = node.find("URL")
         CHURL = elemtop.text
                   
@@ -477,6 +478,12 @@ def Search(mname):
             li.setInfo( type="Video", infoLabels={"Title":name, "count":on, "Rating":vm})
             u=sys.argv[0]+"?mode=sub&name="+name+"&id="+id+"&rating="+str(vm)+"&category="+urllib.quote_plus(catType)+"&thumb="+p_thumb
             xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+            
+    #添加一个“PPS搜索”
+    li = xbmcgui.ListItem('[COLOR FFFF00FF]当前搜索: [/COLOR][COLOR FFFFFF00]('+keyword+') [/COLOR][COLOR FF00FFFF]共计：'+str(i+j)+'[/COLOR]【[COLOR FF00FF00]'+'点此输入新搜索内容'+'[/COLOR]】')
+    li.setInfo(type="Video", infoLabels={"Title":keyword, "Episode":1, "Rating":9.99})
+    u = sys.argv[0]+"?mode=search&name=" + urllib.quote_plus(keyword)
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
 
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RATING)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_LABEL)
