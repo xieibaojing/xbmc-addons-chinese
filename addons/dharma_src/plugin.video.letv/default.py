@@ -12,9 +12,9 @@ else:
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.3.3 2014-02-15 (cmeng)
-# - Update letvSearchList routine per new site changes
-# - enhance UGC playback UI
+# Version 1.3.4 2014-02-15 (cmeng)
+# - Improve play video url fetching UI response time
+# - Miss out v_url parameter passing in letvSearchList routine
 
 # See changelog.txt for previous history
 ########################################################################
@@ -636,8 +636,6 @@ def progListUgc(name, url, cat, filtrs, page, listpage):
             p_thumb = vlist[i]['images']['150*200']
         except KeyError:
             p_thumb = vlist[i]['images']['160*120']
-#         except KeyError:
-#             p_thumb = vlist[i]['images']['160*90']
         except: pass
             
         p_list = p_name = str(i+1) + '. ' + p_title + ' '
@@ -765,7 +763,7 @@ def letvSearchList(name, page):
             p_list += p_artist[:-1] + ']'
 
         li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
-        u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&thumb="+urllib.quote_plus(p_thumb)
+        u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(v_url)+"&thumb="+urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
         
     # Fetch and build page selection menu
@@ -799,13 +797,12 @@ def letvSearchList(name, page):
 # Extract all the video list and start playing first found valid link
 # User may press <SPACE> bar to select video resolution for playback
 ##################################################################################
-def playVideoLetv(name,url):
+def playVideoLetv(name,url,thumb):
     VIDEO_CODE=[['bHY=','bHY/'],['dg==','dj9i'],['dg==','dTgm'],['Zmx2','Zmx2']]
-    videoRes = int(__addon__.getSetting('video_resolution'))
-    link = getHttpData(url)
+    dialog = xbmcgui.Dialog()
 
+    link = getHttpData(url)
     match = re.compile('{v:\[(.+?)\]').findall(link)
-    #print match
     # link[0]:"标清-SD" ; link[1]:"高清-HD"
     if match:
         matchv = re.compile('"(.+?)"').findall(match[0])
@@ -837,7 +834,7 @@ def playVideoLetv(name,url):
                 if len(vidcode) == 1:
                     #print 'vidcode: ', vidcode
                     #print "Use alternative player"
-                    playVideo(name,url,videoRes)
+                    playVideo(name,url,thumb)
                     return
                 #else:                        
                 p_url = 'http://g3.letv.cn/vod/v1/' + vid + '?format=1&b=388&expect=3&host=www_letv_com&tag=letv&sign=free'
@@ -853,14 +850,11 @@ def playVideoLetv(name,url):
                         break # skip the rest if any (1 of 3) video links access successful
                     break # play user selected video resolution only
                 else:
-                    dialog = xbmcgui.Dialog()
                     ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请选择其它视频')
             xbmc.Player().play(playlist)
         else:
-            dialog = xbmcgui.Dialog()
             ok = dialog.ok(__addonname__, '无法播放：需收费，请选择其它视频')  
     else:
-        dialog = xbmcgui.Dialog()
         match = re.compile('<dd class="ddBtn1">.+?title="(.+?)" class="btn01">').findall(link)
         if match and match[0] == "点播购买":
             ok = dialog.ok(__addonname__, '无法播放：需收费，请选择其它视频')
@@ -868,17 +862,35 @@ def playVideoLetv(name,url):
             ok = dialog.ok(__addonname__, '无法播放：未匹配到视频文件，请选择其它视频')
 
 ##################################################################################
-def playVideo(name,url,videoRes):
+def playVideo(name,url,thumb):
+    videoRes = int(__addon__.getSetting('video_resolution'))
+    dialog = xbmcgui.Dialog()
+    pDialog = xbmcgui.DialogProgress()
+    ret = pDialog.create('匹配视频', '请耐心等候! 尝试匹配视频文件 ...')
+    
     p_url = "http://www.flvcd.com/parse.php?kw="+url+"&format="+str(videoRes)
     for i in range(5): # Retry specified trials before giving up (seen 9 trials max)
+       if (pDialog.iscanceled()):
+           pDialog.close() 
+           return
+       pDialog.update(20*i)
+
        try: # stop xbmc from throwing error to prematurely terminate video search
             link = getHttpData(p_url)
-            match=re.compile('下载地址：\s*<a href="(.+?)" target="_blank" class="link"').findall(link)
-            if len(match): break
+            if '加密视频' in link:
+                ok = dialog.ok(__addonname__, '无法播放：该视频为加密视频')
+                return
+            elif '付费视频' in link:
+                ok = dialog.ok(__addonname__, '无法播放：该视频为付费视频')
+                return
+            else:
+                match=re.compile('下载地址：\s*<a href="(.+?)" target="_blank" class="link"').findall(link)
+                if len(match): break
        except:
            pass   
     
     if len(match):
+        pDialog.close() 
         playlist=xbmc.PlayList(1)
         playlist.clear()
         for i in range(0,len(match)):
@@ -887,12 +899,9 @@ def playVideo(name,url,videoRes):
             playlist.add(match[i], listitem)
         xbmc.Player().play(playlist)
     else:
-        if link.find('该视频为加密视频')>0:
-            dialog = xbmcgui.Dialog()
-            ok = dialog.ok(__addonname__, '无法播放：该视频为加密视频')
-        elif link.find('解析失败，请确认视频是否被删除')>0:
-            dialog = xbmcgui.Dialog()
-            ok = dialog.ok(__addonname__, '无法播放：多次未匹配到视频文件，请选择其它视频')
+        #if '解析失败' in link:
+        pDialog.close() 
+        ok = dialog.ok(__addonname__, '无法播放：多次未匹配到视频文件，请选择其它视频')
 
 ##################################################################################
 # Continuous Player start playback from user selected video
@@ -908,18 +917,19 @@ def playVideoUgc(name,url,thumb):
 
     v_pos = int(name.split('.')[0])-1
     psize = playlistA.size()
+    ERR_MAX = 10
     errcnt = 0
     k=0
     
     pDialog = xbmcgui.DialogProgress()
-    ret = pDialog.create('XBMC', '请稍候! 匹配视频文件 ...')
+    ret = pDialog.create('匹配视频', '请耐心等候! 尝试匹配视频文件 ...')
     
     for x in range(psize):
-        # abort if 5 or more access failures and no video playback
-        if (errcnt >= 5 and k == 0):
+        # abort if ERR_MAX or more access failures and no video playback
+        if (errcnt >= ERR_MAX and k == 0):
+            pDialog.close() 
             dialog = xbmcgui.Dialog()
             ok = dialog.ok(__addonname__, '无法播放：多次未匹配到视频文件，请选择其它视频')
-            # print "flvcd access aborted due to Error Count >= 5"
             break 
         
         if x < v_pos: continue
@@ -935,16 +945,25 @@ def playVideoUgc(name,url,thumb):
             f_url = "http://www.flvcd.com/parse.php?kw="+p_url+"&format="+str(videoRes)
             for i in range(5): # Retry specified trials before giving up (seen 9 trials max)
                 if (pDialog.iscanceled()):
+                    pDialog.close() 
                     x = psize # terminate any old thread
                     return
-                pDialog.update(errcnt*20+4*(i+1))
+                pDialog.update(errcnt*100/ERR_MAX + 100/ERR_MAX/5*i)
                 try: # stop xbmc from throwing error to prematurely terminate video search
                     link = getHttpData(f_url)
+                    v_url=''
+                    if '加密视频' in link: break
+                    elif '付费视频' in link: break
+                    elif '解析失败' in link: break
+                    #print "skip:", re.compile('(提示.+?)</td>').findall(link)[0]
+                    
                     v_url=re.compile('下载地址：\s*<a href="(.+?)" target="_blank" class="link"').findall(link)
                     # v_url=re.compile('location:\s*<a href="(.+?)" target="_blank" class="link"').findall(link)
                     if len(v_url):
                         v_url = v_url[0]
                         break
+                    else:
+                        print "flvcd link: " + f_url
                 except:
                     pass
 
@@ -1048,7 +1067,9 @@ elif mode == 8:
 elif mode == 9:
     updateListSEL(name, url, cat, filtrs, page, listpage)
 elif mode == 10:
-    playVideoLetv(name,url)
+    playVideo(name,url,thumb)
+elif mode == 12:
+    playVideoLetv(name,url,thumb)
 elif mode == 20:
     playVideoUgc(name,url,thumb)
 
