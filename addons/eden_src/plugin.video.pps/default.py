@@ -6,8 +6,9 @@ import ChineseKeyboard
 
 ########################################################################
 # PPS影音(PPS.tv)
-# Version 1.1.9 2014-02-16 (cmeng)
-# - Update Search UI
+# Version 1.1.10 2014-02-16 (cmeng)
+# - Skip prompt user for single selectable item
+# - Provide second retrial and remove DeprecationWarning in read_xml
 
 # See changelog.txt for previous history
 ########################################################################
@@ -85,7 +86,7 @@ def getHttpData(url):
 # http://api.tuijian.pps.tv/api.php?act=nextplay&client=pc&uid=2028212&scene=autoplay&fistinstall=1
 ##################################################################################
 def read_xml(id,type=1):
-#    dialog = xbmcgui.Dialog()
+#   dialog = xbmcgui.Dialog()
     if type :
         #url= "http://list1.pps.tv/class/"+id+".xml.zip" #目录    
         #url= "http://list1.ppstream.com/class/"+id+".xml.zip" #目录    
@@ -93,13 +94,17 @@ def read_xml(id,type=1):
     else :
         #url= "http://list1.pps.tv/schs/"+id+".xml.zip" #文件列表    
         #url= "http://list1.ppstv.com/schs/"+id+".xml.zip" #文件列表    
-        
-        url= "http://list3.pps.tv/schs/"+id+".xml.zip" #文件列表    
         #url= "http://list3.ppstv.com/schs/"+id+".xml.zip" #文件列表    
+        url= "http://list3.pps.tv/schs/"+id+".xml.zip" #文件列表    
     print 'xml_zip: ' + url
     
-    dfile=urllib.urlretrieve(url)
-    z = zipfile.ZipFile(dfile[0],'r')    
+    try:
+        dfile=urllib.urlretrieve(url, 'tmpxml.zip')
+        z = zipfile.ZipFile(dfile[0],'r')    
+    except: # second trial
+        dfile=urllib.urlretrieve(url, 'tmpxml.zip')
+        z = zipfile.ZipFile(dfile[0],'r')
+        
     text = z.read(id+".xml")
     text = unicode(text, 'gb18030','replace').encode('utf8')
     #text = text.decode('GB18030').encode('UTF-8')
@@ -152,7 +157,7 @@ def menu_sub(name,id,category):
     # Fetch & build video titles list for user selection, highlight user selected filter  
     eList='[COLOR FF00FF00]类型:全部[/COLOR]'
     if category:
-        catFilter = updateFilter(category)
+        catFilter = updateFilter(category, True)
         eList = ''
         sfltr=[]
         xlist = catFilter.split(';')
@@ -177,7 +182,6 @@ def menu_sub(name,id,category):
                     break
             if find == 0: continue # search not match, skip to next item
 
-        j+=1
         name = elem.attrib['name']
         p_id = elem.attrib['id']
         cnt = elem.attrib['op']
@@ -204,10 +208,12 @@ def menu_sub(name,id,category):
             catShow = catShow[:-1]
             
         catType = ''
+        # category search not required at sub menu
         try:
-            if elem.attrib['enableSearch2'] =='1':
+            if elem.attrib['enableSearch2'] == '1':
                 catType = elem.attrib['search'][:-1].encode('utf-8') #change unicode to str
-        except: pass
+        except:
+            pass
         
         p_list='[COLOR FF00FF00]'+name+'[/COLOR][COLOR FF00FFFF] ['+str(on)+'][/COLOR]'
         if vm: p_list += '[COLOR FFFF00FF]['+str(vm)+'][/COLOR]'
@@ -224,8 +230,9 @@ def menu_sub(name,id,category):
         li.setInfo( type="Video", infoLabels={"Title":name, "count":on, "Rating":vm})
         u=sys.argv[0]+"?mode=sub&name="+name+"&id="+p_id+"&rating="+str(vm)+"&category="+urllib.quote_plus(catType)+"&thumb="+p_thumb
         xbmcplugin.addDirectoryItem(int(sys.argv[1]),u,li,True)
+        j+=1 # increment only if everything is OK
 
-    li = xbmcgui.ListItem(' [COLOR FFFF00FF]选择[/COLOR]:'+str(j)+'【'+eList+'】（按此选择）')
+    li = xbmcgui.ListItem(' [COLOR FFFF00FF]当前选择: [/COLOR][COLOR FFFFFF00]('+eList+') [/COLOR][COLOR FF00FFFF]共计：'+str(j)+'[/COLOR]【[COLOR FF00FF00]'+'按此选择'+'[/COLOR]】')
     li.setInfo( type="Video", infoLabels={"Title":name, "count":1000000000, "Rating":10.0})
     u=sys.argv[0]+"?mode=gen&id="+id+"&category="+category
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
@@ -253,7 +260,7 @@ def menu_ch(name,id,category,rating,thumb):
     #eList='[COLOR FF00FF00]类型:全部[/COLOR]'
     eList='[COLOR FF00FF00]'+name+'[/COLOR]'
     if category:
-        catFilter = updateFilter(category)
+        catFilter = updateFilter(category, False)
         #catFilter = category
         #category=""
         eList = ''
@@ -338,7 +345,7 @@ def menu_ch(name,id,category,rating,thumb):
             i+=1 # increment only if everything is OK
         except: pass
         
-    li = xbmcgui.ListItem('[COLOR FFFF00FF]选择[/COLOR]:'+str(i)+'【'+eList+'】（按此选择）')
+    li = xbmcgui.ListItem('[COLOR FFFF00FF]当前选择: [/COLOR][COLOR FFFFFF00]('+eList+') [/COLOR][COLOR FF00FFFF]共计：'+str(i)+'[/COLOR]【[COLOR FF00FF00]'+'按此选择'+'[/COLOR]】')
     li.setInfo( type="Video", infoLabels={"Title":" ", "count":1000000, "Rating":10.0})
     u=sys.argv[0]+"?mode=sub&name="+name+"&id="+id+"&category="+category+"&rating="+rating+"&thumb="+thumb
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
@@ -357,7 +364,7 @@ def menu_ch(name,id,category,rating,thumb):
 # 首字母:A,B,C,D,F,G,H,I,J,K,L,M,N,O,P,R,S,T,V,W,X,Y,Z,数字;
 # 时长:30分钟以内,30分钟-60分钟,60分钟-90分钟,90分钟-120分钟,120分钟以上; 
 ##################################################################################
-def updateFilter(category):
+def updateFilter(category, subCatEn):
     change = False
     dialog = xbmcgui.Dialog()
     xlist = catlist = list = []
@@ -367,11 +374,16 @@ def updateFilter(category):
     for icat in xlist:
         cat = icat.split(':')
         if cat[0]=='时长': continue #skip 时长 selection
+
         catlist = cat[1].split(',')
-    
         list = [x for x in catlist]
-        list.insert(0, '全部')        
-        sel = dialog.select(cat[0], list)
+        list.insert(0, '全部')
+#         if not subCatEn and cat[0] =='类型':
+#             sel = 0 # return sub-category if filter allow
+        if len(list) > 2: 
+            sel = dialog.select(cat[0], list)
+        else: # no user selectable, use default
+            sel = 1
         if sel != -1:
             change = True
             catFilter += cat[0] +':'+ list[sel] + ';'
@@ -481,7 +493,7 @@ def Search(mname):
             
     #添加一个“PPS搜索”
     li = xbmcgui.ListItem('[COLOR FFFF00FF]当前搜索: [/COLOR][COLOR FFFFFF00]('+keyword+') [/COLOR][COLOR FF00FFFF]共计：'+str(i+j)+'[/COLOR]【[COLOR FF00FF00]'+'点此输入新搜索内容'+'[/COLOR]】')
-    li.setInfo(type="Video", infoLabels={"Title":keyword, "Episode":1, "Rating":9.99})
+    li.setInfo(type="Video", infoLabels={"Title":keyword, "Rating":10.0}) # Top of list
     u = sys.argv[0]+"?mode=search&name=" + urllib.quote_plus(keyword)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
 
@@ -508,7 +520,7 @@ def Searchx(mname):
         #match=re.compile("    (.+?)    ").findall(link)
         match=re.compile("[0-9]+[,0-9]*[,0-9]*(.+?)0").findall(link)
         match.sort()
-        for i in range(0,len(match)):
+        for ix in range(0,len(match)):
             p_name = match[i].strip()
             p_list = str(i+1) + '. ' + p_name
             li=xbmcgui.ListItem(p_list)
@@ -522,10 +534,6 @@ def Searchx(mname):
 ##################################################################################
 def KankanPlay(url):
     print 'video-link:', url
-#    if (os.name == 'nt'):
-#        xbmc.executebuiltin('System.ExecWait(\\"'+ os.getcwd()+'\\resources\\player\\pps4xbmc\\" '+url.decode("gbk").encode("utf8")+')')
-#    else:
-#        xbmc.executebuiltin('System.ExecWait(\\"'+ os.getcwd()+'\\resources\\player\\pps4xbmc\\" '+url.decode("gbk").encode("utf8")+')')
     xbmc.executebuiltin('System.ExecWait(\\"' + __cwd__ + '\\resources\\player\\pps4xbmc\\" ' + url.decode("gbk").encode("utf8") + ')')
 
 ##################################################################################
