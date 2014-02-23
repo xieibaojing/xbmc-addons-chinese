@@ -340,7 +340,7 @@ For Non-PRC OS environment (Windows7|WindowsXP):[CR]"Control Panel"|"Region and 
 
 <addon id="plugin.video.ppstream"
     name="PPS网络电视(PPStream)"
-    version="2.2.9"
+    version="2.2.10"
     provider-name="cmeng (originator: robinttt)">
     <extension
         point="xbmc.python.pluginsource"
