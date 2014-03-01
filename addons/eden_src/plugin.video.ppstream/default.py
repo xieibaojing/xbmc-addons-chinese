@@ -12,9 +12,8 @@ else:
 
 ########################################################################
 # PPStream 网络电视 by cmeng
-# Version 2.2.10 2014-02-23 (cmeng)
-# - Update search funtion
-# - ugc video link fetch (qiyi) remains unresolved
+# Version 2.2.11 2014-03-01 (cmeng)
+# - Resolved ugc video link fetching (qiyi)
  
 # See changelog.txt for previous history
 ########################################################################
@@ -627,7 +626,7 @@ def playVideoUgc(name, url, thumb):
     v_pos = int(name.split('.')[0])-1
     psize = playlistA.size()
     ERR_MAX = psize-1 #20
-    TRIAL = 2
+    TRIAL = 3
     errcnt = 0
     k=0
     
@@ -653,10 +652,10 @@ def playVideoUgc(name, url, thumb):
     
         match = re.compile('play_(.+?).html').findall(p_url)
         if len(match):
-            #videolink = 'http://dp.ppstv.com/get_play_url_rate.php?sid='+match[0]+'&flash_type=1&type=0'
-            videolink = 'http://dp.ppstream.com/get_play_url_cdn.php?sid='+match[0]+'&flash_type=1&type=0'
+            #vlink = 'http://dp.ppstv.com/get_play_url_rate.php?sid='+match[0]+'&flash_type=1&type=0'
+            vlink = 'http://dp.ppstream.com/get_play_url_cdn.php?sid='+match[0]+'&flash_type=1&type=0'
             v_url=''
-            for i in range(10): # Retry specified trials before giving up (seen 9 trials max)
+            for i in range(TRIAL): # Retry specified trials before giving up (seen 9 trials max)
                 if (pDialog.iscanceled()):
                     pDialog.close() 
                     x = psize # quickily terminate any old thread
@@ -665,13 +664,13 @@ def playVideoUgc(name, url, thumb):
                 pDialog.update(errcnt*100/ERR_MAX + 100/ERR_MAX/TRIAL*i)        
 
                 try: # stop xbmc from throwing error to prematurely terminate video search
-                    link = getHttpData(videolink)
+                    link = getHttpData(vlink)
                     v_url = re.compile('(.+?)\?hd=').findall(link)
-                    if len(v_url):
-                        v_url = v_url[0] 
-                        if 'PlayUrl' in v_url:
-                            # rint str(x) + ": found getPcIqyPlayUrl"
-                            v_url=''
+                    if len(v_url) and ('PlayUrl' in v_url[0]):
+                        link = getHttpData(v_url[0])
+                        json_response = simplejson.loads(link)
+                        v_url = json_response['tkl'][0]['vs'][0]['m3u8Location'].replace('meta','metan')
+                        print "v_url #" + str(i), psize, v_url
                         break                        
                 except:
                     pass                     
@@ -685,9 +684,9 @@ def playVideoUgc(name, url, thumb):
         playlist.add(v_url, li, k)
         k +=1 
         if k == 1:
+            pDialog.close() 
             xbmc.Player(1).play(playlist)
         if videoplaycont == 'false': break       
-        return
     
 # =========== new method not working as well ===========    
 #         match = re.compile('play_(.+?).html').findall(p_url)

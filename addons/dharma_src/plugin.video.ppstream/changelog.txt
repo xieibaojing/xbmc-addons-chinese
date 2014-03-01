@@ -1,6 +1,10 @@
 ﻿########################################################################
 # PPStream 网络电视
 ########################################################################
+# PPStream 网络电视 by cmeng
+# Version 2.2.11 2014-03-01 (cmeng)
+# - Resolved ugc video link fetching (qiyi)
+
 # Version 2.2.10 2014-02-23 (cmeng)
 # - Update search funtion
 # - ugc video link fetch (qiyi) remains unresolved
