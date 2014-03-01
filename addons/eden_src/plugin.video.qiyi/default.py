@@ -8,7 +8,12 @@ else:
 ############################################################
 # 奇艺视频(QIYI) by taxigps, 2012
 ############################################################
+# Version 2.1.2 2014-03-01 (cmeng)
+# - Change video link access method
+#     to avoid playback error due to copyright
 
+# See changelog.txt for previous history
+############################################################
 # Plugin constants 
 __addonname__ = "奇艺视频(QIYI)"
 __addonid__   = "plugin.video.qiyi"
@@ -19,6 +24,7 @@ ORDER_LIST = [['2','最新更新'], ['3','最近热播'], ['6 ','最新上映'],
 PAYTYPE_LIST = [['','全部影片'], ['0','免费影片'], ['1','会员免费'], ['2','付费点播']]
 
 def GetHttpData(url):
+    print "getHttpData: " + url
     req = urllib2.Request(url)
     req.add_header('User-Agent', 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)')
     try:
@@ -183,7 +189,9 @@ def progList(name,id,page,cat,area,year,order,paytype):
     u = sys.argv[0]+"?mode=4&name="+urllib.quote_plus(name)+"&id="+urllib.quote_plus(id)+"&cat="+urllib.quote_plus(cat)+"&area="+urllib.quote_plus(area)+"&year="+urllib.quote_plus(year)+"&order="+order+"&paytype="+urllib.quote_plus(paytype)+"&page="+urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True, totalItems)
     for i in range(0,len(match)):
-        p_id  = re.compile('data-qidanadd-albumid="(\d+)"').search(match[i]).group(1)
+        # p_id  = re.compile('data-qidanadd-albumid="(\d+)"').search(match[i]).group(1)
+        p_id  = re.compile('<a class.+?href="(.+?)"').search(match[i]).group(1)
+        
         p_name = re.compile('alt="(.+?)"').findall(match[i])[0]
         p_thumb = re.compile('src="(.+?)"').findall(match[i])[0]
         
@@ -196,9 +204,11 @@ def progList(name,id,page,cat,area,year,order,paytype):
                 p_episode = True
         else:
             p_name1 =  p_name
+
         if p_episode:
             mode = 2
             isdir = True
+            p_id  = re.compile('data-qidanadd-albumid="(\d+)"').search(match[i]).group(1)
         else:
             mode = 3
             isdir = False
@@ -319,16 +329,26 @@ def selResolution(items):
 def PlayVideo(name,id,thumb):
     id = id.split(',')
     if len(id) == 1:
-        url = 'http://cache.video.qiyi.com/avlist/%s/' % (id[0])
-        link = GetHttpData(url)
-        data = link[link.find('=')+1:]
-        json_response = simplejson.loads(data)
-        tvId = str(json_response['data']['vlist'][0]['id'])
-        videoId = json_response['data']['vlist'][0]['vid'].encode('utf-8')
+        try:
+            if ("http:" in id[0]):
+                link = GetHttpData(id[0])
+                tvId = re.compile('data-player-tvid="(.+?)"', re.DOTALL).findall(link)[0]
+                videoId = re.compile('data-player-videoid="(.+?)"', re.DOTALL).findall(link)[0]
+            else:
+                url = 'http://cache.video.qiyi.com/avlist/%s/' % (id[0])
+                link = GetHttpData(url)
+                data = link[link.find('=')+1:]
+                json_response = simplejson.loads(data)
+                tvId = str(json_response['data']['vlist'][0]['id'])
+                videoId = json_response['data']['vlist'][0]['vid'].encode('utf-8')
+        except:
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '未能获取视频地址')
+            return
     else:
-        tvId = id[0]
-        videoId = id[1]
-
+         tvId = id[0]
+         videoId = id[1]
+ 
     playmode = int(__addon__.getSetting('playmode'))
     if playmode == 0:   # 连续播放模式
         url = 'http://cache.video.qiyi.com/m/' + tvId + '/' + videoId + '/'
@@ -345,7 +365,7 @@ def PlayVideo(name,id,thumb):
             xbmc.Player().play(mtl[sel]['m3u'], listitem)
     else:               # 分段播放模式
         #url = 'http://cache.video.qiyi.com/v/' + videoId + '/' + pid + '/' + ptype + '/'
-        url = 'http://cache.video.qiyi.com/v/' + tvId + '/' + videoId
+        url = '' + tvId + '/' + videoId
         link = GetHttpData(url)
         match1 = re.compile('<data version="(\d+)">([^<]+)</data>').findall(link)
         sel = selResolution([int(x[0]) for x in match1])
@@ -375,6 +395,7 @@ def PlayVideo(name,id,thumb):
             listitem=xbmcgui.ListItem(name, thumbnailImage = thumb)
             listitem.setInfo(type="Video",infoLabels={"Title":name+" 第"+str(i+1)+"/"+str(len(match))+" 节"})
             filepart = '/'.join(match[i].split('/')[-3:])
+            print "v_url_"+str(i), baseurl+filepart
             playlist.add(baseurl+filepart, listitem = listitem)
         xbmc.Player().play(playlist)
 
