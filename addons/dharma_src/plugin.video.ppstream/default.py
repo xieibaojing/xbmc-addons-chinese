@@ -12,8 +12,9 @@ else:
 
 ########################################################################
 # PPStream 网络电视 by cmeng
-# Version 2.2.11 2014-03-01 (cmeng)
-# - Resolved ugc video link fetching (qiyi)
+# Version 2.2.12 2014-03-02 (cmeng)
+# - Update playVideoUgcX to include new video link search algorithm
+# - Update playVideoUgc to use correct embedded thumb image
  
 # See changelog.txt for previous history
 ########################################################################
@@ -647,7 +648,8 @@ def playVideoUgc(name, url, thumb):
         p_url=p_item.getfilename(x)
         p_list =p_item.getdescription(x)
 
-        li = xbmcgui.ListItem(p_list, thumbnailImage = thumb)
+        #li = xbmcgui.ListItem(p_list, thumbnailImage = thumb)
+        li = p_item # pass all li items including the embedded thumb image
         li.setInfo(type = "Video", infoLabels = {"Title":p_list})
     
         match = re.compile('play_(.+?).html').findall(p_url)
@@ -670,7 +672,6 @@ def playVideoUgc(name, url, thumb):
                         link = getHttpData(v_url[0])
                         json_response = simplejson.loads(link)
                         v_url = json_response['tkl'][0]['vs'][0]['m3u8Location'].replace('meta','metan')
-                        print "v_url #" + str(i), psize, v_url
                         break                        
                 except:
                     pass                     
@@ -717,7 +718,6 @@ def playVideoUgc(name, url, thumb):
 #  
 #                     link = getHttpData(v_link)
 #                     match = re.compile('"l":"(.+?)"').findall(link)
-#                     # print "p_url, v_link:", x, p_url, x_url, v_link, match
 #                     if match:
 #                         v_url = match[0]
 #                         break                        
@@ -725,18 +725,6 @@ def playVideoUgc(name, url, thumb):
 #                     pass
 #                       
 #             if not len(v_url):
-#                  errcnt += 1 # increment consequetive unsuccessful access
-#                  continue
-#             err_cnt = 0 # reset error count               
-#         else:
-#             v_url = p_url
-#  
-#         playlist.add(v_url, li, k)
-#         k +=1 
-#         if k == 1:
-#             pDialog.close() 
-#             xbmc.Player(1).play(playlist)
-#         if videoplaycont == 'false': break   
 
 ##################################################################################
 # Routine to play ugc embedded swf video file
@@ -755,24 +743,27 @@ def playVideoUgcX(name, url, thumb):
         return
     
     #videolink = 'http://dp.ppstv.com/get_play_url_rate.php?sid='+match[0]+'&flash_type=1&type=0'
-    videolink = 'http://dp.ppstream.com/get_play_url_cdn.php?sid='+match[0]+'&flash_type=1&type=0'
-    link = getHttpData(videolink)   
+    vlink = 'http://dp.ppstream.com/get_play_url_cdn.php?sid='+match[0]+'&flash_type=1&type=0'
+    link = getHttpData(vlink)   
     if (link):
         v_url = re.compile('(.+?)\?hd=').findall(link)
-        if v_url and not 'PlayUrl' in v_url[0]:
+        if len(v_url) and ('PlayUrl' in v_url[0]):
+            link = getHttpData(v_url[0])
+            json_response = simplejson.loads(link)
+            v_url = json_response['tkl'][0]['vs'][0]['m3u8Location'].replace('meta','metan')
+        else:                
             v_url = v_url[0] 
-            playlist=xbmc.PlayList(1)
-            playlist.clear()
-            listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
-            listitem.setInfo(type="Video",infoLabels={"Title":name})
-            playlist.add(v_url, listitem)
-            xbmc.Player().play(playlist)       
-        else:
-            dialog = xbmcgui.Dialog()
-            ok = dialog.ok(__addonname__,'不能播放: 未匹配到视频文件，请选择其它视频')        
+
+        print "videolink: " + v_url
+        playlist=xbmc.PlayList(1)
+        playlist.clear()
+        listitem = xbmcgui.ListItem(name, thumbnailImage = thumb)
+        listitem.setInfo(type="Video",infoLabels={"Title":name})
+        playlist.add(v_url, listitem)
+        xbmc.Player().play(playlist)       
     else:
         dialog = xbmcgui.Dialog()
-        ok = dialog.ok(__addonname__,'您当前观看的视频暂不能播放，请选择其它节目')        
+        ok = dialog.ok(__addonname__,'不能播放: 未匹配到视频文件，请选择其它视频')        
             
 ##################################################################################
 # Get user input for PPS site search

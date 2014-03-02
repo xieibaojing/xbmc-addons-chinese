@@ -1,6 +1,15 @@
 ﻿########################################################################
 # PPStream 网络电视
+# PPStream 网络电视 by cmeng
+# Version 2.2.12 2014-03-02 (cmeng)
+# - Update playVideoUgcX to include new video link search algorithm
+# - Update playVideoUgc to use correct embedded thumb image
 ########################################################################
+# PPStream 网络电视 by cmeng
+# Version 2.2.12 2014-03-02 (cmeng)
+# - Update playVideoUgcX to include new video link search algorithm
+# - Update playVideoUgc to use correct embedded thumb image
+
 # PPStream 网络电视 by cmeng
 # Version 2.2.11 2014-03-01 (cmeng)
 # - Resolved ugc video link fetching (qiyi)
