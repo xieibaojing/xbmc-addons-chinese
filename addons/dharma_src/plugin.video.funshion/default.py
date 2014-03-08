@@ -8,9 +8,10 @@ else:
 ########################################################################
 # 风行视频(Funshion)"
 ########################################################################
-# v1.0.5 2014.02.13 (cmeng)
-# - Trap KeyError exception during json load in PlayVideo & PlayVideo2 routine
-# - Use higher resoluton images for thumbnail display
+# v1.0.6 2014.03.08 (cmeng)
+# - Fix video info pharsing error
+# - Add thumbnail image for playlist
+# - Enhance UI status display
 
 # Plugin constants 
 __addon__     = xbmcaddon.Addon()
@@ -227,10 +228,10 @@ def progList(name, type, cat, filtrs, page, listpage):
         elif match[i].find("class='ico-dvd hdvd'")>0:
             p_name1 += ' [COLOR FF00FFFF][高清][/COLOR]'
     
-        match1 = re.compile('<i class="mark-update">([0-9:]+)</i>').findall(match[i])
+        match1 = re.compile('<i class="mark-update">(.+?)</i>').findall(match[i])
         if len(match1):
             p_duration = match1[0]
-            p_name1 += '[COLOR FFFFFF00][' + p_duration + '][/COLOR]'
+            p_name1 += ' [COLOR FF00FF00][' + p_duration + '][/COLOR]'
         
         match1 = re.compile('<p class="item-dp">(.+?)</p>').findall(match[i])
         if len(match1):
@@ -378,16 +379,29 @@ def PlayVideo2(name,id,thumb,type):
 
     v_pos = int(name.split('.')[0])-1
     psize = playlistA.size()
+    ERR_MAX = psize-1
+    TRIAL = 1
+    errcnt = 0
     k=0
     
+    pDialog = xbmcgui.DialogProgress()
+    ret = pDialog.create('匹配视频', '请耐心等候! 尝试匹配视频文件 ...')
+    pDialog.update(0)   
+    
     for x in range(psize):
+        # abort if ERR_MAX or more access failures and no video playback
+        if (errcnt >= ERR_MAX and k == 0):
+            pDialog.close() 
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '无法播放：多次未匹配到视频文件，请选择其它视频')
+            break 
+       
         if x < v_pos: continue
         p_item=playlistA.__getitem__(x)
         p_url=p_item.getfilename(x)
         p_list =p_item.getdescription(x)
 
-        #li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = thumb)
-        li = xbmcgui.ListItem(p_list)
+        li = p_item # pass all li items including the embedded thumb image
         li.setInfo(type = "Video", infoLabels = {"Title":p_list})  
         
         if not re.search('http://', p_url):  #fresh search
@@ -395,6 +409,13 @@ def PlayVideo2(name,id,thumb,type):
                 url = 'http://api.funshion.com/ajax/get_media_data/ugc/%s' % (p_url)
             else:
                 url = 'http://api.funshion.com/ajax/get_media_data/video/%s' % (p_url)
+                
+            if (pDialog.iscanceled()):
+                pDialog.close() 
+                x = psize # quickily terminate any old thread
+                err_cnt = 0
+                return
+            pDialog.update(errcnt*100/ERR_MAX + 100/ERR_MAX/TRIAL*1)        
             
             link = getHttpData(url)
             try:
@@ -403,6 +424,7 @@ def PlayVideo2(name,id,thumb,type):
                 filename = json_response['data']['filename'].encode('utf-8')
             except:
                 # print "Json Video1: " + str(x) + ". " + link
+                errcnt += 1 # increment consequetive unsuccessful access
                 continue
             url = 'http://jobsfe.funshion.com/query/v1/mp4/%s.json?file=%s' % (hashid, filename)
 
@@ -411,19 +433,24 @@ def PlayVideo2(name,id,thumb,type):
                 json_response = simplejson.loads(link)
                 status = json_response['return'].encode('utf-8')
             except:
-                print "Json Video2: " + str(x) + ". " + link
+                # print "Json Video2: " + str(x) + ". " + link
+                errcnt += 1 # increment consequetive unsuccessful access
                 continue
             if status == 'succ':
                 v_url = json_response['playlist'][0]['urls'][0]
                 playlistA.remove(p_url) # remove old url
                 playlistA.add(v_url, li, x)  # keep a copy of v_url in Audio Playlist
-            else: continue
+            else: 
+                errcnt += 1 # increment consequetive unsuccessful access
+                continue
         else:
             v_url = p_url
-            
+
+        err_cnt = 0 # reset error count  
         playlist.add(v_url, li, k)
         k +=1
         if k == 1:
+            pDialog.close() 
             xbmc.Player(1).play(playlist)
         if videoplaycont == 'false': break
     

@@ -1,6 +1,11 @@
 ﻿########################################################################
 # 风行视频(Funshion)"
 ########################################################################
+# v1.0.6 2014.03.08 (cmeng)
+# - Fix video info pharsing error
+# - Add thumbnail image for playlist
+# - Enhance UI status display
+
 # v1.0.5 2014.02.13 (cmeng)
 # - Trap KeyError exception during json load in PlayVideo & PlayVideo2 routine
 # - Use higher resoluton images for thumbnail display
