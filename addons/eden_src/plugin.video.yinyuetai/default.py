@@ -14,9 +14,9 @@ else:
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.7.1 2014-01-26 (cmeng)
-# Change listRecommendMV() access using ajax
-# Fix listFavouriteMV() item phrasing error
+# Version 1.7.2 2014-03-08 (cmeng)
+# Add thumbnail image for playlist
+# Enhance UI status display to user
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -940,40 +940,69 @@ def get_vurl(url):
 ##################################################################################
 def playVideo(name,url,thumb):
     videoplaycont = __addon__.getSetting('video_vplaycont')
+    
     playlistA=xbmc.PlayList(0)
     playlist=xbmc.PlayList(1)
     playlist.clear()
 
     v_pos = int(name.split('.')[0])-1
     psize = playlistA.size()
+    ERR_MAX = psize-1
+    TRIAL = 1
+    errcnt = 0
     k=0
+    
+    pDialog = xbmcgui.DialogProgress()
+    ret = pDialog.create('匹配视频', '请耐心等候! 尝试匹配视频文件 ...')
+    pDialog.update(0)
+        
     for x in range(psize):
+        # abort if 5 or more access failures and no video playback
+        if (errcnt >= ERR_MAX and k == 0):
+            pDialog.close() 
+            dialog = xbmcgui.Dialog()
+            ok = dialog.ok(__addonname__, '无法播放：多次未匹配到视频文件，请选择其它视频')
+            break 
+
         if x < v_pos: continue
         p_item=playlistA.__getitem__(x)
         p_url=p_item.getfilename(x)
         p_list =p_item.getdescription(x)
 
-        #li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = thumb)
-        li = xbmcgui.ListItem(p_list)
+        # li = xbmcgui.ListItem(p_list)
+        li = p_item # pass all li items including the embedded thumb image
         li.setInfo(type = "Video", infoLabels = {"Title":p_list})   
 
+        if (pDialog.iscanceled()):
+            pDialog.close() 
+            x = psize # quickily terminate any old thread
+            err_cnt = 0
+            return
+
+        pDialog.update(errcnt*100/ERR_MAX + 100/ERR_MAX/TRIAL)        
         if re.search('http://www.yinyuetai.com/', p_url) or re.search('http://v.yinyuetai.com/video/', p_url):
             v_url = get_flv_url(p_url)
-            if v_url == None: continue
+            if not len(v_url):
+                errcnt += 1 # increment consequetive unsuccessful access
+                continue
             playlistA.remove(p_url) # remove old url
             playlistA.add(v_url, li, x)  # keep a copy of v_url in Audio Playlist
+
         elif re.search('http://v.yinyuetai.com/playlist', p_url):
             v_url = get_vurl(p_url)
-            if v_url == None: continue
+            if v_url == None:
+                errcnt += 1 # increment consequetive unsuccessful access
+                continue
             playlistA.remove(p_url) # remove old url
             playlistA.add(v_url, li, x)  # keep a copy of v_url in Audio Playlist
         else:
             v_url = p_url
             
+        err_cnt = 0 # reset error count
         playlist.add(v_url, li, k)
         k +=1 
-
         if k == 1:
+            pDialog.close() 
             xbmc.Player(1).play(playlist)
         if videoplaycont == 'false': break
             

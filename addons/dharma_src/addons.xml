@@ -602,7 +602,7 @@ For Non-PRC OS environment (Windows7|WindowsXP):[CR]"Control Panel"|"Region and 
 
 <addon id="plugin.video.yinyuetai"
     name="音悦台MV(YinYueTai)"
-    version="1.7.1"
+    version="1.7.2"
     provider-name="cmeng (originator: Skyemperor)">
     <extension
         point="xbmc.python.pluginsource"
