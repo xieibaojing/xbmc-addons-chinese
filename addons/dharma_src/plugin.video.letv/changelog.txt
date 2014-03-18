@@ -1,6 +1,10 @@
 ﻿########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
+# Version 1.3.5 2014-03-18 (cmeng)
+# - fixed setting selection and include super resolution selection
+# - fixed page selector repeated numbering '2'
+
 # Version 1.3.4 2014-02-15 (cmeng)
 # - Improve play video url fetching UI response time
 # - Miss out v_url parameter passing in letvSearchList routine

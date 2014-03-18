@@ -12,9 +12,9 @@ else:
 ########################################################################
 # 乐视网(LeTv) by cmeng
 ########################################################################
-# Version 1.3.4 2014-02-15 (cmeng)
-# - Improve play video url fetching UI response time
-# - Miss out v_url parameter passing in letvSearchList routine
+# Version 1.3.5 2014-03-18 (cmeng)
+# - fixed setting selection and include super resolution selection
+# - fixed page selector repeated numbering '2'
 
 # See changelog.txt for previous history
 ########################################################################
@@ -352,7 +352,7 @@ def progListMovie(name, url, cat, filtrs, page, listpage):
         p_pageFromEnd = max((p_pageTotal - 2), (p_pageEnd + 1))
     else:
         pages = range(2)
-        p_pageFromEnd = max((p_pageTotal - 8), 1)
+        p_pageFromEnd = max((p_pageTotal - 8), 2)
     for x in range(p_pageFromEnd, p_pageTotal): pages.append(x) 
 
     for num in pages:
@@ -489,7 +489,7 @@ def progListStar(name, url, cat, filtrs, page, listpage):
         p_pageFromEnd = max((p_pageTotal - 2), (p_pageEnd + 1))
     else:
         pages = range(2)
-        p_pageFromEnd = max((p_pageTotal - 8), 1)
+        p_pageFromEnd = max((p_pageTotal - 8), 2)
     for x in range(p_pageFromEnd, p_pageTotal): pages.append(x) 
 
     for num in pages:
@@ -579,7 +579,7 @@ def progListStarVideo(name, url, page, thumb):
         p_pageFromEnd = max((p_pageTotal - 2), (p_pageEnd + 1))
     else:
         pages = range(2)
-        p_pageFromEnd = max((p_pageTotal - 8), 1)
+        p_pageFromEnd = max((p_pageTotal - 8), 2)
     for x in range(p_pageFromEnd, p_pageTotal): pages.append(x) 
 
     for num in pages:
@@ -675,7 +675,7 @@ def progListUgc(name, url, cat, filtrs, page, listpage):
         p_pageFromEnd = max((p_pageTotal - 2), (p_pageEnd + 1))
     else:
         pages = range(2)
-        p_pageFromEnd = max((p_pageTotal - 8), 1)
+        p_pageFromEnd = max((p_pageTotal - 8), 2)
     for x in range(p_pageFromEnd, p_pageTotal): pages.append(x) 
 
     for num in pages:
@@ -779,7 +779,7 @@ def letvSearchList(name, page):
         p_pageFromEnd = max((p_pageTotal - 2), (p_pageEnd + 1))
     else:
         pages = range(2)
-        p_pageFromEnd = max((p_pageTotal - 8), 1)
+        p_pageFromEnd = max((p_pageTotal - 8), 2)
     for x in range(p_pageFromEnd, p_pageTotal): pages.append(x) 
 
     for num in pages:
@@ -864,11 +864,14 @@ def playVideoLetv(name,url,thumb):
 ##################################################################################
 def playVideo(name,url,thumb):
     videoRes = int(__addon__.getSetting('video_resolution'))
+    vparamap = {0:'normal', 1:'high', 2:'super'}
+    
     dialog = xbmcgui.Dialog()
     pDialog = xbmcgui.DialogProgress()
     ret = pDialog.create('匹配视频', '请耐心等候! 尝试匹配视频文件 ...')
     
-    p_url = "http://www.flvcd.com/parse.php?kw="+url+"&format="+str(videoRes)
+    # p_url = "http://www.flvcd.com/parse.php?kw="+url+"&format="+str(videoRes)
+    p_url = "http://www.flvcd.com/parse.php?kw="+url+"&format="+vparamap.get(videoRes,0)
     for i in range(5): # Retry specified trials before giving up (seen 9 trials max)
        if (pDialog.iscanceled()):
            pDialog.close() 
