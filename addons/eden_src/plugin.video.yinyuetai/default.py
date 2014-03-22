@@ -5,6 +5,7 @@ import datetime
 import gzip, StringIO
 import cookielib
 import ChineseKeyboard
+import base64
 
 if sys.version_info < (2, 7):
     import simplejson
@@ -14,9 +15,9 @@ else:
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.7.2 2014-03-08 (cmeng)
-# Add thumbnail image for playlist
-# Enhance UI status display to user
+# Version 1.7.3 2014-03-22 (cmeng)
+# Fixed Gotham syntax error for p_artist{}
+# Fixed resolution fetching
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -108,13 +109,31 @@ def getHttpData(url):
 def get_flv_url(url):
     # http://www.flvcd.com/parse.php?flag=&format=&kw=http://3A%2F%2Fwww.yinyuetai.com%2Fvideo%2F389970&sbt=%BF%AA%CA%BCGO%21
     videoRes = int(__addon__.getSetting('video_resolution'))
+    vparamap = {0:'normal', 1:'high', 2:'super'}
 
-    p_url = "http://www.flvcd.com/parse.php?kw="+url+"&format="+str(videoRes)
-    for i in range(10): # Retry specified trials before giving up (seen 9 trials max)
+    p_url = "http://www.flvcd.com/parse.php?kw="+url+"&format="+vparamap.get(videoRes,0)
+    for i in range(5): # Retry specified trials before giving up (seen 9 trials max)
        try: # stop xbmc from throwing error to prematurely terminate video queuing
             link = getHttpData(p_url)
             match=re.compile('下载地址：\s*<a href="(.+?)" target="_blank" class="link"').findall(link)
             if len(match): return match[0]
+       except:
+            pass
+
+# facing slow response
+def get_flv_urlx(url):
+    videoRes = int(__addon__.getSetting('video_resolution'))
+    vparamap = {0:'[流畅]', 1:'[高清]', 2:'[超清]'}
+
+    encodedUri = base64.b64encode(url)
+    p_url = "http://www.flvxz.com/getFlv.php?url="+encodedUri
+
+    for i in range(5): # Retry specified trials before giving up (seen 9 trials max)
+       try: # stop xbmc from throwing error to prematurely terminate video queuing
+            link = getHttpData(p_url)
+            match=re.compile('<span style="color:red">'+vparamap.get(videoRes,0)+'</span>.+?<a target="_blank" href="(.+?)">Preview this part</a>').findall(link)
+            if len(match):
+                return match[0]
        except:
            pass
 
@@ -292,7 +311,7 @@ def listVChart(name,area,date,timelist):
             p_list = str(j)+'. '+p_name+' [COLOR FFFF55FF]['+p_artist+'][/COLOR][COLOR FFFFFF55] ('+p_score+') [/COLOR]['+p_date+']'
                      
             li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
-            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist.split(',')})
             u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
             playlist.add(p_url, li)
@@ -396,7 +415,7 @@ def listFocusMV(name,p_url,cat):
         p_list += ' [COLOR FF00FFFF][' + p_artist[:-2] + '][/COLOR]'
        
         li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
-        li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+        li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist.split(',')})
         u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(v_url)+"&thumb="+urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
         playlist.add(v_url, li)
@@ -511,7 +530,7 @@ def listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)
             if p_artist: p_list+=' ['+p_artist +']'
               
             li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
-            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist.split(',')})
             u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
             playlist.add(p_url, li)
@@ -626,7 +645,7 @@ def listRecommendMV(name, page):
         p_list += ' [COLOR FF00FFFF][' + p_artist + '][/COLOR]'
        
         li = xbmcgui.ListItem(p_list, iconImage='', thumbnailImage=p_thumb)
-        li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+        li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist.split(',')})
         u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(v_url)+"&thumb="+urllib.quote_plus(p_thumb)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
         playlist.add(v_url, li)
@@ -669,7 +688,7 @@ def performChangesMV(name,area,page):
 
 ##################################################################################
 # http://www.yinyuetai.com/pl/playlist_newRecommend/all
-
+##################################################################################
 def listFavouriteMV(name,cat,order,page):
     # fetch user specified parameters
     if cat == None: cat = '最新推荐'
@@ -719,7 +738,7 @@ def listFavouriteMV(name,cat,order,page):
             if p_artist: p_list+=' ['+p_artist +']'
             
             li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
-            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist.split(',')})
             u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
             playlist.add(p_url, li)
@@ -866,7 +885,7 @@ def listArtistMV(name,url,thumb,page):
             p_thumb += '|Referer=http://www.yinyuetai.com'
                 
             li = xbmcgui.ListItem(p_list, iconImage = '', thumbnailImage = p_thumb)
-            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist})
+            li.setInfo(type = "Video", infoLabels = {"Title":p_list, "Artist":p_artist.split(',')})
             u = sys.argv[0]+"?mode=10"+"&name="+urllib.quote_plus(p_list)+"&url="+urllib.quote_plus(p_url)+"&thumb="+urllib.quote_plus(p_thumb)
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
             playlist.add(p_url, li)
@@ -982,8 +1001,9 @@ def playVideo(name,url,thumb):
         pDialog.update(errcnt*100/ERR_MAX + 100/ERR_MAX/TRIAL)        
         if re.search('http://www.yinyuetai.com/', p_url) or re.search('http://v.yinyuetai.com/video/', p_url):
             v_url = get_flv_url(p_url)
-            if not len(v_url):
+            if len == None:
                 errcnt += 1 # increment consequetive unsuccessful access
+                print "error cnt: " + str(errcnt)
                 continue
             playlistA.remove(p_url) # remove old url
             playlistA.add(v_url, li, x)  # keep a copy of v_url in Audio Playlist

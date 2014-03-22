@@ -1,6 +1,10 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.7.3 2014-03-22 (cmeng)
+# Fixed Gotham syntax error for p_artist{}
+# Fixed resolution fetching
+
 # Version 1.7.2 2014-03-08 (cmeng)
 # Add thumbnail image for playlist
 # Enhance UI status display to user
