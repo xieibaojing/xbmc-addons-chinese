@@ -1,6 +1,9 @@
 ﻿########################################################################
 # 风行视频(Funshion)"
 ########################################################################
+# v1.0.7 2014.04.10 (cmeng)
+# - Fix seriesList phrasing error
+
 # v1.0.6 2014.03.08 (cmeng)
 # - Fix video info pharsing error
 # - Add thumbnail image for playlist

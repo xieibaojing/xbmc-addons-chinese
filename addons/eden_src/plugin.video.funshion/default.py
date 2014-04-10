@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
+import math, os.path, httplib, time
+import cookielib
 if sys.version_info < (2, 7):
     import simplejson
 else:
@@ -8,14 +10,14 @@ else:
 ########################################################################
 # 风行视频(Funshion)"
 ########################################################################
-# v1.0.6 2014.03.08 (cmeng)
-# - Fix video info pharsing error
-# - Add thumbnail image for playlist
-# - Enhance UI status display
+# v1.0.7 2014.04.10 (cmeng)
+# - Fix seriesList phrasing error
 
 # Plugin constants 
 __addon__     = xbmcaddon.Addon()
 __addonname__ = __addon__.getAddonInfo('name')
+__profile__     = xbmc.translatePath(__addon__.getAddonInfo('profile'))
+cookieFile = __profile__ + 'cookies.funshion'
 
 CHANNEL_LIST = [['电影','movie'],['电视剧','tv'],['动漫','cartoon'],['综艺','variety'],['新闻','news'],['娱乐','ent'],['体育','sports'],['搞笑','joke'],['时尚','fashion'],['生活','life'],['旅游','tour'],['科技','tech']]
 ORDER_LIST = [['mo','最近更新'], ['z4','最受欢迎'], ['ka','评分最高'], ['re','最新上映']]
@@ -64,6 +66,57 @@ def getHttpData(url):
         charset = charset.lower()
         if (charset != 'utf-8') and (charset != 'utf8'):
             httpdata = httpdata.decode(charset, 'ignore').encode('utf8', 'ignore')
+    return httpdata
+
+############### Proxy & Cookie Support ##############################
+def getHttpDatax(url):
+    print "getHttpData: " + url
+    # setup proxy support
+    proxy = __addon__.getSetting('http_proxy')
+    type = 'http'
+    if proxy <> '':
+        ptype = re.split(':', proxy)
+        if len(ptype)<3:
+            # full path requires by Python 2.4
+            proxy = type + '://' + proxy 
+        else: type = ptype[0]
+        httpProxy = {type: proxy}
+    else:
+        httpProxy = {}
+    proxy_support = urllib2.ProxyHandler(httpProxy)
+
+    # setup cookie support
+    cj = cookielib.MozillaCookieJar(cookieFile)
+    if os.path.isfile(cookieFile):
+        cj.load(ignore_discard=True, ignore_expires=True)
+    else:
+        if not os.path.isdir(os.path.dirname(cookieFile)):
+            os.makedirs(os.path.dirname(cookieFile))
+    
+    # create opener for both proxy and cookie
+    opener = urllib2.build_opener(proxy_support, urllib2.HTTPCookieProcessor(cj))
+    req = urllib2.Request(url)
+    req.add_header('User-Agent', UserAgent)
+    
+    for k in range(3): # give 3 trails to fetch url data
+        try:
+            response = opener.open(req)
+        except urllib2.HTTPError, e:
+            httpdata = e.read()
+        except urllib2.URLError, e:
+            httpdata = "IO Timeout Error"
+        else:
+            httpdata = response.read()
+            response.close()
+            cj.save(cookieFile, ignore_discard=True, ignore_expires=True)
+            break
+
+    httpdata = re.sub('\r|\n|\t', '', httpdata)
+    match = re.compile('<meta.+?charset=["]*(.+?)"').findall(httpdata)
+    if len(match):
+        charset = match[0].lower()
+        if (charset != 'utf-8') and (charset != 'utf8'):
+            httpdata = unicode(httpdata, charset,'replace').encode('utf8')
     return httpdata
 
 ########################################################################
@@ -268,12 +321,12 @@ def seriesList(name,id,thumb):
     totalItems = len(items)
     for item in items:
         p_name = item['full'].encode('utf-8')
-        p_name1 = '%s(%s)' % (p_name, searchDict(RES_LIST,item['clarity_value'].encode('utf-8')))
-        p_id2 = item['number'].encode('utf-8')
+        # p_name1 = '%s(%s)' % (p_name, searchDict(RES_LIST,item['clarity_value'].encode('utf-8')))
+        p_id2 = str(item['number'])
         p_thumb = item['imagepath'].encode('utf-8')
         if not p_thumb:
             p_thumb = thumb
-        li = xbmcgui.ListItem(p_name1, iconImage = '', thumbnailImage = p_thumb)
+        li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
         u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&id=" + urllib.quote_plus(id)+ "&thumb=" + urllib.quote_plus(p_thumb) + "&id2=" + urllib.quote_plus(p_id2)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
