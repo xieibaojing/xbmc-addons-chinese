@@ -1,6 +1,9 @@
 ﻿########################################################################
 # 风行视频(Funshion)"
 ########################################################################
+# v1.0.9 2014.04.13 (cmeng)
+# - fix incorrect video filter selection generation
+
 # v1.0.8 2014.04.13 (cmeng)
 # - Update re-direct URL link
 # - Remove repeated url link fetch on each submenu first entry

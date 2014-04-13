@@ -10,10 +10,8 @@ else:
 ########################################################################
 # 风行视频(Funshion)"
 ########################################################################
-# v1.0.8 2014.04.13 (cmeng)
-# - Update re-direct URL link
-# - Remove repeated url link fetch on each submenu first entry
-# - fix series playback video episode incorrect url fetch
+# v1.0.9 2014.04.13 (cmeng)
+# - fix incorrect video filter selection generation
 
 # Plugin constants 
 __addon__     = xbmcaddon.Addon()
@@ -90,7 +88,7 @@ def getListSEL(listpage):
     match = re.compile('<div class="sort-.+?fix">(.+?)</ul>', re.DOTALL).findall(listpage)
     for k, list in enumerate(match):
         title = re.compile('<div class="select-subtitle">(.+?)</div>').findall(list)
-        itemLists = re.compile('<a href="/[a-z]+?/(.+?)/".+?>(.+?)</a>').findall(list)
+        itemLists = re.compile('<a href="/[a-z]+?/[a-z]+?/(.+?)/".+?>(.+?)</a>').findall(list)
         if (len(itemLists) > 1):
             itemList  = [[x[0],x[1].strip()] for x in itemLists]
     
@@ -116,10 +114,11 @@ def getListSEL(listpage):
     matchp = re.compile('<div class="sort-tab-line bgcfff fix">(.+?)</div>', re.DOTALL).findall(listpage)
     if len(matchp):
         titlelist.append('排序方式')
-        itemLists = re.compile('<a href="/[a-z]+/(.+?)\..+?><span>(.+?)</span>').findall(matchp[0])
+        itemLists = re.compile('<a href="/[a-z]+?/[a-z]+?/(.+?)\..+?><span>(.+?)</span>').findall(matchp[0])
         itemList  = [[x[0],x[1].strip()] for x in itemLists]
     catlist.append(itemList)
 
+    # print titlelist, catlist
     return titlelist, catlist   
 
 ##################################################################################
