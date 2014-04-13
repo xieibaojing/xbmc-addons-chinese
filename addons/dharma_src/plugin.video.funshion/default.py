@@ -10,8 +10,10 @@ else:
 ########################################################################
 # 风行视频(Funshion)"
 ########################################################################
-# v1.0.7 2014.04.10 (cmeng)
-# - Fix seriesList phrasing error
+# v1.0.8 2014.04.13 (cmeng)
+# - Update re-direct URL link
+# - Remove repeated url link fetch on each submenu first entry
+# - fix series playback video episode incorrect url fetch
 
 # Plugin constants 
 __addon__     = xbmcaddon.Addon()
@@ -66,57 +68,6 @@ def getHttpData(url):
         charset = charset.lower()
         if (charset != 'utf-8') and (charset != 'utf8'):
             httpdata = httpdata.decode(charset, 'ignore').encode('utf8', 'ignore')
-    return httpdata
-
-############### Proxy & Cookie Support ##############################
-def getHttpDatax(url):
-    print "getHttpData: " + url
-    # setup proxy support
-    proxy = __addon__.getSetting('http_proxy')
-    type = 'http'
-    if proxy <> '':
-        ptype = re.split(':', proxy)
-        if len(ptype)<3:
-            # full path requires by Python 2.4
-            proxy = type + '://' + proxy 
-        else: type = ptype[0]
-        httpProxy = {type: proxy}
-    else:
-        httpProxy = {}
-    proxy_support = urllib2.ProxyHandler(httpProxy)
-
-    # setup cookie support
-    cj = cookielib.MozillaCookieJar(cookieFile)
-    if os.path.isfile(cookieFile):
-        cj.load(ignore_discard=True, ignore_expires=True)
-    else:
-        if not os.path.isdir(os.path.dirname(cookieFile)):
-            os.makedirs(os.path.dirname(cookieFile))
-    
-    # create opener for both proxy and cookie
-    opener = urllib2.build_opener(proxy_support, urllib2.HTTPCookieProcessor(cj))
-    req = urllib2.Request(url)
-    req.add_header('User-Agent', UserAgent)
-    
-    for k in range(3): # give 3 trails to fetch url data
-        try:
-            response = opener.open(req)
-        except urllib2.HTTPError, e:
-            httpdata = e.read()
-        except urllib2.URLError, e:
-            httpdata = "IO Timeout Error"
-        else:
-            httpdata = response.read()
-            response.close()
-            cj.save(cookieFile, ignore_discard=True, ignore_expires=True)
-            break
-
-    httpdata = re.sub('\r|\n|\t', '', httpdata)
-    match = re.compile('<meta.+?charset=["]*(.+?)"').findall(httpdata)
-    if len(match):
-        charset = match[0].lower()
-        if (charset != 'utf-8') and (charset != 'utf8'):
-            httpdata = unicode(httpdata, charset,'replace').encode('utf8')
     return httpdata
 
 ########################################################################
@@ -179,7 +130,6 @@ def updateListSEL(name, type, cat, filtrs, page, listpage):
     titlelist, catlist  = getListSEL(listpage)
     fltr = filtrs[1:].split('.')
 
-    # print titlelist, catlist
     cat =''
     selection = ''
     for icat, title in enumerate(titlelist):
@@ -220,7 +170,8 @@ def rootList():
 ##################################################################################
 def progList(name, type, cat, filtrs, page, listpage):
     if page is None: page = 1
-    p_url = 'http://list.funshion.com/%s/pg-%s%s/'
+    # p_url = 'http://list.funshion.com/%s/pg-%s%s/'
+    p_url = 'http://www.funshion.com/list/%s/pg-%s%s/'
     if  (listpage == None):
         url = p_url % (type, page, '.s-e6ada3e78987')
         link = getHttpData(url)
@@ -232,16 +183,16 @@ def progList(name, type, cat, filtrs, page, listpage):
         if len(match):
             listpage += match[0]
         cat = updateListSEL(name, type, cat, filtrs, 0, listpage)
-    url = p_url % (type, page, filtrs)
+    else:
+        url = p_url % (type, page, filtrs)
+        link=getHttpData(url)
 
     # Fetch & build video titles list for user selection, highlight user selected filtrs  
     li = xbmcgui.ListItem(name + '（第' + str(page) + '页）【' + cat + '】（按此选择)')
     u = sys.argv[0]+"?mode=10&name="+urllib.quote_plus(name)+"&type="+type+"&cat="+urllib.quote_plus(cat)+"&filtrs="+urllib.quote_plus(filtrs)+"&page=1"+"&listpage="+urllib.quote_plus(listpage)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, True)
     
-    link=getHttpData(url)
     if link == None: return
-
     # Movie, Video, Series, Variety & Music types need different routines
     if type in ('tv', 'cartoon', 'variety'): # 电视剧, 动漫,  综艺
         isdir = True
@@ -314,18 +265,21 @@ def progList(name, type, cat, filtrs, page, listpage):
 
 ##################################################################################
 def seriesList(name,id,thumb):
-    url = 'http://api.funshion.com/ajax/get_web_fsp/%s/mp4?isajax=1' % (id)
+    # url = 'http://api.funshion.com/ajax/get_web_fsp/%s/mp4?isajax=1' % (id)
+    url = 'http://api.funshion.com/ajax/vod_panel/%s/w-1?isajax=1' % (id) #&dtime=1397342446859
     link = getHttpData(url)
     json_response = simplejson.loads(link)
     items = json_response['data']['fsps']['mult']
     totalItems = len(items)
     for item in items:
         p_name = item['full'].encode('utf-8')
-        # p_name1 = '%s(%s)' % (p_name, searchDict(RES_LIST,item['clarity_value'].encode('utf-8')))
-        p_id2 = str(item['number'])
+        # p_number = str(item['number'])
+        p_id2 = item['hashid']
+
         p_thumb = item['imagepath'].encode('utf-8')
         if not p_thumb:
             p_thumb = thumb
+        
         li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
         u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&id=" + urllib.quote_plus(id)+ "&thumb=" + urllib.quote_plus(p_thumb) + "&id2=" + urllib.quote_plus(p_id2)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
@@ -356,20 +310,25 @@ def selResolution(items):
 
 ##################################################################################
 def PlayVideo(name,id,thumb,id2):
-    print 'http://api.funshion.com/ajax/get_webplayinfo/%s/%s/mp4' % (id, id2)
-    url = 'http://api.funshion.com/ajax/get_web_fsp/%s/mp4' % (id)
-    link = getHttpData(url)
-    json_response = simplejson.loads(link)
-    if not json_response['data']:
-        ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
-        return
-
-    # print json_response['data']['fsps']['mult']
-    try:
-        hashid = json_response['data']['fsps']['mult'][0]['hashid'].encode('utf-8')
-    except:
-        ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
-        return
+    if (id2 == '1'):
+        # url = 'http://api.funshion.com/ajax/get_webplayinfo/%s/%s/mp4' % (id, id2)
+        url = 'http://api.funshion.com/ajax/get_web_fsp/%s/mp4' % (id)
+        link = getHttpData(url)
+        json_response = simplejson.loads(link)
+        if not json_response['data']:
+            ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
+            return
+    
+        # idx = (id2 - 1) # may also fetch with array index for a given id2 number
+        try:
+            hashid = json_response['data']['fsps']['mult'][0]['hashid'].encode('utf-8')
+        except:
+            ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
+            return
+    else:
+        # hashid provided by series - feteching no required
+        hashid = id2 # provided by series
+        
     url = 'http://jobsfe.funshion.com/query/v1/mp4/%s.json' % (hashid)
     link = getHttpData(url)
     json_response = simplejson.loads(link)
@@ -476,7 +435,6 @@ def PlayVideo2(name,id,thumb,type):
                 hashid = json_response['data']['hashid'].encode('utf-8')
                 filename = json_response['data']['filename'].encode('utf-8')
             except:
-                # print "Json Video1: " + str(x) + ". " + link
                 errcnt += 1 # increment consequetive unsuccessful access
                 continue
             url = 'http://jobsfe.funshion.com/query/v1/mp4/%s.json?file=%s' % (hashid, filename)
@@ -486,7 +444,6 @@ def PlayVideo2(name,id,thumb,type):
                 json_response = simplejson.loads(link)
                 status = json_response['return'].encode('utf-8')
             except:
-                # print "Json Video2: " + str(x) + ". " + link
                 errcnt += 1 # increment consequetive unsuccessful access
                 continue
             if status == 'succ':
@@ -537,7 +494,7 @@ id2 = '1'
 listpage = None
 
 try:
-    id2 = int(params["id2"])
+    id2 = urllib.unquote_plus(params["id2"])
 except:
     pass
 try:

@@ -1,6 +1,11 @@
 ﻿########################################################################
 # 风行视频(Funshion)"
 ########################################################################
+# v1.0.8 2014.04.13 (cmeng)
+# - Update re-direct URL link
+# - Remove repeated url link fetch on each submenu first entry
+# - fix series playback video episode incorrect url fetch
+
 # v1.0.7 2014.04.10 (cmeng)
 # - Fix seriesList phrasing error
 
