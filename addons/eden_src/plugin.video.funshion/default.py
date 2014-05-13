@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO
 import math, os.path, httplib, time
+from random import randrange
 import cookielib
 if sys.version_info < (2, 7):
     import simplejson
@@ -10,8 +11,8 @@ else:
 ########################################################################
 # 风行视频(Funshion)"
 ########################################################################
-# v1.0.9 2014.04.13 (cmeng)
-# - fix incorrect video filter selection generation
+# v1.0.10 2014.05.13 (cmeng)
+# - Randomly select stream server to minimize server overload
 
 # Plugin constants 
 __addon__     = xbmcaddon.Addon()
@@ -328,12 +329,24 @@ def PlayVideo(name,id,thumb,id2):
         # hashid provided by series - feteching no required
         hashid = id2 # provided by series
         
+    # url = 'http://jobsfe.funshion.com/query/v1/mp4/c847d5281686aab8bb3f4b338802c29fd236f8b2.json?clifz=fun&mac=&tm=1399766798&token=OVKHzVc57+mVfV1qDkAtYcmYKqbLRsoR2Uyv6aaI8vqW4IaC0VO+iWV0rXmhiMoRXXYhrI1/6J2dgg=='
     url = 'http://jobsfe.funshion.com/query/v1/mp4/%s.json' % (hashid)
+    
     link = getHttpData(url)
     json_response = simplejson.loads(link)
     if json_response['return'].encode('utf-8') == 'succ':
         listitem = xbmcgui.ListItem(name,thumbnailImage=thumb)
-        xbmc.Player().play(json_response['playlist'][0]['urls'][0], listitem)
+
+        #xbmc.Player().play(json_response['playlist'][0]['urls'][0], listitem)
+        # Randomly pick a server to stream video
+        v_urls = json_response['playlist'][0]['urls']   #json_response['data']['fsps']['mult']
+        # print "streamer servers: ", len(v_urls), v_urls, link, json_response['playlist'][0]
+        try:
+            i_url = randrange(len(v_urls)-1)
+        except:
+            i_url = 0
+        v_url = v_urls[i_url]
+        xbmc.Player().play(v_url, listitem)
     else:
         ok = xbmcgui.Dialog().ok(__addonname__, '没有可播放的视频')
 
