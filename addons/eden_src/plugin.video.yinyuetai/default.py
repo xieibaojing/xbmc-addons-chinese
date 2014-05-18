@@ -15,9 +15,8 @@ else:
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.7.3 2014-03-22 (cmeng)
-# Fixed Gotham syntax error for p_artist{}
-# Fixed resolution fetching
+# Version 1.7.4 2014-05-18 (cmeng)
+# Fixed 全部MV user selection filters
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -55,6 +54,7 @@ def getHttpData(url):
     # setup proxy support
     proxy = __addon__.getSetting('http_proxy')
     type = 'http'
+
     if proxy <> '':
         ptype = re.split(':', proxy)
         if len(ptype)<3:
@@ -73,7 +73,7 @@ def getHttpData(url):
     else:
         if not os.path.isdir(os.path.dirname(cookieFile)):
             os.makedirs(os.path.dirname(cookieFile))
-   
+
     # create opener for both proxy and cookie
     opener = urllib2.build_opener(proxy_support, urllib2.HTTPCookieProcessor(cj))
     charset=''
@@ -103,6 +103,7 @@ def getHttpData(url):
         charset = charset.lower()
         if (charset != 'utf-8') and (charset != 'utf8'):
             httpdata = httpdata.decode(charset, 'ignore').encode('utf8', 'ignore')
+
     return httpdata
 
 ##################################################################################
@@ -177,33 +178,33 @@ def fetchID(dlist, idx):
 ##################################################################################
 def getListMV(listpage):
     match = re.compile('<ul name="area">(.+?)</ul>').findall(listpage)
-    arealist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>[\s]*(.+?)</a>',re.DOTALL).findall(match[0])
+    arealist = re.compile('<a href=".+?name="(.+?)".+?>[\s]*(.+?)</a>',re.DOTALL).findall(match[0])
     if len(arealist)>0:
-         arealist.pop(0)
+         #arealist.pop(0)
          arealist.insert(0,['','全部地区'])
     
     match = re.compile('<ul name="artist">(.+?)</ul>').findall(listpage)
-    artistlist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>[\s]*(.+?)</a>',re.DOTALL).findall(match[0])
+    artistlist = re.compile('<a href=".+?name="(.+?)".+?>(.+?)</a>',re.DOTALL).findall(match[0])
     if len(artistlist)>0:
-         artistlist.pop(0)
+         #artistlist.pop(0)
          artistlist.insert(0,['','全部类别'])
 
     match = re.compile('<ul name="version">(.+?)</ul>').findall(listpage)
-    versionlist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>[\s]*(.+?)</a>',re.DOTALL).findall(match[0])
+    versionlist = re.compile('<a href=".+?name="(.+?)".+?>(.+?)</a>',re.DOTALL).findall(match[0])
     if len(versionlist)>0:
-         versionlist.pop(0)
+         #versionlist.pop(0)
          versionlist.insert(0,['','全部视频'])
 
     match = re.compile('<ul name="tag">(.+?)</ul>').findall(listpage)
-    taglist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>(.+?)</a>',re.DOTALL).findall(match[0])
+    taglist = re.compile('<a href=".+?name="(.+?)".+?>(.+?)</a>',re.DOTALL).findall(match[0])
     if len(taglist)>0:
-         taglist.pop(0)
+         #taglist.pop(0)
          taglist.insert(0,['','全部标签'])
     
     match = re.compile('<ul name="genre">(.+?)</ul>').findall(listpage)
-    genrelist = re.compile('<a href=".+?" name="(.+?)"[ class="on"]*>(.+?)</a>',re.DOTALL).findall(match[0])
+    genrelist = re.compile('<a href=".+?name="(.+?)".+?>(.+?)</a>',re.DOTALL).findall(match[0])
     if len(genrelist)>0:
-         genrelist.pop(0)
+         #genrelist.pop(0)
          genrelist.insert(0,['','全部流派'])
 
     return arealist,artistlist,versionlist,taglist,genrelist
@@ -457,7 +458,7 @@ def listAllMV(name,url,area,artist,version,tag, genre,fname,order,page,listpage)
     if listpage is None:
         link=getHttpData(url)
         if link == None: return
-        match = re.compile('<h3>艺人地区</h3>(.+?)</div></div>').findall(link)
+        match = re.compile('<div class="allCategory" id="allCategory">(.+?)<div id="mvlist" class="mv_list_vertical">').findall(link)
         listpage = match[0]
     arealist,artistlist,versionlist,taglist,genrelist = getListMV(listpage)   
     

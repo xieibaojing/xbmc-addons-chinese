@@ -1,6 +1,9 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.7.4 2014-05-18 (cmeng)
+# Fixed 全部MV user selection filters
+
 # Version 1.7.3 2014-03-22 (cmeng)
 # Fixed Gotham syntax error for p_artist{}
 # Fixed resolution fetching
