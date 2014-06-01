@@ -287,17 +287,22 @@ def progList(name,type,area,genre,stat,year,order,page):
 def seriesList(name,url,thumb,res):
     link = GetHttpData(url)
     json_response = simplejson.loads(link)
-    totalItems = json_response['itemNum']
-    for item in json_response['items']:
-        p_name = item['title'].encode('utf-8')
-        p_url = item['itemPlayUrl'].encode('utf-8')
-        p_thumb = item['picUrl'].encode('utf-8')
-        li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
-        u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)+"&res="+str(res)
-        #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
-    xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    mStatus = json_response['status']
+    if mStatus:
+        totalItems = json_response['itemNum']
+        for item in json_response['items']:
+            p_name = item['title'].encode('utf-8')
+            p_url = item['itemPlayUrl'].encode('utf-8')
+            p_thumb = item['picUrl'].encode('utf-8')
+            li = xbmcgui.ListItem(p_name, iconImage = '', thumbnailImage = p_thumb)
+            u = sys.argv[0] + "?mode=3&name=" + urllib.quote_plus(p_name) + "&url=" + urllib.quote_plus(p_url)+ "&thumb=" + urllib.quote_plus(p_thumb)+"&res="+str(res)
+            #li.setInfo(type = "Video", infoLabels = {"Title":p_name, "Director":p_director, "Cast":p_cast, "Plot":p_plot, "Year":p_year, "Rating":p_rating, "Votes":p_votes})
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), u, li, False, totalItems)
+        xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    else:
+        dialog = xbmcgui.Dialog()
+        ok = dialog.ok(__addonname__, '提示：没有可播放的视频')
 
 def PlayTudou(name,iid,thumb):
     url = 'http://v2.tudou.com/f?id=%s' % (iid)

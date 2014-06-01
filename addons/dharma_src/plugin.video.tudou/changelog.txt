@@ -1,4 +1,7 @@
-﻿V1.2.2 2014-02-08 (taxigps)
+﻿V1.2.3 2014-06-01 (cmeng)
+- fixed seriesList: check content availability for display
+
+V1.2.2 2014-02-08 (taxigps)
 - fixed channel: 电视剧
 
 V1.2.1 2014-01-29 (taxigps)
