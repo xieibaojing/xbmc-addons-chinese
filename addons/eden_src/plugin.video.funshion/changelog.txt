@@ -1,6 +1,9 @@
 ﻿########################################################################
 # 风行视频(Funshion)"
 ########################################################################
+# v1.0.11 2014.06.15 (cmeng)
+# - Add handler for unsupported catalog in seriesList
+
 # v1.0.10 2014.05.13 (cmeng)
 # - Randomly select stream server to minimize server overload
 

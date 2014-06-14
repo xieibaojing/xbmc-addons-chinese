@@ -11,8 +11,8 @@ else:
 ########################################################################
 # 风行视频(Funshion)"
 ########################################################################
-# v1.0.10 2014.05.13 (cmeng)
-# - Randomly select stream server to minimize server overload
+# v1.0.11 2014.06.15 (cmeng)
+# - Add handler for unsupported catalog in seriesList
 
 # Plugin constants 
 __addon__     = xbmcaddon.Addon()
@@ -269,6 +269,10 @@ def seriesList(name,id,thumb):
     url = 'http://api.funshion.com/ajax/vod_panel/%s/w-1?isajax=1' % (id) #&dtime=1397342446859
     link = getHttpData(url)
     json_response = simplejson.loads(link)
+    if json_response['status'] == 404:
+        ok = xbmcgui.Dialog().ok(__addonname__, '本片暂不支持网页播放')
+        return
+
     items = json_response['data']['fsps']['mult']
     totalItems = len(items)
     for item in items:
