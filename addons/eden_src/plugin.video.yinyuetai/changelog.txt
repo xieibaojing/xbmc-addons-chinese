@@ -1,6 +1,9 @@
 ######################################################
 # 音悦台MV
 ######################################################
+# Version 1.7.5 2014-06-15 (cmeng)
+# Replace embedded unicode with ascii in get_vurl
+
 # Version 1.7.4 2014-05-18 (cmeng)
 # Fixed 全部MV user selection filters
 

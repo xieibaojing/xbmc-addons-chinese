@@ -15,8 +15,8 @@ else:
 ##########################################################################
 # 音悦台MV
 ##########################################################################
-# Version 1.7.4 2014-05-18 (cmeng)
-# Fixed 全部MV user selection filters
+# Version 1.7.5 2014-06-15 (cmeng)
+# Replace embedded unicode with ascii in get_vurl
 ##########################################################################
 
 __addonname__ = "音悦台MV"
@@ -935,7 +935,7 @@ def performChangeGs(name,area,geshou,fname,page):
 
 ##################################################################################
 # http://hc.yinyuetai.com/uploads/videos/common/D15E013E4B0CA991DBBD9FCFDECDE167.flv?sc=441d14c6ded1de37&br=776&ptp=mv&rd=yinyuetai.com&json=1
-
+##################################################################################
 def get_vurl(url):
     link=getHttpData(url)
     if link == None: 
@@ -943,7 +943,7 @@ def get_vurl(url):
     
     match=re.compile('\[\{"videoUrl":"(.+?)"').findall(link)
     if len(match):
-        purl = match[0] + "&br=776&ptp=mv&rd=yinyuetai.com&json=1"
+        purl = match[0].replace("\\u003d", '=') + "&br=684&ptp=mv&rd=yinyuetai.com&json=1"
         link=getHttpData(purl)
         if link == None: 
             return url
