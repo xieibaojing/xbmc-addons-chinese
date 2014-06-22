@@ -1,5 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, urllib2, urllib, re, string, sys, os, gzip, StringIO, math
+import base64, time
 if sys.version_info < (2, 7):
     import simplejson
 else:
@@ -37,6 +38,52 @@ class youkuDecoder:
         for i in range(0,len(ids)-1):
             realId.append(mixed[int(ids[i])])  
         return ''.join(realId)
+
+    def trans_e(self, a, c):
+        b = range(256)
+        f = 0
+        result = ''
+        h = 0
+        while h < 256:
+            f = (f + b[h] + ord(a[h % len(a)])) % 256
+            b[h], b[f] = b[f], b[h]
+            h += 1
+        q = f = h = 0
+        while q < len(c):
+            h = (h + 1) % 256
+            f = (f + b[h]) % 256
+            b[h], b[f] = b[f], b[h]
+            result += chr(ord(c[q]) ^ b[(b[h] + b[f]) % 256])
+            q += 1
+        return result
+
+    def trans_f(self, a, c):
+        """
+        :argument a: list
+        :param c:
+        :return:
+        """
+        b = []
+        for f in range(len(a)):
+            i = ord(a[f][0]) - 97 if "a" <= a[f] <= "z" else int(a[f]) + 26
+            e = 0
+            while e < 36:
+                if c[e] == i:
+                    i = e
+                    break
+                e += 1
+            v = i - 26 if i > 25 else chr(i + 97)
+            b.append(str(v))
+        return ''.join(b)
+
+    f_code_1 = 'becaf9be'
+    f_code_2 = 'bf7e5f01'
+
+    def _calc_ep2(self, vid, ep):
+        e_code = self.trans_e(self.f_code_1, base64.b64decode(ep))
+        sid, token = e_code.split('_')
+        new_ep = self.trans_e(self.f_code_2, '%s_%s_%s' % (sid, vid, token))
+        return base64.b64encode(new_ep), token, sid
 
 def log(txt):
     message = '%s: %s' % (__addonname__, txt)
@@ -373,7 +420,7 @@ def selResolution(streamtypes):
     return streamtypes[ratelist[sel][2]], ratelist[sel][1]
 
 def PlayVideo(name,id,thumb,res):
-    url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % (id)
+    url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s/ctype/12/ev/1' % (id)
     link = GetHttpData(url)
     json_response = simplejson.loads(link)
 
@@ -396,29 +443,39 @@ def PlayVideo(name,id,thumb,res):
                     name = '%s %s' % (name, langlist[i]['lang'].encode('utf-8'))
                     break
     if vid != id:
-        url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % (vid)
+        url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s/ctype/12/ev/1' % (vid)
         link = GetHttpData(url)
         json_response = simplejson.loads(link)
 
     typeid, typename = selResolution(json_response['data'][0]['streamtypes'])
     if typeid:
-        seed = json_response['data'][0]['seed']
-        fileId = json_response['data'][0]['streamfileids'][typeid].encode('utf-8')
-        fileId = youkuDecoder().getFileId(fileId,seed)
-        if typeid == 'mp4':
-            type = 'mp4'
-        else:
-            type = 'flv'
-        urls = []
-        for i in range(len(json_response['data'][0]['segs'][typeid])): 
-            no = '%02X' % i
-            k = json_response['data'][0]['segs'][typeid][i]['k'].encode('utf-8')
-            urls.append('http://f.youku.com/player/getFlvPath/sid/00_00/st/%s/fileid/%s%s%s?K=%s' % (type, fileId[:8], no, fileId[10:], k))
-        stackurl = 'stack://' + ' , '.join(urls)
+        video_id = json_response['data'][0]['videoid']
+        oip = json_response['data'][0]['ip']
+        ep = json_response['data'][0]['ep']
+        ep, token, sid = youkuDecoder()._calc_ep2(video_id, ep)
+        query = urllib.urlencode(dict(
+            vid=video_id, ts=int(time.time()), keyframe=1, type=typeid,
+            ep=ep, oip=oip, ctype=12, ev=1, token=token, sid=sid,
+        ))
+        movurl = 'http://pl.youku.com/playlist/m3u8?%s' % (query)
+
+        #seed = json_response['data'][0]['seed']
+        #fileId = json_response['data'][0]['streamfileids'][typeid].encode('utf-8')
+        #fileId = youkuDecoder().getFileId(fileId,seed)
+        #if typeid == 'mp4':
+        #    type = 'mp4'
+        #else:
+        #    type = 'flv'
+        #urls = []
+        #for i in range(len(json_response['data'][0]['segs'][typeid])): 
+        #    no = '%02X' % i
+        #    k = json_response['data'][0]['segs'][typeid][i]['k'].encode('utf-8')
+        #    urls.append('http://f.youku.com/player/getFlvPath/sid/00_00/st/%s/fileid/%s%s%s?K=%s' % (type, fileId[:8], no, fileId[10:], k))
+        #stackurl = 'stack://' + ' , '.join(urls)
         name = '%s[%s]' % (name, typename)
         listitem=xbmcgui.ListItem(name,thumbnailImage=thumb)
         listitem.setInfo(type="Video",infoLabels={"Title":name})
-        xbmc.Player().play(stackurl, listitem)
+        xbmc.Player().play(movurl, listitem)
 
 def performChanges(name,id,listpage,genre,area,year,order):
     genrelist,arealist,yearlist = getList(listpage,id,genre,area,year)
